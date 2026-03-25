@@ -33,7 +33,7 @@ import { translations } from "@/lib/translations";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useToast } from "@/hooks/use-toast";
 import { signOut } from "firebase/auth";
-import { auth } from "../firebaseConfig"; // Asegúrate de que la ruta a firebaseConfig sea correcta
+import { auth } from "../firebaseConfig";
 import { useBrand } from "@/contexts/BrandContext";
 
 interface SocialAccount {
@@ -83,23 +83,14 @@ export default function Sidebar() {
     },
     { name: t.sidebar.inbox, href: "/inbox", icon: Inbox },
     { name: t.sidebar.brandStudio, href: "/brand-studio", icon: Palette },
-    /* {
-      name: t.sidebar.automationFlows,
-      href: "/flows-dashboard",
-      icon: GitBranch,
-    }, */
-    /*  */
-    /*  {
-      name: "WhatsApp Templates",
-      href: "/whatsapp-templates",
-      icon: SiWhatsapp,
-    }, */
-    /*{ name: t.sidebar.calendar, href: "/calendar", icon: Calendar },*/
-    /* { name: t.sidebar.analytics, href: "/analytics", icon: BarChart3 }, */
-    /*{ name: t.sidebar.campaigns, href: "/campaigns", icon: Megaphone },*/
-    /* { name: t.sidebar.customers, href: "/customers", icon: UserCheck },
-    { name: t.sidebar.sales, href: "/sales", icon: ShoppingCart },
-    { name: t.sidebar.team, href: "/team", icon: Users }, */
+    // Uncomment features below as they become production-ready:
+    // { name: t.sidebar.calendar, href: "/calendar", icon: Calendar },
+    // { name: t.sidebar.analytics, href: "/analytics", icon: BarChart3 },
+    // { name: t.sidebar.campaigns, href: "/campaigns", icon: Megaphone },
+    // { name: t.sidebar.customers, href: "/customers", icon: UserCheck },
+    // { name: t.sidebar.sales, href: "/sales", icon: ShoppingCart },
+    // { name: t.sidebar.team, href: "/team", icon: Users },
+    // { name: t.sidebar.automationFlows, href: "/flows-dashboard", icon: GitBranch },
     { name: t.sidebar.integrations, href: "/integrations", icon: Plug },
     { name: t.sidebar.settings, href: "/settings", icon: Settings },
   ];
@@ -107,7 +98,7 @@ export default function Sidebar() {
   const { activeBrandId } = useBrand();
 
   const { data: integrations, isLoading } = useQuery({
-    enabled: !!activeBrandId, // ⬅ importante
+    enabled: !!activeBrandId,
     queryKey: ["integrations", activeBrandId],
     queryFn: async () => {
       const res = await fetch(`/api/integrations?brandId=${activeBrandId}`);
@@ -118,66 +109,37 @@ export default function Sidebar() {
   });
 
   const socialAccounts = (integrations || []).filter(
-    (intg) =>
+    (intg: any) =>
       intg.category === "social" ||
       intg.category === "social_media" ||
-      intg.category === "messaging", // <--- ¡AÑADIR ESTA LÍNEA!
+      intg.category === "messaging",
   );
 
   const handleLogout = async () => {
     try {
-      // 1. Cerrar sesión en Firebase (lado del cliente)
       await signOut(auth);
-      console.log("Logged out from Firebase client.");
 
-      // 2. Llamar a tu endpoint de logout del backend para destruir la sesión del servidor
-      const response = await fetch("/api/logout", {
-        method: "POST",
-      });
+      const response = await fetch("/api/logout", { method: "POST" });
 
       if (response.ok) {
-        console.log("Logged out from backend session.");
-        // Opcional: Invalidar o resetear los datos de react-query relacionados con el usuario
-        // Esto asegura que la UI refleje el estado de no autenticado
-        queryClient.setQueryData(["/api/auth/user"], null); // Establece el usuario a null
-        // O si quieres limpiar toda la caché de react-query:
-        // queryClient.clear();
-
+        queryClient.setQueryData(["/api/auth/user"], null);
         toast({
           title: "Logged out",
           description: "You have been successfully logged out.",
         });
-        navigate("/login"); // Redirigir a la página de login o a la raíz
+        navigate("/login");
       } else {
         const errorData = await response.json();
-        console.error("Backend logout failed:", errorData.message);
         toast({
           title: "Logout Failed",
-          description:
-            errorData.message || "An error occurred during backend logout.",
+          description: errorData.message || "An error occurred during logout.",
           variant: "destructive",
         });
       }
     } catch (error: any) {
-      console.error("Firebase logout error:", error);
-      let errorMessage = "An unexpected error occurred during logout.";
-      // Puedes añadir manejo de errores específicos de Firebase aquí si lo deseas
-      // if (error && typeof error === 'object' && 'code' in error) {
-      //   switch ((error as any).code) {
-      //     case "auth/no-current-user":
-      //       errorMessage = "No user is currently signed in.";
-      //       break;
-      //     default:
-      //       errorMessage = (error as any).message;
-      //       break;
-      //   }
-      // } else if (error.message) {
-      //   errorMessage = error.message;
-      // }
-
       toast({
         title: "Logout Failed",
-        description: errorMessage,
+        description: "An unexpected error occurred during logout.",
         variant: "destructive",
       });
     }
@@ -213,9 +175,9 @@ export default function Sidebar() {
                       )}
                     />
                     {item.name}
-                    {item.badge && (
+                    {(item as any).badge && (
                       <span className="bg-red-100 text-red-800 ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium">
-                        {item.badge}
+                        {(item as any).badge}
                       </span>
                     )}
                   </div>
@@ -231,13 +193,12 @@ export default function Sidebar() {
             </h3>
 
             <div className="mt-3 space-y-2">
-              {console.log(socialAccounts, "social accounts")}
               {isLoading ? (
                 <div className="px-3 py-2 text-xs text-gray-400 animate-pulse">
                   Loading accounts...
                 </div>
               ) : socialAccounts.length > 0 ? (
-                socialAccounts.map((account) => {
+                socialAccounts.map((account: any) => {
                   const Icon =
                     platformIcons[
                       account.provider as keyof typeof platformIcons

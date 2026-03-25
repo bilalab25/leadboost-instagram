@@ -71,9 +71,9 @@ export function languageInstruction(lang: string): string {
   }
 }
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
+const openai = process.env.OPENAI_API_KEY
+  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  : null;
 
 // Using your own Gemini API key from Google AI Studio
 const ai = new GoogleGenAI({
@@ -1401,7 +1401,7 @@ function pickVisualReferenceAssets(
       a.category &&
       (locationCategories.includes(a.category) ||
         a.category === "inspiration_templates") &&
-      (!a.assetType || a.assetType === "image"), // Filter out videos and documents
+      (!(a as any).assetType || (a as any).assetType === "image"), // Filter out videos and documents
   );
 
   if (visualAssets.length === 0) {

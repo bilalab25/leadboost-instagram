@@ -1,8 +1,12 @@
 import crypto from 'crypto';
 import { PosIntegration, Product, SalesTransaction, CampaignTrigger } from '@shared/schema';
 
-// Encryption key for sensitive data (use environment variable in production)
-const ENCRYPTION_KEY = process.env.POS_ENCRYPTION_KEY || 'default-32-char-key-for-development';
+// Encryption key for sensitive data - MUST be set via environment variable in production
+const ENCRYPTION_KEY = process.env.POS_ENCRYPTION_KEY;
+if (!ENCRYPTION_KEY && process.env.NODE_ENV === "production") {
+  throw new Error("POS_ENCRYPTION_KEY is required in production. See .env.example.");
+}
+const ENCRYPTION_KEY_SAFE = ENCRYPTION_KEY || "dev-only-insecure-key-32chars!!";
 
 /**
  * POS Integration Service
@@ -14,7 +18,7 @@ export class PosIntegrationService {
    * Encrypt sensitive data like API keys and tokens
    */
   private encryptData(text: string): string {
-    const cipher = crypto.createCipher('aes-256-cbc', ENCRYPTION_KEY);
+    const cipher = crypto.createCipher('aes-256-cbc', ENCRYPTION_KEY_SAFE);
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
     return encrypted;
@@ -25,7 +29,7 @@ export class PosIntegrationService {
    */
   private decryptData(encryptedText: string): string {
     try {
-      const decipher = crypto.createDecipher('aes-256-cbc', ENCRYPTION_KEY);
+      const decipher = crypto.createDecipher('aes-256-cbc', ENCRYPTION_KEY_SAFE);
       let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
       decrypted += decipher.final('utf8');
       return decrypted;
@@ -503,11 +507,11 @@ export class PosIntegrationService {
       switch (trigger.triggerType) {
         case 'purchase_milestone':
           // Trigger when total purchases reach a milestone
-          return this.checkPurchaseMilestone(conditions, trigger.userId);
+          return this.checkPurchaseMilestone(conditions, trigger.userId || '');
           
         case 'low_stock':
           // Trigger when product stock is low
-          return this.checkLowStock(conditions, trigger.userId);
+          return this.checkLowStock(conditions, trigger.userId || '');
           
         case 'new_customer':
           // Trigger for first-time customers
@@ -515,7 +519,7 @@ export class PosIntegrationService {
           
         case 'abandoned_cart':
           // Trigger for abandoned carts (mock for now)
-          return this.checkAbandonedCart(conditions, trigger.userId);
+          return this.checkAbandonedCart(conditions, trigger.userId || '');
           
         default:
           return false;

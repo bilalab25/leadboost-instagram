@@ -6,7 +6,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useNewMessageListener } from "@/hooks/useSocket";
 import { formatDistanceToNow, differenceInHours } from "date-fns";
-import { es } from "date-fns/locale";
 import {
   X,
   Send,
@@ -109,7 +108,7 @@ export default function ConversationPanel({
   conversationId,
   participantName,
   platform,
-  contactProfilePictureProp, // <-- Desestructúrala
+  contactProfilePictureProp,
   onClose,
   isDrawer = true,
 }: ConversationPanelProps) {
@@ -122,7 +121,7 @@ export default function ConversationPanel({
   const [messageText, setMessageText] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
-  // Mantener el estado, pero ahora solo se usará para la lógica de visualización y deshabilitación
+  // State used for display logic and disabling send controls
   const [canSendFacebookMessage, setCanSendFacebookMessage] = useState(true);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [conversationFlag, setConversationFlag] = useState<
@@ -141,6 +140,15 @@ export default function ConversationPanel({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup recording interval on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+      }
+    };
+  }, []);
 
   // Fetch linked customer for this conversation (brand-scoped)
   const { data: linkedCustomer } = useQuery<Customer>({
@@ -165,8 +173,10 @@ export default function ConversationPanel({
     platform === "instagram" ||
     platform === "instagram_direct";
 
-  // 🔹 Load messages from conversations endpoint
+  // Load messages from conversations endpoint
   useEffect(() => {
+    let aborted = false;
+
     async function loadMessages() {
       try {
         setLoading(true);
@@ -176,7 +186,9 @@ export default function ConversationPanel({
         const conversationRes = await fetch(
           `/api/conversations/${conversationId}?brandId=${activeBrandId}`,
         );
+        if (aborted) return;
         const conversationData = await conversationRes.json();
+        if (aborted) return;
         if (conversationData.conversation) {
           setConversationFlag(conversationData.conversation.flag || "none");
           if (conversationData.conversation.contactProfilePicture) {
@@ -189,22 +201,22 @@ export default function ConversationPanel({
         const res = await fetch(
           `/api/conversations/${conversationId}/messages?brandId=${activeBrandId}`,
         );
+        if (aborted) return;
         const data = await res.json();
-
-        console.log("DATA, trayendo todos los mensajes: ", data);
+        if (aborted) return;
 
         if (!res.ok) throw new Error(data.error || "Error loading messages");
 
         const msgs = data.messages || [];
 
-        // 🔹 Extract metaConversationId from messages (needed for sending)
+        // Extract metaConversationId from messages (needed for sending)
         if (msgs.length > 0 && msgs[0].metaConversationId) {
           setMetaConversationId(msgs[0].metaConversationId);
         }
 
-        // 🔹 Detectar ventana de 24 h solo para Facebook
+        // Detect 24h window for Meta conversations only
         if (isMetaConversation && msgs.length > 0) {
-          // Busca el último mensaje entrante (del usuario)
+          // Find the last inbound message (from the user)
           const lastInbound = msgs
             .filter((m: any) => m.direction === "inbound")
             .sort(
@@ -218,10 +230,10 @@ export default function ConversationPanel({
               new Date(),
               new Date(lastInbound.timestamp),
             );
-            // Actualización del estado
+            // Update state
             setCanSendFacebookMessage(hours <= 24);
           } else {
-            // Si no hay mensajes entrantes, asumimos que no se puede enviar
+            // If no inbound messages, assume we cannot send
             setCanSendFacebookMessage(false);
           }
         }
@@ -238,24 +250,30 @@ export default function ConversationPanel({
           attachments: msg.attachments || [],
         }));
 
-        // 🔹 Backend now returns messages in chronological order (oldest first)
-        setMessages(formatted);
+        // Backend now returns messages in chronological order (oldest first)
+        if (!aborted) {
+          setMessages(formatted);
+        }
       } catch (err) {
-        console.error(`❌ Error loading ${platform} messages:`, err);
+        if (aborted) return;
+        console.error(`[ConversationPanel] Error loading ${platform} messages:`, err);
         toast({
           title: "Error",
-          description: `No se pudieron cargar los mensajes de ${platform}.`,
+          description: `Failed to load messages from ${platform}.`,
           variant: "destructive",
         });
       } finally {
-        setLoading(false);
+        if (!aborted) {
+          setLoading(false);
+        }
       }
     }
 
     loadMessages();
-  }, [conversationId, platform, toast]);
+    return () => { aborted = true; };
+  }, [conversationId, platform]);
 
-  // ✅ Mark conversation as read mutation (using new conversation API)
+  // Mark conversation as read mutation (using new conversation API)
   const markAsReadMutation = useMutation({
     mutationFn: async (convId: string) => {
       if (!activeBrandId) throw new Error("No active brand");
@@ -271,30 +289,19 @@ export default function ConversationPanel({
       });
     },
     onError: (error: Error) => {
-      console.error("❌ Error marking conversation as read:", error);
+      console.error("[ConversationPanel] Error marking conversation as read:", error);
     },
   });
 
-  // 🔹 Mark messages as read when conversation is opened
+  // Mark messages as read when conversation is opened
   useEffect(() => {
-    if (!conversationId) return;
-    markAsReadMutation.mutate(conversationId);
-  }, [conversationId]);
-
-  // 🔹 Mark messages as read when conversation is opened
-  useEffect(() => {
-    // 💡 Asegúrate de que ambos, conversationId Y activeBrandId, existan
     if (!conversationId || !activeBrandId) {
-      console.log("markAsRead skipped:", { conversationId, activeBrandId });
       return;
     }
-    console.log(
-      `Executing markAsRead for ${conversationId} with brand ${activeBrandId}`,
-    );
     markAsReadMutation.mutate(conversationId);
-  }, [conversationId, activeBrandId]);
+  }, [conversationId, activeBrandId]); // markAsReadMutation is stable from useMutation
 
-  // ✅ Socket.IO: Listen for new messages in real-time for this conversation
+  // Socket.IO: Listen for new messages in real-time for this conversation
   const handleNewMessage = useCallback(
     (event: any) => {
       const { provider, conversationId: msgConvoId, message } = event;
@@ -306,7 +313,7 @@ export default function ConversationPanel({
           conversationId: conversationId,
           senderId: message.senderId,
           senderName: message.contactName || "Unknown User",
-          content: message.textContent || "(sin mensaje)",
+          content: message.textContent || "(no message)",
           attachments: message.attachments || [],
           direction: "inbound",
           status: "read",
@@ -319,7 +326,7 @@ export default function ConversationPanel({
           const exists = prev.some((m) => m.id === formattedMessage.id);
           if (exists) return prev;
 
-          // **ACTUALIZAR LÓGICA DE 24H AL RECIBIR NUEVO MENSAJE INBOUND**
+          // Update 24h window logic on new inbound message
           if (isMetaConversation && formattedMessage.direction === "inbound") {
             setCanSendFacebookMessage(true);
           }
@@ -333,7 +340,7 @@ export default function ConversationPanel({
 
   useNewMessageListener(handleNewMessage);
 
-  // 🏁 Mutation to update conversation flag
+  // Mutation to update conversation flag
   const updateFlagMutation = useMutation({
     mutationFn: async (flag: "none" | "important" | "archived") => {
       if (!activeBrandId) throw new Error("No active brand");
@@ -375,7 +382,7 @@ export default function ConversationPanel({
     mutationFn: async (data: { content: string }) => {
       if (!activeBrandId) throw new Error("No active brand");
 
-      // ⚙️ Usa metaConversationId si existe (para Facebook)
+      // Use metaConversationId if available (for Facebook)
       const targetConversationId = metaConversationId || conversationId;
       const res = await fetch(
         `/api/${platform}/conversations/${targetConversationId}/messages?brandId=${activeBrandId}`,
@@ -390,33 +397,34 @@ export default function ConversationPanel({
       );
 
       const result = await res.json();
-      if (!res.ok) throw new Error(result.error || "Error al enviar mensaje");
+      if (!res.ok) throw new Error(result.error || "Error sending message");
 
       return result;
     },
 
     onMutate: async (data) => {
-      // Agrega mensaje local optimista
-      setMessages((prev) => [
+      // Add optimistic local message
+      setMessages((prev: any) => [
         ...prev,
         {
           id: "temp_" + Date.now(),
           conversationId,
           senderId: "me",
-          senderName: "Tú",
+          senderName: "You",
           content: data.content,
           direction: "outbound",
           status: "sent",
           createdAt: new Date().toISOString(),
         },
-      ]);
+      ] as any);
     },
 
     onSuccess: () => {
       setMessageText("");
+      setAttachments([]);
       toast({
-        title: "✅ Mensaje enviado",
-        description: `Tu mensaje fue enviado correctamente a ${platform}.`,
+        title: "Message sent",
+        description: `Message sent to ${platform} successfully.`,
       });
       queryClient.invalidateQueries({
         queryKey: ["/api/conversations", activeBrandId],
@@ -427,9 +435,9 @@ export default function ConversationPanel({
     },
 
     onError: (error: Error) => {
-      // Opcionalmente, puedes manejar el mensaje de error específico de la restricción de 24h aquí.
+      // Optionally handle 24h restriction error specifically here
       toast({
-        title: "Error al enviar mensaje",
+        title: "Error sending message",
         description: error.message,
         variant: "destructive",
       });
@@ -442,16 +450,15 @@ export default function ConversationPanel({
     }
     setConversationFlag("none");
   }, [conversationId, contactProfilePictureProp]);
-  // 🔹 Scroll automático
+  // Auto-scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const handleSendMessage = () => {
     if (!messageText.trim()) return;
-    // La restricción ahora es solo para deshabilitar el botón/input visualmente,
-    // el backend debería aplicar la restricción.
-    // **QUITAMOS EL TOAST Y EL RETURN DE LA LÓGICA DEL BOTÓN**
+    // The restriction only disables the button/input visually;
+    // the backend enforces the actual restriction.
     // if (isFacebookConversation && !canSendFacebookMessage) {
     //   toast({ ... });
     //   return;
@@ -462,7 +469,7 @@ export default function ConversationPanel({
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      // También se debe verificar la restricción para la tecla Enter
+      // Also enforce the restriction for the Enter key
       if (!isMetaConversation || canSendFacebookMessage) {
         handleSendMessage();
       }
@@ -511,10 +518,10 @@ export default function ConversationPanel({
         setRecordingTime((prev) => prev + 1);
       }, 1000);
     } catch (err) {
-      console.error("Error accessing microphone:", err);
+      console.error("[ConversationPanel] Error accessing microphone:", err);
       toast({
         title: "Error",
-        description: "No se pudo acceder al micrófono",
+        description: "Could not access microphone",
         variant: "destructive",
       });
     }
@@ -548,11 +555,16 @@ export default function ConversationPanel({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const isSafeUrl = (url: string) => {
+    try { return ['http:', 'https:'].includes(new URL(url).protocol); }
+    catch { return false; }
+  };
+
   const PlatformIcon =
     platform && platformIcons[platform as keyof typeof platformIcons];
   const platformBg =
     platform && platformColors[platform as keyof typeof platformColors];
-  const displayName = participantName || "Usuario";
+  const displayName = (participantName && participantName.trim()) || "Unknown";
   const displayPlatform = platform
     ? platformLabels[platform] ||
       platform.charAt(0).toUpperCase() + platform.slice(1)
@@ -574,7 +586,7 @@ export default function ConversationPanel({
           <div className="flex items-center space-x-3 flex-1">
             <div className="relative">
               <Avatar className="h-10 w-10">
-                {/* Solo mostramos la imagen si realmente tiene una URL válida */}
+                {/* Only show image if there is a valid URL */}
                 {contactProfilePicture && contactProfilePicture !== "" && (
                   <AvatarImage
                     referrerPolicy="no-referrer"
@@ -582,7 +594,7 @@ export default function ConversationPanel({
                     alt={displayName}
                   />
                 )}
-                {/* El Fallback SIEMPRE debe estar presente como respaldo */}
+                {/* Fallback must always be present */}
                 <AvatarFallback className="bg-primary/10 text-primary font-bold">
                   {displayName.charAt(0).toUpperCase()}
                 </AvatarFallback>
@@ -663,8 +675,7 @@ export default function ConversationPanel({
           )}
         </div>
 
-        {/* Mensajes */}
-        {/* ... (código de mensajes sin cambios) */}
+        {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
           {loading ? (
             <div className="space-y-4">
@@ -680,7 +691,7 @@ export default function ConversationPanel({
             </div>
           ) : !messages.length ? (
             <div className="flex items-center justify-center h-full">
-              <p className="text-gray-500 text-sm">No hay mensajes aún</p>
+              <p className="text-gray-500 text-sm">No messages yet</p>
             </div>
           ) : (
             messages.map((message) => (
@@ -693,7 +704,7 @@ export default function ConversationPanel({
                 )}
               >
                 {message.direction === "inbound" && (
-                  <Avatar className="h-8 w-8 flex-shrink-0">
+                  <Avatar className="h-8 w-8 flex-shrink-0" aria-label={displayName || "Contact"}>
                     <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
                   </Avatar>
                 )}
@@ -721,16 +732,16 @@ export default function ConversationPanel({
                         <div className="space-y-2">
                           {message.attachments.map((att) => {
                             if (att.type === "image") {
-                              return (
+                              return isSafeUrl(att.url) ? (
                                 <img
                                   key={att.id}
                                   src={att.url}
-                                  alt={att.fileName || "Imagen adjunta"}
+                                  alt={att.fileName || "Image attachment"}
                                   className="rounded-lg max-w-xs border cursor-pointer hover:opacity-90"
                                   loading="lazy"
                                   onClick={() => setPreviewImage(att.url)}
                                 />
-                              );
+                              ) : null;
                             }
 
                             if (att.type === "video") {
@@ -763,8 +774,8 @@ export default function ConversationPanel({
                                       src={att.url}
                                       type={att.mimeType || "audio/mpeg"}
                                     />
-                                    Tu navegador no soporta el elemento de
-                                    audio.
+                                    Your browser does not support the audio
+                                    element.
                                   </audio>
                                 </div>
                               );
@@ -779,7 +790,7 @@ export default function ConversationPanel({
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-2 p-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm"
                               >
-                                📎 {att.fileName || "Archivo adjunto"}
+                                <Paperclip className="h-3 w-3 inline-block mr-1" />{att.fileName || "Attachment"}
                               </a>
                             );
                           })}
@@ -791,7 +802,6 @@ export default function ConversationPanel({
                     <span className="text-xs text-gray-500">
                       {formatDistanceToNow(new Date(message.createdAt), {
                         addSuffix: true,
-                        locale: es,
                       })}
                     </span>
                     {message.direction === "outbound" && (
@@ -807,16 +817,16 @@ export default function ConversationPanel({
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Composer MODIFICADO */}
+        {/* Message Composer */}
         <div className="bg-white border-t border-gray-200 p-4">
-          {/* Bloque de alerta de 24 horas */}
+          {/* 24-hour restriction alert */}
           {isMetaConversation && !canSendFacebookMessage && (
             <div className="mb-3 p-3 bg-yellow-50 border border-yellow-300 rounded-lg flex items-center space-x-2">
               <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0" />
               <p className="text-sm text-yellow-800">
-                <b>Restricción de 24 h:</b>Han pasado más de 24 horas desde el
-                último mensaje del usuario. Solo se pueden enviar mensajes de
-                respuesta estándar dentro de este plazo.
+                <b>24h restriction:</b> More than 24 hours have passed since the
+                user's last message. Standard reply messages can only be sent
+                within this window.
               </p>
             </div>
           )}
@@ -856,7 +866,7 @@ export default function ConversationPanel({
               <div className="flex items-center gap-2 flex-1">
                 <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
                 <span className="text-sm font-medium text-red-700">
-                  Grabando... {formatRecordingTime(recordingTime)}
+                  Recording... {formatRecordingTime(recordingTime)}
                 </span>
               </div>
               <Button
@@ -874,7 +884,7 @@ export default function ConversationPanel({
                 className="bg-red-600 hover:bg-red-700"
               >
                 <StopCircle className="h-4 w-4 mr-1" />
-                Detener
+                Stop
               </Button>
             </div>
           )}
@@ -894,10 +904,9 @@ export default function ConversationPanel({
               variant="ghost"
               size="icon"
               onClick={() => fileInputRef.current?.click()}
-              disabled={
-                isRecording || (isMetaConversation && !canSendFacebookMessage)
-              }
-              className="rounded-full flex-shrink-0"
+              disabled
+              title="Attachments are not supported yet"
+              className="rounded-full flex-shrink-0 opacity-50"
             >
               <Paperclip className="h-4 w-4" />
             </Button>
@@ -907,11 +916,9 @@ export default function ConversationPanel({
               variant="ghost"
               size="icon"
               onClick={isRecording ? stopRecording : startRecording}
-              disabled={isMetaConversation && !canSendFacebookMessage}
-              className={cn(
-                "rounded-full flex-shrink-0",
-                isRecording && "bg-red-100 hover:bg-red-200",
-              )}
+              disabled
+              title="Voice notes are not supported yet"
+              className="rounded-full flex-shrink-0 opacity-50"
             >
               <Mic className={cn("h-4 w-4", isRecording && "text-red-600")} />
             </Button>
@@ -923,8 +930,8 @@ export default function ConversationPanel({
                 onKeyDown={handleKeyPress}
                 placeholder={
                   isMetaConversation && !canSendFacebookMessage
-                    ? "No se puede responder (Restricción de 24 h)"
-                    : "Escribe un mensaje..."
+                    ? "Cannot reply (24h restriction)"
+                    : "Type a message..."
                 }
                 className={cn(
                   "w-full bg-transparent border-none outline-none resize-none text-sm max-h-32",
@@ -962,7 +969,7 @@ export default function ConversationPanel({
           >
             <img
               src={previewImage}
-              alt="Vista previa"
+              alt="Preview"
               className="max-w-[90%] max-h-[90%] rounded-lg shadow-2xl border border-white"
             />
           </div>

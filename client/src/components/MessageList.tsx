@@ -7,12 +7,13 @@ import { useToast } from "@/hooks/use-toast";
 import { useNewMessageListener } from "@/hooks/useSocket";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
-import { es } from "date-fns/locale";
 import { Instagram, Mail, Twitter, Star, Archive } from "lucide-react";
 import { SiWhatsapp, SiTiktok, SiFacebook } from "react-icons/si";
 import { cn } from "@/lib/utils";
 import ConversationPanel from "@/components/ConversationPanel";
 import { useBrand } from "@/contexts/BrandContext";
+
+const MESSAGE_PREVIEW_MAX_LENGTH = 50;
 
 const platformIcons = {
   instagram: Instagram,
@@ -81,8 +82,8 @@ export default function MessageList({
     profilePicture: string | null;
   } | null>(null);
 
-  // ✅ Fetch conversations using TanStack Query (brand-scoped)
-  const { data: conversationsData, isLoading } = useQuery({
+  // Fetch conversations using TanStack Query (brand-scoped)
+  const { data: conversationsData, isLoading, error } = useQuery({
     queryKey: ["/api/conversations", activeBrandId],
     queryFn: async () => {
       const url = `/api/conversations?brandId=${activeBrandId}`;
@@ -96,7 +97,7 @@ export default function MessageList({
     enabled: !!activeBrandId,
   });
 
-  // ✅ Mark conversation as read mutation
+  // Mark conversation as read mutation
   const markAsReadMutation = useMutation({
     mutationFn: async (conversationId: string) => {
       if (!activeBrandId) throw new Error("No active brand");
@@ -124,22 +125,20 @@ export default function MessageList({
     },
   });
 
-  // ✅ Socket.IO: Listen for new messages and update conversations
+  // Socket.IO: Listen for new messages and update conversations
   const handleNewMessage = useCallback(
     (event: any) => {
-      console.log("💬 New message received via Socket.IO:", event);
-
       const { provider, conversationId, message } = event;
 
       // Update the conversations query cache with brandId
       queryClient.setQueryData(
-        ["/api/conversations", activeBrandId, platform],
+        ["/api/conversations", activeBrandId],
         (oldData: Conversation[] | undefined) => {
           if (!oldData) return oldData;
 
           // Find if conversation already exists
           const existingIndex = oldData.findIndex(
-            (c) => c.metaConversationId === conversationId,
+            (c) => c.id === event.dbConversationId || c.metaConversationId === conversationId,
           );
 
           if (existingIndex >= 0) {
@@ -175,31 +174,31 @@ export default function MessageList({
       // Show toast notification
       toast({
         title: "New Message",
-        description: `${message.contactName || "Contact"}: ${(message.textContent || "").substring(0, 50)}${message.textContent?.length > 50 ? "..." : ""}`,
+        description: `${message.contactName || "Contact"}: ${(message.textContent || "").substring(0, MESSAGE_PREVIEW_MAX_LENGTH)}${message.textContent?.length > MESSAGE_PREVIEW_MAX_LENGTH ? "..." : ""}`,
       });
     },
-    [toast, queryClient, platform, activeBrandId, activeConversation],
+    [toast, queryClient, activeBrandId, activeConversation],
   );
 
   useNewMessageListener(handleNewMessage);
 
-  // ✅ Filter conversations by platform and flag
+  // Filter conversations by platform and flag
   const conversations = conversationsData || [];
   let filteredConversations = platform
-    ? conversations.filter((c) => c.platform === platform)
+    ? conversations.filter((c: any) => c.platform === platform)
     : conversations;
 
   // Apply flag filter
   if (flagFilter !== "all") {
     filteredConversations = filteredConversations.filter(
-      (c) => c.flag === flagFilter || (!c.flag && flagFilter === "none"),
+      (c: any) => c.flag === flagFilter || (!c.flag && flagFilter === "none"),
     );
   }
 
   // Apply search filter
   if (searchQuery && searchQuery.trim() !== "") {
     const query = searchQuery.toLowerCase().trim();
-    filteredConversations = filteredConversations.filter((c) => {
+    filteredConversations = filteredConversations.filter((c: any) => {
       const contactName = (c.contactName || "").toLowerCase();
       const lastMessage = (c.lastMessage || "").toLowerCase();
       return contactName.includes(query) || lastMessage.includes(query);
@@ -209,7 +208,7 @@ export default function MessageList({
   // Sort by most recent and limit
   const displayedConversations = filteredConversations
     .sort(
-      (a, b) =>
+      (a: any, b: any) =>
         new Date(b.lastMessageAt).getTime() -
         new Date(a.lastMessageAt).getTime(),
     )
@@ -218,8 +217,12 @@ export default function MessageList({
   return (
     <div className="flex h-full w-full">
       {/* Left Panel - Conversation List */}
-      <div className="w-[35%] bg-white border-r border-gray-200 flex flex-col h-full">
+      <div className={cn(
+        "w-full md:w-[35%] bg-white border-r border-gray-200 flex flex-col h-full",
+        activeConversation && "hidden md:flex"
+      )}>
         <div className="flex-1 overflow-y-auto">
+          {error && <div className="p-4 text-center text-red-500 text-sm">Failed to load conversations</div>}
           {isLoading ? (
             // Loading skeleton
             <div className="divide-y divide-gray-100 animate-pulse">
@@ -243,7 +246,7 @@ export default function MessageList({
             </div>
           ) : (
             // Conversations list
-            displayedConversations.map((conversation) => {
+            displayedConversations.map((conversation: any) => {
               const PlatformIcon =
                 platformIcons[
                   conversation.platform as keyof typeof platformIcons
@@ -280,7 +283,7 @@ export default function MessageList({
                   onClick={() => {
                     setActiveConversation({
                       id: conversation.id,
-                      name: conversation.contactName || "Usuario",
+                      name: conversation.contactName || "Unknown",
                       platform: conversation.platform,
                       profilePicture: conversation.contactProfilePicture,
                     });
@@ -365,7 +368,6 @@ export default function MessageList({
                               new Date(conversation.lastMessageAt),
                               {
                                 addSuffix: false,
-                                locale: es,
                               },
                             )}
                           </span>
@@ -390,7 +392,10 @@ export default function MessageList({
       </div>
 
       {/* Right Panel - Conversation or Empty State */}
-      <div className="flex-1 bg-gray-50 flex items-center justify-center h-full">
+      <div className={cn(
+        "flex-1 bg-gray-50 flex items-center justify-center h-full",
+        !activeConversation && "hidden md:flex"
+      )}>
         {activeConversation ? (
           <div className="w-full h-full">
             <ConversationPanel

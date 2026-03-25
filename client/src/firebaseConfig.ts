@@ -2,15 +2,22 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, OAuthProvider } from "firebase/auth";
 
-// Tu configuración de Firebase (obtenida de la consola de Firebase)
+// Firebase configuration loaded from environment variables (VITE_ prefix exposes them to the client)
+// Set these in your .env file - see .env.example for details
 const firebaseConfig = {
-  apiKey: "AIzaSyDfch6TtQaX-OjvMfP7FZUVHgZGmeSfdBg",
-  authDomain: "app.leadboostapp.ai",
-  projectId: "leadboost-f0991",
-  storageBucket: "leadboost-f0991.firebasestorage.app",
-  messagingSenderId: "898474049332",
-  appId: "1:898474049332:web:59666e3bedbe576aec2f61",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
+
+if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+  console.error(
+    "Firebase config is missing. Set VITE_FIREBASE_* variables in your .env file. See .env.example.",
+  );
+}
 
 // Inicializa Firebase
 const app = initializeApp(firebaseConfig);

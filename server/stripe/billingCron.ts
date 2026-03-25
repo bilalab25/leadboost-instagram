@@ -2,7 +2,7 @@ import { billingService } from './billingService';
 
 const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000; // 2 days in milliseconds
 
-let cronInterval: NodeJS.Timer | null = null;
+let cronInterval: ReturnType<typeof setInterval> | null = null;
 let isRunning = false; // Lock to prevent concurrent runs
 
 export async function runBillingCycle() {

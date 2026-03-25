@@ -34,6 +34,8 @@ interface Props {
   setUserPhone: (value: string) => void;
   setUserAddress: (value: string) => void;
   handleUpdateAccountInfo: () => void;
+  handleChangePassword?: () => void;
+  handleToggleTwoFactorAuth?: () => void;
   handleDeleteAccount: () => void;
 }
 

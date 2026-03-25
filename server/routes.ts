@@ -42,6 +42,7 @@ import {
   insertCampaignTriggerSchema,
   insertSubscriptionPlanSchema,
   type BrandDesign,
+  type InsertMessage,
 } from "@shared/schema";
 import { z } from "zod";
 import { posIntegrationService } from "./services/posIntegrations";
@@ -120,10 +121,23 @@ function getLogoJob(jobId: string): LogoJob | undefined {
   return logoJobs.get(jobId);
 }
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const openai = process.env.OPENAI_API_KEY
+  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  : null;
 const upload = multer({ dest: "uploads/" });
+
+/**
+ * Safely extract the authenticated user's ID from the request.
+ * All authenticated endpoints should use this instead of manual extraction with "demo-user" fallback.
+ */
+function getUserId(req: express.Request): string {
+  const user = req.user as any;
+  const userId = user?.id || user?.claims?.sub;
+  if (!userId) {
+    throw new Error("User ID not found in session");
+  }
+  return userId;
+}
 
 // ==================================================================================
 // MULTI-PLATFORM MESSAGE FETCH HELPERS
@@ -142,7 +156,7 @@ interface NormalizedMessage {
   accountId?: string; // ✅ Account ID for message direction detection
 }
 function logSection(title: string, data?: any) {
-  console.log(`\n🟨 === ${title} ===`);
+ console.log(`\n === ${title} ===`);
   if (data) console.dir(data, { depth: 2, colors: true });
 }
 
@@ -164,7 +178,7 @@ async function fetchFacebookMessagesFromDB(
     conversationId,
   );
 
-  return dbMessages.map((m) => ({
+  return dbMessages.map((m: any) => ({
     id: m.metaMessageId,
     conversationId,
     metaConversationId: m.metaConversationId,
@@ -189,7 +203,7 @@ async function fetchInstagramMessagesFromDB(
     conversationId,
   );
 
-  return dbMessages.map((m) => ({
+  return dbMessages.map((m: any) => ({
     id: m.metaMessageId,
     conversationId,
     metaConversationId: m.metaConversationId,
@@ -214,7 +228,7 @@ async function fetchThreadsMessagesFromDB(
     conversationId,
   );
 
-  return dbMessages.map((m) => ({
+  return dbMessages.map((m: any) => ({
     id: m.metaMessageId,
     conversationId,
     metaConversationId: m.metaConversationId,
@@ -239,7 +253,7 @@ async function fetchWhatsappMessagesFromDB(
     conversationId,
   );
 
-  return dbMessages.map((m) => ({
+  return dbMessages.map((m: any) => ({
     id: m.metaMessageId,
     conversationId,
     metaConversationId: m.metaConversationId,
@@ -264,7 +278,7 @@ async function fetchWhatsappBaileysMessagesFromDB(
     conversationId,
   );
 
-  return dbMessages.map((m) => ({
+  return dbMessages.map((m: any) => ({
     id: m.metaMessageId,
     conversationId,
     metaConversationId: m.metaConversationId,
@@ -391,7 +405,7 @@ async function performInitialSync(
     const convoData = await convoRes.json();
 
     if (convoData.error) {
-      console.error(`❌ Initial sync error for ${provider}:`, convoData.error);
+      console.error(`[ERROR] Initial sync error for ${provider}:`, convoData.error);
       return;
     }
 
@@ -418,7 +432,7 @@ async function performInitialSync(
       let contactProfileImage = null;
       const participants = convo.participants?.data || [];
       const client = participants.find(
-        (p) => p.id !== accountId && p.id !== integration.pageId,
+        (p: any) => p.id !== accountId && p.id !== integration.pageId,
       );
 
       if (client) {
@@ -433,7 +447,7 @@ async function performInitialSync(
             metaImageUrl = picData.profile_pic || null;
           } catch (e) {
             console.log(
-              `⚠️ No se pudo obtener foto para el PSID: ${client.id}`,
+              `[Meta API] Could not fetch profile picture for PSID: ${client.id}`,
             );
           }
         } else if (provider === "instagram") {
@@ -453,9 +467,9 @@ async function performInitialSync(
               ],
             });
             contactProfileImage = uploadRes.secure_url; // URL persistente de Cloudinary
-            console.log(`✅ Imagen subida a Cloudinary para ${client.name}`);
+            console.log(`[OK] Imagen subida a Cloudinary para ${client.name}`);
           } catch (uploadError) {
-            console.error("❌ Error subiendo a Cloudinary:", uploadError);
+            console.error("[ERROR] Error subiendo a Cloudinary:", uploadError);
             // Fallback: usar la de Meta si Cloudinary falla
             contactProfileImage = metaImageUrl;
           }
@@ -544,7 +558,7 @@ async function performInitialSync(
         });
 
         if (m.attachments?.data?.length) {
-          console.log(`📎 Found ${m.attachments.data.length} attachments`);
+ console.log(` Found ${m.attachments.data.length} attachments`);
           for (const att of m.attachments.data) {
             const mimeType: string | null = att.mime_type || null;
             const fileName: string | null = att.name || null;
@@ -565,7 +579,7 @@ async function performInitialSync(
 
               finalUrl = upload.secure_url;
             } catch (err) {
-              console.error("❌ Cloudinary upload failed", err);
+              console.error("[ERROR] Cloudinary upload failed", err);
             }
 
             attachmentsTemp.push({
@@ -582,7 +596,7 @@ async function performInitialSync(
     }
 
     // 3. Crear/Actualizar conversaciones en DB
-    console.log(`🔄 Creating ${conversationMetadata.size} conversations...`);
+    console.log(`[SYNC] Creating ${conversationMetadata.size} conversations...`);
     const conversationMap = new Map<string, string>();
 
     for (const [
@@ -604,7 +618,7 @@ async function performInitialSync(
     }
 
     // 4. Mapear IDs y Guardar mensajes
-    messagesToInsert.forEach((msg) => {
+    messagesToInsert.forEach((msg: any) => {
       msg.conversationId = conversationMap.get(msg.metaConversationId);
     });
 
@@ -626,18 +640,18 @@ async function performInitialSync(
           fileName: att.fileName,
           fileSize: att.fileSize,
         }))
-        .filter((a) => a.messageId);
+        .filter((a): a is typeof a & { messageId: string } => !!a.messageId);
 
       if (finalAttachments.length) {
         await storage.bulkInsertMessageAttachments(finalAttachments);
-        console.log(`📎 Inserted ${finalAttachments.length} attachments`);
+ console.log(` Inserted ${finalAttachments.length} attachments`);
       }
-      console.log(`✅ Initial sync complete for ${provider}`);
+      console.log(`[OK] Initial sync complete for ${provider}`);
     }
 
     await storage.markIntegrationAsFetched(integration.id);
   } catch (err) {
-    console.error(`❌ Initial sync failed for ${provider}:`, err);
+    console.error(`[ERROR] Initial sync failed for ${provider}:`, err);
   }
 }
 /**
@@ -658,7 +672,7 @@ async function performInstagramDirectSync(
   }[] = [];
 
   try {
-    console.log(`\n🔄 [INITIAL SYNC] Starting for INSTAGRAM_DIRECT...`);
+ console.log(`\n [INITIAL SYNC] Starting for INSTAGRAM_DIRECT...`);
 
     const accessToken = integration.accessToken;
     const igbaId = integration.accountId;
@@ -716,7 +730,7 @@ async function performInstagramDirectSync(
         const m = await msgDetailRes.json();
 
         if (m.error) {
-          console.error(`⚠️ Error fetching message ${msgRef.id}:`, m.error);
+ console.error(` Error fetching message ${msgRef.id}:`, m.error);
           continue;
         }
 
@@ -784,7 +798,7 @@ async function performInstagramDirectSync(
 
         // 2) Process attachments -> Cloudinary -> staging table
         if (attachments.length) {
-          console.log(`📎 IG Direct: ${attachments.length} attachments`);
+ console.log(` IG Direct: ${attachments.length} attachments`);
 
           for (const att of attachments) {
             const info = getAttachmentType(att);
@@ -807,7 +821,7 @@ async function performInstagramDirectSync(
 
               finalUrl = upload.secure_url;
             } catch (err) {
-              console.error("❌ Cloudinary upload failed (IG Direct)", err);
+              console.error("[ERROR] Cloudinary upload failed (IG Direct)", err);
             }
 
             attachmentsTemp.push({
@@ -823,7 +837,7 @@ async function performInstagramDirectSync(
       }
     }
 
-    console.log(`🔄 Creating ${conversationMetadata.size} conversations...`);
+    console.log(`[SYNC] Creating ${conversationMetadata.size} conversations...`);
     const conversationMap = new Map<string, string>();
 
     for (const [
@@ -844,7 +858,7 @@ async function performInstagramDirectSync(
       conversationMap.set(metaConversationId, conversation.id);
     }
 
-    messagesToInsert.forEach((msg) => {
+    messagesToInsert.forEach((msg: any) => {
       msg.conversationId = conversationMap.get(msg.metaConversationId);
     });
 
@@ -874,7 +888,7 @@ async function performInstagramDirectSync(
           fileName: att.fileName,
           fileSize: att.fileSize,
         }))
-        .filter((a) => a.messageId);
+        .filter((a): a is typeof a & { messageId: string } => !!a.messageId);
 
       if (finalAttachments.length) {
         await storage.bulkInsertMessageAttachments(finalAttachments);
@@ -883,7 +897,7 @@ async function performInstagramDirectSync(
         );
       }
 
-      console.log(`✅ Initial sync complete for instagram_direct`);
+      console.log(`[OK] Initial sync complete for instagram_direct`);
     } else {
       console.log(
         `📭 No new messages found for instagram_direct, marking as synced anyway`,
@@ -892,9 +906,9 @@ async function performInstagramDirectSync(
 
     await storage.markIntegrationAsFetched(integration.id);
     integration.hasFetchedHistory = true;
-    console.log(`🏁 [INSTAGRAM_DIRECT] Marked as fetched in DB and memory`);
+    console.log(`[DONE] [INSTAGRAM_DIRECT] Marked as fetched in DB and memory`);
   } catch (err) {
-    console.error(`❌ Initial sync failed for instagram_direct:`, err);
+    console.error(`[ERROR] Initial sync failed for instagram_direct:`, err);
   }
 }
 
@@ -938,7 +952,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!parsed.success) {
         return res.status(400).json({ error: parsed.error.flatten() });
       }
-      const [entry] = await db.insert(waitlist).values(parsed.data).returning();
+      const [entry] = await db.insert(waitlist).values(parsed.data as any).returning();
       res.status(201).json({ success: true, id: entry.id });
     } catch (err: any) {
       if (err?.code === "23505") {
@@ -962,20 +976,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register Stripe billing routes
   registerStripeRoutes(app, isAuthenticated);
-
-  // Add site-wide password protection middleware
-
-  // Site password endpoint (must come before other routes)
-  app.post("/api/site-auth", (req, res) => {
-    const { password } = req.body;
-
-    if (password === process.env.WEBSITE_PASSWORD) {
-      (req.session as any).siteAccess = true;
-      res.json({ success: true });
-    } else {
-      res.status(401).json({ success: false, message: "Invalid password" });
-    }
-  });
 
   // Auth routes
   app.get("/api/auth/user", isAuthenticated, async (req: any, res) => {
@@ -1083,78 +1083,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Brand management routes
-  app.get("/api/brands-mock", async (req: any, res) => {
-    try {
-      // Return Said's Renuve brands
-      const mockBrands = [
-        {
-          id: "brand-1",
-          name: "Renuve Aesthetics Bar",
-          description:
-            "Premier beauty clinic offering advanced aesthetic treatments",
-          industry: "Beauty & Wellness",
-          targetAudience:
-            "Beauty-conscious clients seeking aesthetic enhancement",
-          website: "https://renuveaesthetics.com",
-          logoUrl: null,
-          createdAt: new Date().toISOString(),
-        },
-        {
-          id: "brand-2",
-          name: "Renuve Plastic Surgery",
-          description:
-            "Expert plastic surgery practice with cutting-edge procedures",
-          industry: "Medical & Plastic Surgery",
-          targetAudience: "Clients seeking surgical aesthetic solutions",
-          website: "https://renuveplasticsurgery.com",
-          logoUrl: null,
-          createdAt: new Date().toISOString(),
-        },
-        {
-          id: "brand-3",
-          name: "Renuve Skin Care",
-          description: "Premium skincare products and treatments",
-          industry: "Skincare & Cosmetics",
-          targetAudience: "Individuals focused on premium skincare routines",
-          website: "https://renuveskincare.com",
-          logoUrl: null,
-          createdAt: new Date().toISOString(),
-        },
-      ];
-      res.json(mockBrands);
-    } catch (error) {
-      console.error("Error fetching brands:", error);
-      res.status(500).json({ message: "Failed to fetch brands" });
-    }
-  });
-
-  app.post("/api/brands", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
-      const brandData = insertBrandSchema.parse({
-        ...req.body,
-        userId,
-      });
-
-      const brand = await storage.createBrand(brandData);
-
-      // Log activity
-      await storage.createActivityLog({
-        userId,
-        brandId: brand.id,
-        action: "create_brand",
-        description: `Created brand: ${brand.name}`,
-        entityType: "brand",
-        entityId: brand.id,
-      });
-
-      res.json(brand);
-    } catch (error) {
-      console.error("Error creating brand:", error);
-      res.status(500).json({ message: "Failed to create brand" });
-    }
-  });
+  // NOTE: Brand creation is handled by POST /api/brands/create (which also creates owner membership)
 
   const pdfUpload = multer({
     dest: "uploads/",
@@ -1230,7 +1159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/brands/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+        getUserId(req);
       const brandId = req.params.id;
       const brand = await storage.getBrandById(brandId, userId);
 
@@ -1248,7 +1177,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/brands/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+        getUserId(req);
       const brandId = req.params.id;
       const { preferredLanguage, brandCategory, ...updates } = req.body;
 
@@ -1297,7 +1226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/brands/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+        getUserId(req);
       const brandId = req.params.id;
 
       const success = await storage.deleteBrand(brandId, userId);
@@ -1330,9 +1259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
         const brandId = req.params.id;
         const { enabled } = req.body;
 
@@ -1372,9 +1299,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
 
         // Get user's brand memberships to find incomplete onboarding
         const memberships = await storage.getBrandMemberships(userId);
@@ -1429,9 +1354,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
         const brandId = req.params.id;
         const { onboardingStep, onboardingCompleted } = req.body;
 
@@ -1463,28 +1386,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/brand-memberships", isAuthenticated, async (req: any, res) => {
     try {
       console.log("─────────────────────────────────────────────");
-      console.log("🔥 [BRAND-MEMBERSHIPS] Incoming request");
+      console.log("[HOT] [BRAND-MEMBERSHIPS] Incoming request");
 
-      // Log del req.user COMPLETO
-      console.log("👤 req.user:", JSON.stringify(req.user, null, 2));
+      const userId = getUserId(req);
 
-      const claimsSub = (req.user as any)?.claims?.sub;
-      const userIdField = (req.user as any)?.id;
-      const fallback = "demo-user";
-
-      console.log("🔍 Extracted IDs:");
-      console.log("   • claims.sub:", claimsSub);
-      console.log("   • user.id:", userIdField);
-
-      const userId = claimsSub || userIdField || fallback;
-
-      console.log("👉 Final userId used for membership lookup:", userId);
-
-      console.log("📡 Querying getBrandMemberships(userId)…");
+ console.log(" Querying getBrandMemberships(userId)…");
 
       const memberships = await storage.getBrandMemberships(userId);
 
-      console.log("📦 Result from getBrandMemberships:");
+ console.log(" Result from getBrandMemberships:");
       console.log(JSON.stringify(memberships, null, 2));
 
       if (memberships.length === 0) {
@@ -1492,14 +1402,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "⚠️ No memberships found. This usually means userId mismatched with DB.",
         );
       } else {
-        console.log("✅ Memberships found:", memberships.length);
+        console.log("[OK] Memberships found:", memberships.length);
       }
 
       console.log("─────────────────────────────────────────────");
 
       res.json(memberships);
     } catch (error) {
-      console.error("❌ Error fetching brand memberships:", error);
+      console.error("[ERROR] Error fetching brand memberships:", error);
       res.status(500).json({ message: "Failed to fetch brand memberships" });
     }
   });
@@ -1508,7 +1418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/brands/create", isAuthenticated, async (req: any, res) => {
     try {
       const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+        getUserId(req);
       const {
         name,
         industry,
@@ -1622,9 +1532,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
         const { inviteCode } = req.body;
 
         if (!inviteCode) {
@@ -1669,7 +1577,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   email: user.email,
                   firstName: user.firstName,
                   lastName: user.lastName,
-                  avatarUrl: user.avatarUrl,
+                  avatarUrl: (user as any).avatarUrl ?? user.profileImageUrl,
                 }
               : null,
           };
@@ -1692,9 +1600,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
         const { brandId } = req.query;
         const { role, email } = req.body;
 
@@ -1753,9 +1659,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
         const { membershipId } = req.params;
         const { role } = req.body;
 
@@ -1815,9 +1719,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const actorUserId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
         const { membershipId } = req.params;
 
         // Get the target membership
@@ -1875,9 +1777,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const actorUserId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
         const { invitationId } = req.params;
 
         // Get the invitation to verify brandId
@@ -1916,9 +1816,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
         await populateDemoData(userId);
         res.json({ message: "Demo data populated successfully" });
       } catch (error) {
@@ -1928,108 +1826,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  // Dashboard stats (Demo mode)
-  app.get("/api/dashboard/stats", async (req: any, res) => {
+  // Dashboard stats - aggregated from real data (requires brand access)
+  app.get("/api/dashboard/stats", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
-      // Return Said's Renuve dashboard stats
-      const mockStats = {
-        totalMessages: 2134,
-        unreadMessages: 42,
-        totalCampaigns: 28,
-        activeCampaigns: 15,
-        totalSocialAccounts: 6,
-        connectedPlatforms: [
-          "instagram",
-          "facebook",
-          "tiktok",
-          "whatsapp",
-          "email",
-          "linkedin",
-        ],
-        monthlyEngagement: 38200,
-        responseTime: "45 minutes",
-        engagementRate: 8.7,
-        aiPosts: 203,
-        revenue: 100000,
+      const brandId = req.brandMembership!.brandId;
+
+      // Get brand integrations for connected platforms
+      const integrations = await storage.getIntegrationsByBrandId(brandId);
+      const connectedPlatforms = Array.from(
+        new Set(integrations.filter((i: any) => i.isActive).map((i: any) => i.provider)),
+      );
+
+      // Get conversations for unread count
+      const conversations = await storage.getConversationsByBrandId(brandId);
+      const unreadMessages = conversations.reduce(
+        (sum: number, c: any) => sum + (c.unreadCount || 0),
+        0,
+      );
+      const totalMessages = conversations.length;
+
+      // Get campaigns count
+      const campaigns = await storage.getCampaignsByBrandId(brandId);
+      const activeCampaigns = campaigns.filter(
+        (c: any) => c.status === "scheduled" || c.status === "published",
+      ).length;
+
+      // Get AI-generated posts count
+      let aiPosts = 0;
+      try {
+        const { getAiGeneratedPostsByBrand } = await import("./storage/aiGeneratedPosts");
+        const posts = await getAiGeneratedPostsByBrand(brandId);
+        aiPosts = posts.length;
+      } catch (err) {
+        console.warn("[Dashboard] Failed to fetch AI posts count:", (err as Error).message);
+      }
+
+      const stats = {
+        totalMessages,
+        unreadMessages,
+        totalCampaigns: campaigns.length,
+        activeCampaigns,
+        totalSocialAccounts: integrations.length,
+        connectedPlatforms,
+        aiPosts,
+        monthlyEngagement: 0,
+        responseTime: "N/A",
+        engagementRate: 0,
+        revenue: 0,
       };
-      res.json(mockStats);
+      res.json(stats);
     } catch (error) {
-      console.error("Error fetching dashboard stats:", error);
+      console.error("[Dashboard] Error fetching stats:", error);
       res.status(500).json({ message: "Failed to fetch dashboard stats" });
     }
   });
 
   // Social accounts routes
-  app.get("/api/social-accounts", async (req: any, res) => {
-    try {
-      // Return Said's Renuve social accounts
-      const mockAccounts = [
-        {
-          id: "social-1",
-          platform: "instagram",
-          accountName: "@renuvederm",
-          accountId: "12345",
-          isConnected: true,
-          followers: 28500,
-          lastSync: new Date().toISOString(),
-        },
-        {
-          id: "social-2",
-          platform: "facebook",
-          accountName: "Renuve Aesthetics Bar",
-          accountId: "67890",
-          isConnected: true,
-          followers: 12400,
-          lastSync: new Date().toISOString(),
-        },
-        {
-          id: "social-3",
-          platform: "tiktok",
-          accountName: "@renuveskin",
-          accountId: "54321",
-          isConnected: true,
-          followers: 45200,
-          lastSync: new Date().toISOString(),
-        },
-        {
-          id: "social-4",
-          platform: "whatsapp",
-          accountName: "Renuve Aesthetics WhatsApp",
-          accountId: "business-123",
-          isConnected: true,
-          followers: 0,
-          lastSync: new Date().toISOString(),
-        },
-        {
-          id: "social-5",
-          platform: "instagram",
-          accountName: "@renuveplasticsurgery",
-          accountId: "98765",
-          isConnected: true,
-          followers: 18700,
-          lastSync: new Date().toISOString(),
-        },
-        {
-          id: "social-6",
-          platform: "instagram",
-          accountName: "@renuveskin",
-          accountId: "11223",
-          isConnected: true,
-          followers: 22100,
-          lastSync: new Date().toISOString(),
-        },
-      ];
-      res.json(mockAccounts);
-    } catch (error) {
-      console.error("Error fetching social accounts:", error);
-      res.status(500).json({ message: "Failed to fetch social accounts" });
-    }
-  });
 
   app.post("/api/social-accounts", async (req: any, res) => {
     try {
       const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+        getUserId(req);
       const accountData = insertSocialAccountSchema.parse({
         ...req.body,
         userId,
@@ -2065,7 +1922,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/messages/:id/read", isAuthenticated, async (req, res) => {
+  app.patch("/api/messages/:id/read", isAuthenticated, requireBrand, async (req, res) => {
     try {
       const messageId = req.params.id;
       await storage.markMessageAsRead(messageId);
@@ -2076,7 +1933,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/messages/:id/priority", isAuthenticated, async (req, res) => {
+  app.patch("/api/messages/:id/priority", isAuthenticated, requireBrand, async (req, res) => {
     try {
       const messageId = req.params.id;
       const { priority } = req.body;
@@ -2088,7 +1945,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/messages/:id/assign", isAuthenticated, async (req, res) => {
+  app.patch("/api/messages/:id/assign", isAuthenticated, requireBrand, async (req, res) => {
     try {
       const messageId = req.params.id;
       const { assignedTo } = req.body;
@@ -2100,7 +1957,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/messages/latest", isAuthenticated, async (req, res) => {
+  app.get("/api/messages/latest", isAuthenticated, requireBrand, async (req, res) => {
     try {
       // 1. Obtener el límite y el usuario
       const { limit: limitStr = "10" } = req.query;
@@ -2108,7 +1965,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isNaN(limit) || limit <= 0) {
         return res.status(400).json({ error: "Invalid limit parameter" });
       }
-      const userId = req.user.id;
+      const userId = (req.user as any)?.id;
 
       // 2. Obtener todas las integraciones del usuario
       const integrations = await storage.getIntegrations(userId);
@@ -2134,7 +1991,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // ✅ Leer mensajes de la base de datos local para Meta (Facebook/Instagram/Threads)
               const dbMessages = await storage.getMessagesByIntegration(
                 integration.id,
-                limit, // Pasa el límite a tu función de almacenamiento
               );
 
               messages = dbMessages.map((m) => ({
@@ -2148,13 +2004,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 fromId: m.senderId,
                 created_time: m.timestamp.toISOString(),
                 provider: provider,
-                accountId,
-                direction: m.direction,
-                // Nota: Tendrás que asegurarte de que tu función getMessagesByIntegration
-                // también pueda obtener datos de imágenes (imageUrl) si es necesario.
-                // Por ahora, lo dejo como null o necesitarías adaptar la lógica de mapeo si almacenas esa URL.
+                accountId: accountId ?? undefined,
                 imageUrl: null,
-              }));
+              })) as NormalizedMessage[];
 
               break;
             }
@@ -2167,7 +2019,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const allWhatsAppMessages =
                 await storage.getMessagesByIntegration(
                   integration.id,
-                  limit, // Pasa el límite a tu función de almacenamiento
                 );
 
               messages = allWhatsAppMessages.map((m) => ({
@@ -2181,10 +2032,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 fromId: m.senderId,
                 created_time: m.timestamp.toISOString(),
                 provider: provider,
-                accountId,
-                direction: m.direction,
+                accountId: accountId ?? undefined,
                 imageUrl: null,
-              }));
+              })) as NormalizedMessage[];
 
               break;
             }
@@ -2196,7 +2046,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           return { messages, success: true, provider, accountId };
         } catch (err) {
-          console.error(`❌ Error fetching messages for ${provider}:`, err);
+          console.error(`[ERROR] Error fetching messages for ${provider}:`, err);
           return {
             messages: [],
             success: false,
@@ -2221,9 +2071,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Adjunta el accountId a cada mensaje
           const providerMessages = result.value.messages.map((msg) => ({
             ...msg,
-            accountId: result.value.accountId,
+            accountId: result.value.accountId ?? undefined,
           }));
-          allMessages.push(...providerMessages);
+          allMessages.push(...(providerMessages as NormalizedMessage[]));
         }
       });
 
@@ -2239,7 +2089,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(latestMessages);
     } catch (err) {
-      console.error("❌ Error fetching latest messages from DB:", err);
+      console.error("[ERROR] Error fetching latest messages from DB:", err);
       res.status(500).json({ error: "Failed to fetch latest messages" });
     }
   });
@@ -2264,155 +2114,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  app.get("/api/content-plans-mock", async (req: any, res) => {
-    try {
-      // Return mock AI-generated content plans
-      const mockContentPlans = [
-        {
-          id: "plan-1",
-          title: "March 2024 Content Strategy",
-          month: 3,
-          year: 2024,
-          status: "active",
-          strategy: JSON.stringify({
-            theme: "Spring Product Launch",
-            objectives: [
-              "Increase brand awareness",
-              "Drive product sales",
-              "Build community engagement",
-            ],
-            keyMessages: [
-              "Fresh start with our products",
-              "Spring cleaning made easy",
-              "Community-driven innovation",
-            ],
-          }),
-          insights: {
-            theme: "Spring Product Launch",
-            objectives: [
-              "Increase brand awareness by 40%",
-              "Drive product sales for new spring collection",
-              "Build community engagement through UGC campaigns",
-            ],
-            keyMessages: [
-              "Fresh start with our products",
-              "Spring cleaning made easy",
-              "Community-driven innovation",
-            ],
-            platforms: {
-              instagram: {
-                focus: "Visual storytelling",
-                postFrequency: "Daily",
-              },
-              tiktok: {
-                focus: "Trending challenges",
-                postFrequency: "2x daily",
-              },
-              facebook: {
-                focus: "Community building",
-                postFrequency: "5x weekly",
-              },
-              email: {
-                focus: "Product education",
-                frequency: "Weekly newsletter",
-              },
-            },
-          },
-          posts: [
-            {
-              date: "2024-03-01",
-              platform: "instagram",
-              type: "image",
-              caption:
-                "Spring is here! 🌸 Time to refresh your routine with our new collection. What's your favorite spring ritual?",
-              hashtags: ["#SpringVibes", "#NewCollection", "#FreshStart"],
-              scheduledTime: "09:00",
-            },
-            {
-              date: "2024-03-02",
-              platform: "tiktok",
-              type: "video",
-              caption:
-                "POV: You're getting your life together this spring ✨ #SpringCleaning #Organized",
-              hashtags: ["#SpringCleaning", "#Organized", "#LifeHacks"],
-              scheduledTime: "15:30",
-            },
-          ],
-          createdAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 5,
-          ).toISOString(),
-          updatedAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 2,
-          ).toISOString(),
-        },
-        {
-          id: "plan-2",
-          title: "April 2024 Content Strategy",
-          month: 4,
-          year: 2024,
-          status: "draft",
-          strategy: JSON.stringify({
-            theme: "Earth Month Sustainability",
-            objectives: [
-              "Promote eco-friendly practices",
-              "Showcase sustainable products",
-              "Partner with environmental influencers",
-            ],
-            keyMessages: [
-              "Sustainability made simple",
-              "Small changes, big impact",
-              "Eco-conscious living",
-            ],
-          }),
-          insights: {
-            theme: "Earth Month Sustainability",
-            objectives: [
-              "Promote eco-friendly practices",
-              "Showcase sustainable product line",
-              "Partner with 5 environmental influencers",
-            ],
-            keyMessages: [
-              "Sustainability made simple",
-              "Small changes, big impact",
-              "Eco-conscious living",
-            ],
-            platforms: {
-              instagram: {
-                focus: "Educational content",
-                postFrequency: "Daily",
-              },
-              tiktok: { focus: "Eco-tips & hacks", postFrequency: "Daily" },
-              linkedin: {
-                focus: "Industry insights",
-                postFrequency: "3x weekly",
-              },
-              email: { focus: "Sustainability guide", frequency: "Bi-weekly" },
-            },
-          },
-          posts: [
-            {
-              date: "2024-04-01",
-              platform: "instagram",
-              type: "carousel",
-              caption:
-                "5 simple swaps for a more sustainable lifestyle 🌱 Save this post for later!",
-              hashtags: ["#EarthMonth", "#Sustainability", "#EcoFriendly"],
-              scheduledTime: "10:00",
-            },
-          ],
-          createdAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 2,
-          ).toISOString(),
-          updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
-        },
-      ];
-
-      res.json(mockContentPlans);
-    } catch (error) {
-      console.error("Error fetching content plans:", error);
-      res.status(500).json({ message: "Failed to fetch content plans" });
-    }
-  });
 
   app.post(
     "/api/content-plans/generate",
@@ -2421,9 +2122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
         const brandId = req.brandMembership.brandId;
         const { month, year, businessData } = req.body;
 
@@ -2443,7 +2142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           insights: strategy,
           posts: strategy.posts,
           status: "draft",
-        });
+        } as any);
 
         // Log activity
         await storage.createActivityLog({
@@ -2471,9 +2170,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
         const brandId = req.brandId;
         const { schedules } = req.body;
 
@@ -2553,9 +2250,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
 
         const integrations = await storage.getIntegrationsByUserId(userId);
         const active = integrations.filter(
@@ -2661,12 +2356,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
               const avg = (a: number[]) =>
                 a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
-              const avgReach = avg(parsed.map((p) => p.reach));
-              const avgInteractions = avg(parsed.map((p) => p.total));
-              const avgER = avg(parsed.map((p) => p.engagementRate));
+              const avgReach = avg(parsed.map((p: any) => p.reach));
+              const avgInteractions = avg(parsed.map((p: any) => p.total));
+              const avgER = avg(parsed.map((p: any) => p.engagementRate));
 
               // 📅 Identify top 3 days by engagement
-              const byDay = parsed.reduce((acc: any, p) => {
+              const byDay = parsed.reduce((acc: any, p: any) => {
                 const day = new Date(p.timestamp).getDay(); // 0=Sun
                 acc[day] = acc[day] || { er: [] };
                 acc[day].er.push(p.engagementRate);
@@ -2686,10 +2381,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
               // ⏰ Dynamic hours based on high-engagement posts
               const topPosts = parsed
-                .sort((a, b) => b.engagementRate - a.engagementRate)
+                .sort((a: any, b: any) => b.engagementRate - a.engagementRate)
                 .slice(0, Math.max(3, parsed.length * 0.2));
               const avgHour =
-                Math.round(avg(topPosts.map((p) => p.hour))) || 12;
+                Math.round(avg(topPosts.map((p: any) => p.hour))) || 12;
               const hours = [
                 `${String(avgHour - 1 < 0 ? 0 : avgHour - 1).padStart(2, "0")}:00`,
                 `${String(avgHour + 1 > 23 ? 23 : avgHour + 1).padStart(2, "0")}:00`,
@@ -2740,7 +2435,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         res.json(result);
       } catch (error) {
-        console.error("❌ Error fetching AI suggestions:", error);
+        console.error("[ERROR] Error fetching AI suggestions:", error);
         res.status(500).json({
           message: "Failed to fetch AI suggestions",
           error: error instanceof Error ? error.message : "Unknown error",
@@ -2757,9 +2452,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
         const brandId = req.brandId;
         const { role, contentType, content, metadata } = req.body;
 
@@ -3488,127 +3181,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  app.get("/api/campaigns-mock", async (req: any, res) => {
-    try {
-      // Return mock campaigns
-      const mockCampaigns = [
-        {
-          id: "campaign-1",
-          title: "Spring Product Launch",
-          description:
-            "Comprehensive campaign to launch our new spring collection across all social platforms",
-          status: "active",
-          startDate: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 7,
-          ).toISOString(),
-          endDate: new Date(
-            Date.now() + 1000 * 60 * 60 * 24 * 23,
-          ).toISOString(),
-          budget: 5000,
-          spent: 2450,
-          platforms: ["instagram", "tiktok", "facebook", "email"],
-          targetAudience: {
-            demographics: "Women 25-40",
-            interests: ["lifestyle", "home decor", "sustainable living"],
-            location: "North America",
-          },
-          content: {
-            posts: 24,
-            videos: 8,
-            emails: 4,
-            stories: 16,
-          },
-          performance: {
-            impressions: 156000,
-            engagements: 12400,
-            clicks: 3200,
-            conversions: 89,
-            revenue: 8940,
-          },
-          createdAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 10,
-          ).toISOString(),
-        },
-        {
-          id: "campaign-2",
-          title: "TikTok Viral Challenge",
-          description:
-            "Branded hashtag challenge to increase brand awareness and user-generated content",
-          status: "scheduled",
-          startDate: new Date(
-            Date.now() + 1000 * 60 * 60 * 24 * 3,
-          ).toISOString(),
-          endDate: new Date(
-            Date.now() + 1000 * 60 * 60 * 24 * 17,
-          ).toISOString(),
-          budget: 3000,
-          spent: 0,
-          platforms: ["tiktok", "instagram"],
-          targetAudience: {
-            demographics: "Gen Z 16-24",
-            interests: ["dance", "trends", "lifestyle"],
-            location: "Global",
-          },
-          content: {
-            posts: 0,
-            videos: 12,
-            emails: 0,
-            stories: 8,
-          },
-          performance: {
-            impressions: 0,
-            engagements: 0,
-            clicks: 0,
-            conversions: 0,
-            revenue: 0,
-          },
-          createdAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 5,
-          ).toISOString(),
-        },
-        {
-          id: "campaign-3",
-          title: "Email Nurture Sequence",
-          description:
-            "7-email sequence for new subscribers to introduce brand and products",
-          status: "completed",
-          startDate: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 30,
-          ).toISOString(),
-          endDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
-          budget: 800,
-          spent: 750,
-          platforms: ["email"],
-          targetAudience: {
-            demographics: "New subscribers",
-            interests: ["product education", "brand story"],
-            location: "All regions",
-          },
-          content: {
-            posts: 0,
-            videos: 0,
-            emails: 7,
-            stories: 0,
-          },
-          performance: {
-            impressions: 8500,
-            engagements: 3400,
-            clicks: 1200,
-            conversions: 156,
-            revenue: 4680,
-          },
-          createdAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 35,
-          ).toISOString(),
-        },
-      ];
-
-      res.json(mockCampaigns);
-    } catch (error) {
-      console.error("Error fetching campaigns:", error);
-      res.status(500).json({ message: "Failed to fetch campaigns" });
-    }
-  });
 
   app.post(
     "/api/campaigns",
@@ -3617,9 +3189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
         const brandId = req.brandMembership.brandId;
 
         // Validate client-provided data (without userId/brandId)
@@ -3659,9 +3229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
         const brandId = req.brandMembership.brandId;
         const { prompt, platforms, businessContext } = req.body;
 
@@ -3680,7 +3248,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           content: generatedContent,
           status: "draft",
           aiGenerated: true,
-        });
+        } as any);
 
         // Log activity
         await storage.createActivityLog({
@@ -3707,9 +3275,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
         const brandId = req.brandMembership.brandId;
         const campaignId = req.params.id;
 
@@ -3723,9 +3289,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Get brand's social accounts
         const socialAccounts =
-          await storage.getSocialAccountsByBrandId(brandId);
+          await storage.getSocialAccountsByUserId(brandId);
         const accessTokens = socialAccounts.reduce(
-          (acc, account) => {
+          (acc: any, account: any) => {
             if (
               account.accessToken &&
               campaign.platforms?.includes(account.platform)
@@ -3907,7 +3473,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       Respond in English.`;
 
       // Generate response using OpenAI
-      const completion = await openai.chat.completions.create({
+      const completion = await openai!.chat.completions.create({
         model: "gpt-4", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
         messages: [
           { role: "system", content: systemPrompt },
@@ -3955,7 +3521,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "publish_video",
       ].join(",");
 
-      console.log("🔐 Facebook OAuth scopes:", scopes);
+ console.log(" Facebook OAuth scopes:", scopes);
 
       // -------------------------------------
       // 🔥 CORRECTO: stringify SOLO UNA VEZ
@@ -3980,7 +3546,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   app.get("/api/integrations/facebook/callback", async (req, res) => {
-    console.log("\n🔵 [FB Callback] START — Facebook OAuth callback\n");
+ console.log("\n [FB Callback] START — Facebook OAuth callback\n");
 
     try {
       const { code, state } = req.query;
@@ -3989,19 +3555,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 0️⃣ Validate query params
       // -----------------------------------------
       if (!code) {
-        console.log("❌ Missing ?code in callback");
+        console.log("[ERROR] Missing ?code in callback");
         return res.redirect("/integrations?error=missing_code");
       }
 
       if (!state) {
-        console.log("❌ Missing ?state in callback");
+        console.log("[ERROR] Missing ?state in callback");
         return res.redirect("/integrations?error=missing_state");
       }
 
       // -----------------------------------------
       // 1️⃣ Decode state
       // -----------------------------------------
-      console.log("🔵 Decoding state...");
+      console.log("[INFO] Decoding state...");
       let userId, brandId, origin;
 
       try {
@@ -4012,9 +3578,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         brandId = parsed.brandId;
         origin = parsed.origin || "integrations";
 
-        console.log("🟢 State decoded:", parsed);
+        console.log("[OK] State decoded:", parsed);
       } catch (err) {
-        console.log("❌ Failed to decode state:", err);
+        console.log("[ERROR] Failed to decode state:", err);
         return res.redirect("/integrations?error=invalid_state");
       }
 
@@ -4023,7 +3589,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // -----------------------------------------
       // 2️⃣ Exchange CODE → USER TOKEN
       // -----------------------------------------
-      console.log("🔵 Exchanging code for access token…");
+      console.log("[Facebook OAuth] Exchanging code for access token...");
 
       const tokenRes = await fetch(
         `https://graph.facebook.com/v24.0/oauth/access_token` +
@@ -4034,7 +3600,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       const tokenJson = await tokenRes.json();
-      console.log("🟢 Token response:", tokenJson);
+      console.log("[Facebook OAuth] Token exchange completed, access_token received:", !!tokenJson.access_token);
 
       if (!tokenJson.access_token) {
         return res.redirect("/integrations?error=token_failed");
@@ -4045,14 +3611,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // -----------------------------------------
       // 3️⃣ Get pages user manages
       // -----------------------------------------
-      console.log("🔵 Fetching Facebook Pages…");
+      console.log("[INFO] Fetching Facebook Pages…");
 
       const pagesRes = await fetch(
         `https://graph.facebook.com/v24.0/me/accounts?access_token=${userAccessToken}`,
       );
       const pagesJson = await pagesRes.json();
 
-      console.log("🟢 Pages found:", pagesJson);
+      console.log("[OK] Pages found:", pagesJson);
 
       if (!pagesJson.data?.length) {
         return res.redirect("/integrations?error=no_pages");
@@ -4061,7 +3627,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // -----------------------------------------
       // 4️⃣ Pick page (prefer one with IG)
       // -----------------------------------------
-      console.log("🔵 Searching for IG-linked Page…");
+      console.log("[INFO] Searching for IG-linked Page…");
 
       let selectedPage = null;
       let igInfo = null;
@@ -4086,7 +3652,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!selectedPage) {
         selectedPage = pagesJson.data[0];
-        console.log(`⚠️ No IG found. Using first page: ${selectedPage.name}`);
+        console.log(`[WARN] No IG found. Using first page: ${selectedPage.name}`);
       }
 
       const pageAccessToken = selectedPage.access_token;
@@ -4094,7 +3660,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // -----------------------------------------
       // 5️⃣ Save FACEBOOK integration
       // -----------------------------------------
-      console.log("🔵 Saving Facebook integration…");
+      console.log("[INFO] Saving Facebook integration…");
 
       const savedFbIntegration = await storage.createOrUpdateIntegration({
         userId,
@@ -4127,7 +3693,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // -----------------------------------------
       // 6️⃣ SUBSCRIBE PAGE TO WEBHOOK  ✅ CLAVE
       // -----------------------------------------
-      console.log("🔵 Subscribing Page to webhook…");
+      console.log("[INFO] Subscribing Page to webhook…");
 
       const subscribeRes = await fetch(
         `https://graph.facebook.com/v24.0/${selectedPage.id}/subscribed_apps`,
@@ -4148,10 +3714,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       const subscribeJson = await subscribeRes.json();
-      console.log("🟢 Subscription response:", subscribeJson);
+      console.log("[OK] Subscription response:", subscribeJson);
 
       if (!subscribeJson.success) {
-        console.warn("⚠️ Page subscription failed (messages may not arrive)");
+ console.warn(" Page subscription failed (messages may not arrive)");
       }
 
       // -----------------------------------------
@@ -4236,11 +3802,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const redirectBase =
         origin === "onboarding" ? "/onboarding?step=4" : "/integrations";
 
-      console.log("🟩 OAuth COMPLETE → redirecting user");
+ console.log(" OAuth COMPLETE → redirecting user");
 
       return res.redirect(redirectBase);
     } catch (error) {
-      console.error("❌ [FB Callback] Unexpected error:", error);
+      console.error("[ERROR] [FB Callback] Unexpected error:", error);
       return res.redirect("/integrations?error=callback_failed");
     }
   });
@@ -4254,11 +3820,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireBrand,
     (req: any, res) => {
       const redirectUri = `${process.env.APP_URL}/api/integrations/instagram/callback`;
-      console.log("🔗 Instagram Direct OAuth redirect URI:", redirectUri);
+ console.log(" Instagram Direct OAuth redirect URI:", redirectUri);
       const clientId = process.env.IG_APP_ID;
 
       if (!clientId) {
-        console.error("❌ IG_APP_ID not configured");
+        console.error("[ERROR] IG_APP_ID not configured");
         return res
           .status(500)
           .send("Instagram Direct integration not configured");
@@ -4270,7 +3836,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "instagram_business_content_publish",
       ].join(",");
 
-      console.log("🔐 Instagram Direct OAuth scopes:", scopes);
+ console.log(" Instagram Direct OAuth scopes:", scopes);
 
       // Get origin from query params (onboarding or integrations)
       const origin = (req.query.origin as string) || "integrations";
@@ -4340,10 +3906,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       );
       const tokenData = await tokenRes.json();
-      console.log("🔑 Instagram token response:", tokenData);
+      console.log("[Instagram OAuth] Token exchange completed, has access_token:", !!tokenData.access_token);
 
       if (tokenData.error_type || tokenData.error_message) {
-        console.error("❌ Instagram token exchange error:", tokenData);
+        console.error("[ERROR] Instagram token exchange error:", tokenData);
         return res
           .status(500)
           .send(`Error: ${tokenData.error_message || "Token exchange failed"}`);
@@ -4368,7 +3934,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }&access_token=${shortLivedToken}`,
         );
         const longLivedData = await longLivedRes.json();
-        console.log("🔄 Long-lived token response:", longLivedData);
+        console.log("[Instagram OAuth] Long-lived token exchange completed, success:", !!longLivedData.access_token);
         if (longLivedData.access_token) {
           longLivedToken = longLivedData.access_token;
           expiresAt = longLivedData.expires_in
@@ -4417,7 +3983,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             igbaId = profileData.user_id.toString();
             appScopedId = igUserId.toString(); // Keep token's user_id as app-scoped reference
           }
-          console.log("✅ Profile fetched successfully:", {
+          console.log("[OK] Profile fetched successfully:", {
             igUsername,
             igbaId,
             appScopedId,
@@ -4438,7 +4004,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Continue with default values from token response
       }
 
-      console.log("📱 Instagram profile:", {
+      console.log("[MOBILE] Instagram profile:", {
         igUsername,
         accountType,
         mediaCount,
@@ -4497,12 +4063,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       });
 
-      console.log("✅ Instagram Direct integration saved successfully");
+      console.log("[OK] Instagram Direct integration saved successfully");
 
       // Trigger sync if inbox subscription is already active (for users who reconnect after paying)
       // This runs in the background (non-blocking)
       triggerSyncForNewIntegration(savedIntegration).catch((err) => {
-        console.error("❌ Error triggering sync for new integration:", err);
+        console.error("[ERROR] Error triggering sync for new integration:", err);
       });
 
       // 6️⃣ Redirect based on origin (onboarding or integrations)
@@ -4514,7 +4080,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       return res.redirect(`/integrations?connected=instagram_direct`);
     } catch (err) {
-      console.error("❌ Instagram callback error:", err);
+      console.error("[ERROR] Instagram callback error:", err);
       return res.status(500).send("Error in Instagram callback");
     }
   });
@@ -4553,7 +4119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // ^^^ El 'config_id' es CRUCIAL.
 
-      console.log("🟢 WhatsApp Embedded Signup URL:", embeddedSignupUrl);
+      console.log("[OK] WhatsApp Embedded Signup URL:", embeddedSignupUrl);
       res.redirect(embeddedSignupUrl);
     },
   );
@@ -4575,7 +4141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ error: "Phone number is required" });
         }
 
-        console.log("📱 WhatsApp QR Code request for:", phoneNumber);
+        console.log("[MOBILE] WhatsApp QR Code request for:", phoneNumber);
 
         // For the QR code method, we need to guide users through the coexistence setup
         // This requires:
@@ -4600,7 +4166,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const waLink = `https://wa.me/${phoneNumber}`;
         const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(waLink)}`;
 
-        console.log("✅ Generated WhatsApp pairing code:", pairingCode);
+        console.log("[OK] Generated WhatsApp pairing code:", pairingCode);
 
         // Return both QR code and instructions
         res.json({
@@ -4625,7 +4191,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           note: "For full Cloud API access with coexistence, please use the Meta Signup option which includes QR code verification during the process.",
         });
       } catch (err) {
-        console.error("❌ WhatsApp QR generation error:", err);
+        console.error("[ERROR] WhatsApp QR generation error:", err);
         res.status(500).json({
           error: "Failed to generate QR code",
           details: err instanceof Error ? err.message : String(err),
@@ -4670,22 +4236,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tokenData = await tokenResponse.json();
 
       if (tokenData.error) {
-        console.error("❌ Error exchanging code:", tokenData.error);
+        console.error("[ERROR] Error exchanging code:", tokenData.error);
         throw new Error(tokenData.error.message || "Error exchanging code");
       }
 
       const userAccessToken = tokenData.access_token as string;
-      console.log("✅ Token exchange OK");
+      console.log("[OK] Token exchange OK");
 
       // 2️⃣ Usar debug_token para sacar WABA ID (Embedded Signup way)
       const debugRes = await fetch(
         `https://graph.facebook.com/v24.0/debug_token?input_token=${userAccessToken}&access_token=${process.env.FB_APP_ID}|${process.env.FB_APP_SECRET}`,
       );
       const debugData = await debugRes.json();
-      console.log("🔍 Debug token:", JSON.stringify(debugData, null, 2));
+      console.log("[WhatsApp OAuth] Token debug check completed, valid:", !debugData.error);
 
       if (debugData.error) {
-        console.error("❌ debug_token error:", debugData.error);
+        console.error("[ERROR] debug_token error:", debugData.error);
         throw new Error(debugData.error.message || "Error in debug_token");
       }
 
@@ -4720,7 +4286,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      console.log("📌 Parsed from granular_scopes →", { wabaId, businessId });
+ console.log(" Parsed from granular_scopes →", { wabaId, businessId });
 
       // 3️⃣ Fallback opcional (por si algún día cambian granular_scopes)
       //    Dejé tu intento por /me y /me/businesses como backup, pero ya no es el camino principal.
@@ -4775,9 +4341,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .send("WhatsApp Business Account not linked or created.");
       }
 
-      console.log(`🟢 Final WABA ID: ${wabaId}`);
+ console.log(` Final WABA ID: ${wabaId}`);
       if (businessId) {
-        console.log(`🟢 Business ID (from debug_token): ${businessId}`);
+ console.log(` Business ID (from debug_token): ${businessId}`);
       }
 
       // 4️⃣ Obtener el número de teléfono asociado al WABA
@@ -4785,7 +4351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `https://graph.facebook.com/v24.0/${wabaId}/phone_numbers?access_token=${userAccessToken}`,
       );
       const phoneData = await phoneNumbersRes.json();
-      console.log("📞 Phone numbers data:", phoneData);
+ console.log(" Phone numbers data:", phoneData);
 
       const phoneNumber = phoneData.data?.[0] || null;
 
@@ -4855,7 +4421,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.redirect(`/integrations?connected=whatsapp`);
       }
     } catch (err: any) {
-      console.error("❌ WhatsApp callback error:", err.message || err);
+      console.error("[ERROR] WhatsApp callback error:", err.message || err);
       res
         .status(500)
         .send(`Error in WhatsApp callback: ${err.message || "Unknown error"}`);
@@ -4890,7 +4456,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const baileysModule = await import("./services/whatsappBaileys");
       whatsappBaileysService = baileysModule.whatsappBaileysService;
-      console.log("📱 [Baileys] WhatsApp Baileys service loaded");
+      console.log("[MOBILE] [Baileys] WhatsApp Baileys service loaded");
 
       // Set up event listeners for WhatsApp Baileys
       whatsappBaileysService.on(
@@ -5031,12 +4597,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
               textContent: message.text,
               direction: "inbound",
               timestamp: message.timestamp,
-              messageType: message.type || "text",
-              mediaUrl: message.mediaUrl || null,
               metadata: {
                 messageType: message.type,
+                mediaUrl: message.mediaUrl || null,
               },
-            });
+            } as any);
 
             // Increment unread count
             await storage.incrementUnreadCount(conversation.id);
@@ -5059,7 +4624,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               });
             }
           } catch (error) {
-            console.error("❌ [Baileys] Error handling message event:", error);
+            console.error("[ERROR] [Baileys] Error handling message event:", error);
           }
         },
       );
@@ -5099,19 +4664,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       );
 
-      console.log("📱 [Baileys] Event listeners configured");
+      console.log("[MOBILE] [Baileys] Event listeners configured");
 
       // Restore any existing sessions on startup
       setTimeout(async () => {
         try {
           await whatsappBaileysService.restoreExistingSessions();
-          console.log("📱 [Baileys] Session restoration complete");
+          console.log("[MOBILE] [Baileys] Session restoration complete");
         } catch (error) {
-          console.error("❌ [Baileys] Error restoring sessions:", error);
+          console.error("[ERROR] [Baileys] Error restoring sessions:", error);
         }
       }, 2000); // Small delay to ensure routes are fully registered
     } catch (err) {
-      console.warn("⚠️ [Baileys] WhatsApp Baileys service not available:", err);
+ console.warn(" [Baileys] WhatsApp Baileys service not available:", err);
     }
   } // End of else block for Baileys enabled
 
@@ -5153,7 +4718,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               : "Scan the QR code with your WhatsApp",
         });
       } catch (error) {
-        console.error("❌ [Baileys] Connection error:", error);
+        console.error("[ERROR] [Baileys] Connection error:", error);
         res.status(500).json({
           error: "Failed to start WhatsApp connection",
           details: error instanceof Error ? error.message : String(error),
@@ -5189,7 +4754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ...status,
         });
       } catch (error) {
-        console.error("❌ [Baileys] Status check error:", error);
+        console.error("[ERROR] [Baileys] Status check error:", error);
         res.status(500).json({
           error: "Failed to check WhatsApp status",
           status: "error",
@@ -5242,7 +4807,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       } catch (error) {
-        console.error("❌ [Baileys] Send message error:", error);
+        console.error("[ERROR] [Baileys] Send message error:", error);
         res.status(500).json({
           error: "Failed to send message",
           details: error instanceof Error ? error.message : String(error),
@@ -5279,7 +4844,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             : "No active session to disconnect",
         });
       } catch (error) {
-        console.error("❌ [Baileys] Disconnect error:", error);
+        console.error("[ERROR] [Baileys] Disconnect error:", error);
         res.status(500).json({
           error: "Failed to disconnect WhatsApp",
           details: error instanceof Error ? error.message : String(error),
@@ -5294,7 +4859,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const brandIntegrations = await storage.getIntegrationsByBrandId(brandId);
       res.status(200).json(brandIntegrations);
     } catch (error) {
-      console.error("❌ Error fetching integrations:", error);
+      console.error("[ERROR] Error fetching integrations:", error);
       res.status(500).json({ error: "Failed to fetch integrations" });
     }
   });
@@ -5349,7 +4914,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           res.status(500).json({ error: "Failed to delete integration" });
         }
       } catch (error) {
-        console.error("❌ Error deleting integration:", error);
+        console.error("[ERROR] Error deleting integration:", error);
         res.status(500).json({ error: "Failed to delete integration" });
       }
     },
@@ -5401,7 +4966,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const data = await response.json();
 
         if (data.error) {
-          console.error("❌ Meta API error fetching templates:", data.error);
+          console.error("[ERROR] Meta API error fetching templates:", data.error);
           return res.status(400).json({
             error: "Meta API error",
             message:
@@ -5455,7 +5020,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           total: templates.length,
         });
       } catch (error: any) {
-        console.error("❌ Error fetching WhatsApp templates:", error);
+        console.error("[ERROR] Error fetching WhatsApp templates:", error);
         res.status(500).json({
           error: "Failed to fetch templates",
           message: error.message || "Unknown error",
@@ -5557,7 +5122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const data = await response.json();
 
         if (data.error) {
-          console.error("❌ Meta API error sending template:", data.error);
+          console.error("[ERROR] Meta API error sending template:", data.error);
           return res.status(400).json({
             error: "Failed to send message",
             message: data.error.message || "Meta API error",
@@ -5565,7 +5130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        console.log(`✅ WhatsApp template sent to ${formattedPhone}:`, data);
+        console.log(`[OK] WhatsApp template sent to ${formattedPhone}:`, data);
 
         // Store message in database after successful send
         const metaMessageId = data.messages?.[0]?.id;
@@ -5588,7 +5153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               integrationId: whatsappIntegration.id,
               brandId: brandId,
               userId: userId,
-              metaConversationId: `${whatsappIntegration?.metadata?.phoneNumberId}_${metaContactId}`,
+              metaConversationId: `${(whatsappIntegration?.metadata as any)?.phoneNumberId}_${metaContactId}`,
               platform: "whatsapp",
               contactName: formattedPhone, // Phone number as initial contact name
               lastMessage: messageContent,
@@ -5639,7 +5204,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           to: formattedPhone,
         });
       } catch (error: any) {
-        console.error("❌ Error sending WhatsApp template:", error);
+        console.error("[ERROR] Error sending WhatsApp template:", error);
         res.status(500).json({
           error: "Failed to send template",
           message: error.message || "Unknown error",
@@ -5648,41 +5213,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  // Meta webhook verification (GET)
   app.get("/api/webhooks/meta", async (req, res) => {
     try {
-      const VERIFY_TOKEN =
-        process.env.META_VERIFY_TOKEN || "leadboost_meta_webhook";
+      const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN;
+      if (!VERIFY_TOKEN) {
+        console.error("[Meta Webhook] META_VERIFY_TOKEN env var is not set");
+        return res.sendStatus(403);
+      }
+
       const mode = req.query["hub.mode"];
       const token = req.query["hub.verify_token"];
       const challenge = req.query["hub.challenge"];
 
-      if (mode && token && mode === "subscribe" && token === VERIFY_TOKEN) {
-        console.log("✅ Webhook verificado correctamente con Meta");
+      if (mode === "subscribe" && token === VERIFY_TOKEN) {
+        console.log("[Meta Webhook] Verification successful");
         return res.status(200).send(challenge);
       } else {
-        console.warn("❌ Webhook verification failed");
+        console.warn("[Meta Webhook] Verification failed - token mismatch");
         return res.sendStatus(403);
       }
     } catch (err) {
-      console.error("❌ Error en verificación de webhook Meta:", err);
+      console.error("[Meta Webhook] Verification error:", err);
       res.status(500).json({ error: "Meta webhook verification failed" });
     }
   });
+
+  // Meta webhook event handler (POST) — with signature verification
   app.post("/api/webhooks/meta", async (req, res) => {
     try {
-      console.log("=================================================");
-      console.log(" �� REQUEST RECEIVED: POST /api/webhooks/meta");
       const body = req.body;
-      console.log("🔴 PAYLOAD RAW (BODY):");
-      console.dir(body, { depth: null });
-      console.log("=================================================");
+
+      // Verify webhook signature if FB_APP_SECRET is configured
+      const appSecret = process.env.FB_APP_SECRET;
+      if (appSecret) {
+        const signature = req.headers["x-hub-signature-256"] as string;
+        if (!signature) {
+          console.warn("[Meta Webhook] Missing x-hub-signature-256 header");
+          return res.sendStatus(403);
+        }
+        const crypto = await import("crypto");
+        const expectedSignature = "sha256=" + crypto
+          .createHmac("sha256", appSecret)
+          .update(JSON.stringify(body))
+          .digest("hex");
+        if (signature !== expectedSignature) {
+          console.warn("[Meta Webhook] Invalid signature");
+          return res.sendStatus(403);
+        }
+      } else {
+        console.warn("[Meta Webhook] FB_APP_SECRET not set — skipping signature verification (NOT SAFE FOR PRODUCTION)");
+      }
+
+      console.log("[Meta Webhook] Event received:", body.object);
 
       if (
         body.object === "page" ||
         body.object === "instagram" ||
         body.object === "whatsapp_business_account"
       ) {
-        console.log("📩 Nuevo evento recibido desde Meta");
+        console.log("[Meta Webhook] New event received");
 
         for (const entry of body.entry || []) {
           const events = entry.messaging || entry.changes || [];
@@ -5703,7 +5293,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 if (phoneNumberId) {
                   const allIntegrations = await storage.getAllIntegrations();
                   integration = allIntegrations.find((int) => {
-                    let meta = int.metadata;
+                    let meta: any = int.metadata;
                     if (typeof meta === "string") {
                       try {
                         meta = JSON.parse(
@@ -5825,7 +5415,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   continue;
                 }
 
-                console.log(`📸 [Instagram Direct] Message details:`);
+                console.log(`[IMAGE] [Instagram Direct] Message details:`);
                 console.log(`- senderId: ${senderId}`);
                 console.log(`- recipientId: ${recipientId}`);
                 console.log(`- messageId: ${messageId}`);
@@ -5885,7 +5475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   // Fallback metaConversationId format for legacy conversations
                   const legacyMetaConversationId = `ig_${senderId}_${recipientId}`;
 
-                  console.log(`📊 [Instagram Direct] Direction analysis:`);
+                  console.log(`[METRICS] [Instagram Direct] Direction analysis:`);
                   console.log(`- senderId: ${senderId}`);
                   console.log(
                     `- integration.accountId: ${integration.accountId}`,
@@ -6006,7 +5596,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       if (!contactName) {
                         const igProfileUrl = `https://graph.instagram.com/v24.0/${contactId}?fields=name,profile_pic&access_token=${accessToken}`;
                         console.log(
-                          `📱 [Instagram Direct] Trying Instagram Graph API: ${igProfileUrl.replace(accessToken, "TOKEN_HIDDEN")}`,
+                          `📱 [Instagram Direct] Trying Instagram Graph API: ${igProfileUrl.replace(accessToken || '', "TOKEN_HIDDEN")}`,
                         );
                         const igProfileRes = await fetch(igProfileUrl);
                         const igProfileData = await igProfileRes.json();
@@ -6120,7 +5710,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       userId: integration.userId,
                       metaConversationId,
                       platform,
-                      contactName,
+                      contactName: contactName ?? undefined,
                       contactProfilePicture: contactProfilePicture || undefined,
                       contactProfilePictureFetchedAt: contactProfilePicture
                         ? new Date()
@@ -6298,7 +5888,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const attachments = event.message.attachments || [];
 
               // Debug: Log what we're searching for
-              console.log(`🔍 Searching for integration:`);
+              console.log(`[DEBUG] Searching for integration:`);
               console.log(`- recipientId: ${recipientId}`);
               console.log(`- searchPlatform: ${searchPlatform}`);
 
@@ -6436,12 +6026,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                         }
                         if (convoInfoData.profile_pic) {
                           contactProfilePicture = convoInfoData.profile_pic;
-                          console.log(`✅ [${platform}] Got profile picture`);
+                          console.log(`[OK] [${platform}] Got profile picture`);
                         }
                       } else {
                         console.warn(
                           `⚠️ [${platform}] Profile API error:`,
-                          profileData.error,
+                          convoInfoData.error,
                         );
                       }
                     } else {
@@ -6463,7 +6053,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                         }
                         if (profileData.profile_pic) {
                           contactProfilePicture = profileData.profile_pic;
-                          console.log(`✅ [${platform}] Got profile picture`);
+                          console.log(`[OK] [${platform}] Got profile picture`);
                         }
                       } else {
                         console.warn(
@@ -6517,7 +6107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     userId: integration.userId,
                     metaConversationId: metaConversationId || "",
                     platform,
-                    contactName,
+                    contactName: contactName ?? undefined,
                     contactProfilePicture: contactProfilePicture || undefined,
                     contactProfilePictureFetchedAt: contactProfilePicture
                       ? new Date()
@@ -6674,14 +6264,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.sendStatus(404);
       }
     } catch (err) {
-      console.error("❌ Error procesando evento Meta:", err);
+      console.error("[ERROR] Error procesando evento Meta:", err);
       res.status(500).json({ error: "Meta webhook processing failed" });
     }
   });
 
+  // TODO: Dead code — db.getFacebookAuthToken, db.saveFacebookPages, db.getFacebookPageToken not implemented
   app.get("/api/facebook/pages", async (req, res) => {
     try {
-      const userToken = await db.getFacebookAuthToken(req.user.id);
+      const userToken = await (db as any).getFacebookAuthToken((req.user as any)?.id);
 
       const response = await fetch(
         `https://graph.facebook.com/v22.0/me/accounts?access_token=${userToken}`,
@@ -6690,7 +6281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Esto devuelve un array con las páginas y su page_access_token
       // Ejemplo: data.data[0].access_token
-      await db.saveFacebookPages(req.user.id, data.data);
+      await (db as any).saveFacebookPages((req.user as any)?.id, data.data);
 
       res.json(data);
     } catch (err) {
@@ -6701,7 +6292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/facebook/publish", async (req, res) => {
     const { pageId, message } = req.body;
-    const pageToken = await db.getFacebookPageToken(pageId);
+    const pageToken = await (db as any).getFacebookPageToken(pageId);
 
     const postResponse = await fetch(
       `https://graph.facebook.com/${pageId}/feed`,
@@ -6716,12 +6307,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(result);
   });
 
-  app.get("/api/:provider/conversations", isAuthenticated, async (req, res) => {
+  app.get("/api/:provider/conversations", isAuthenticated, requireBrand, async (req, res) => {
     try {
       const { provider } = req.params;
-      const userId = req.user.id;
+      const userId = (req.user as any)?.id;
       const integrations = await storage.getIntegrations(userId);
-      const integration = integrations.find((i) => i.provider === provider);
+      const integration = integrations.find((i: any) => i.provider === provider);
 
       if (!integration) {
         return res
@@ -6740,7 +6331,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (provider === "whatsapp") {
         // WhatsApp doesn't have a conversations list - you need webhook for incoming messages
         // Here we return empty or fetch from your local database
-        const messages = await storage.getMessages(userId);
+        // TODO: storage.getMessages not implemented — returning empty for now
+        const messages: any[] = [];
         const whatsappMessages = messages.filter(
           (m: any) => m.socialAccount?.provider === "whatsapp",
         );
@@ -6770,7 +6362,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req, res) => {
       try {
         const { provider, conversationId } = req.params;
-        const userId = req.user.id;
+        const userId = (req.user as any)?.id;
 
         const validProviders = [
           "facebook",
@@ -6802,33 +6394,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { id: integrationId, accessToken, accountId } = integration;
         let messages: NormalizedMessage[] = [];
 
+        const safeAccountId = accountId || '';
         switch (provider) {
           case "facebook":
             messages = await fetchFacebookMessagesFromDB(
               integrationId,
               conversationId,
-              accountId,
+              safeAccountId,
             );
             break;
           case "instagram":
             messages = await fetchInstagramMessagesFromDB(
               integrationId,
               conversationId,
-              accountId,
+              safeAccountId,
             );
             break;
           case "threads":
             messages = await fetchThreadsMessagesFromDB(
               integrationId,
               conversationId,
-              accountId,
+              safeAccountId,
             );
             break;
           case "whatsapp":
             messages = await fetchWhatsappMessagesFromDB(
               integrationId,
               conversationId,
-              accountId,
+              safeAccountId,
             );
             break;
           case "whatsapp_baileys":
@@ -6836,7 +6429,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             messages = await fetchWhatsappBaileysMessagesFromDB(
               integrationId,
               conversationId,
-              accountId,
+              safeAccountId,
             );
             break;
         }
@@ -6866,7 +6459,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             );
           }
         } catch (error) {
-          console.error(`❌ Error fetching meta_conversation_id:`, error);
+          console.error(`[ERROR] Error fetching meta_conversation_id:`, error);
         }
 
         res.json({
@@ -6877,7 +6470,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           metaConversationId,
         });
       } catch (err) {
-        console.error("❌ Unified messages fetch error:", err);
+        console.error("[ERROR] Unified messages fetch error:", err);
         res.status(500).json({
           error: "Failed to fetch messages",
           details: err instanceof Error ? err.message : String(err),
@@ -6892,10 +6485,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req, res) => {
       try {
         const { provider, conversationId } = req.params;
-        const userId = req.user.id;
+        const userId = (req.user as any)?.id;
 
         const integrations = await storage.getIntegrations(userId);
-        const integration = integrations.find((i) => i.provider === provider);
+        const integration = integrations.find((i: any) => i.provider === provider);
 
         if (!integration) {
           return res
@@ -6913,7 +6506,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
         res.json({ success: true });
       } catch (err) {
-        console.error("❌ Error marking messages as read:", err);
+        console.error("[ERROR] Error marking messages as read:", err);
         res.status(500).json({ error: "Failed to mark messages as read" });
       }
     },
@@ -6926,8 +6519,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireBrand,
     async (req, res) => {
       try {
-        const brandId = req.brandMembership.brandId;
-        const userId = req.user.id;
+        const brandId = req.brandMembership!.brandId;
+        const userId = (req.user as any)?.id;
         const limitParam = req.query.limit;
 
         // Parse and validate limit parameter
@@ -6948,11 +6541,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
 
         console.log(
-          `📋 Retrieved ${conversations.length} conversations for brand ${brandId}${limit ? ` (limit: ${limit})` : ""}`,
+          `[Conversations] Retrieved ${conversations.length} for brand ${brandId}${limit ? ` (limit: ${limit})` : ""}`,
         );
         res.json({ conversations });
       } catch (err) {
-        console.error("❌ Error fetching conversations:", err);
+        console.error("[ERROR] Error fetching conversations:", err);
         res.status(500).json({ error: "Failed to fetch conversations" });
       }
     },
@@ -6966,7 +6559,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req, res) => {
       try {
         const { id } = req.params;
-        const brandId = req.brandMembership.brandId;
+        const brandId = req.brandMembership!.brandId;
 
         // Verify brand has access to this conversation
         const conversations = await storage.getConversationsByBrandId(brandId);
@@ -6976,10 +6569,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ error: "Conversation not found" });
         }
 
-        console.log(`📝 Retrieved conversation ${id} for brand ${brandId}`);
+ console.log(` Retrieved conversation ${id} for brand ${brandId}`);
         res.json({ conversation });
       } catch (err) {
-        console.error("❌ Error fetching conversation:", err);
+        console.error("[ERROR] Error fetching conversation:", err);
         res.status(500).json({ error: "Failed to fetch conversation" });
       }
     },
@@ -6993,7 +6586,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req, res) => {
       try {
         const { id } = req.params;
-        const brandId = req.brandMembership.brandId;
+        const brandId = req.brandMembership!.brandId;
 
         // Verify brand has access to this conversation
         const conversations = await storage.getConversationsByBrandId(brandId);
@@ -7010,7 +6603,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
         res.json({ messages });
       } catch (err) {
-        console.error("❌ Error fetching conversation messages:", err);
+        console.error("[ERROR] Error fetching conversation messages:", err);
         res.status(500).json({ error: "Failed to fetch messages" });
       }
     },
@@ -7024,7 +6617,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req, res) => {
       try {
         const { id } = req.params;
-        const brandId = req.brandMembership.brandId;
+        const brandId = req.brandMembership!.brandId;
 
         // Verify brand has access to this conversation
         const conversations = await storage.getConversationsByBrandId(brandId);
@@ -7043,10 +6636,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           conversation.metaConversationId,
         );
 
-        console.log(`✅ Marked conversation ${id} as read`);
+        console.log(`[OK] Marked conversation ${id} as read`);
         res.json({ success: true });
       } catch (err) {
-        console.error("❌ Error marking conversation as read:", err);
+        console.error("[ERROR] Error marking conversation as read:", err);
         res.status(500).json({ error: "Failed to mark conversation as read" });
       }
     },
@@ -7061,7 +6654,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const { id } = req.params;
         const { flag } = req.body;
-        const brandId = req.brandMembership.brandId;
+        const brandId = req.brandMembership!.brandId;
 
         // Validate flag value
         const validFlags = ["none", "important", "archived"];
@@ -7082,10 +6675,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Update the flag
         const updated = await storage.updateConversationMetadata(id, { flag });
 
-        console.log(`🏁 Updated conversation ${id} flag to: ${flag}`);
+        console.log(`[DONE] Updated conversation ${id} flag to: ${flag}`);
         res.json({ success: true, conversation: updated });
       } catch (err) {
-        console.error("❌ Error updating conversation flag:", err);
+        console.error("[ERROR] Error updating conversation flag:", err);
         res.status(500).json({ error: "Failed to update conversation flag" });
       }
     },
@@ -7099,7 +6692,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req, res) => {
       try {
         const { id } = req.params;
-        const brandId = req.brandMembership.brandId;
+        const brandId = req.brandMembership!.brandId;
 
         // Get conversation and verify access
         const conversationsList =
@@ -7158,7 +6751,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (platform === "instagram_direct" || platform === "instagram") {
             // Try Instagram Graph API first
             const profileUrl = `https://graph.instagram.com/v24.0/${senderId}?fields=name&access_token=${accessToken}`;
-            console.log(`📱 Fetching Instagram profile for: ${senderId}`);
+            console.log(`[MOBILE] Fetching Instagram profile for: ${senderId}`);
 
             const profileRes = await fetch(profileUrl);
             const profileData = await profileRes.json();
@@ -7168,7 +6761,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               (profileData.username || profileData.name)
             ) {
               contactName = profileData.username || profileData.name;
-              console.log(`✅ Got Instagram contact name: ${contactName}`);
+              console.log(`[OK] Got Instagram contact name: ${contactName}`);
             } else if (profileData.error) {
               console.warn(
                 `⚠️ Instagram API error:`,
@@ -7193,23 +6786,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } else if (platform === "facebook") {
             // Facebook Messenger - use Facebook Graph API
             const fbProfileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,first_name,last_name&access_token=${accessToken}`;
-            console.log(`📱 Fetching Facebook profile for: ${senderId}`);
+            console.log(`[MOBILE] Fetching Facebook profile for: ${senderId}`);
 
             const fbProfileRes = await fetch(fbProfileUrl);
             const fbProfileData = await fbProfileRes.json();
 
             if (!fbProfileData.error && fbProfileData.name) {
               contactName = fbProfileData.name;
-              console.log(`✅ Got Facebook contact name: ${contactName}`);
+              console.log(`[OK] Got Facebook contact name: ${contactName}`);
             }
           } else if (platform === "whatsapp") {
             // WhatsApp - contact name usually comes from webhook, can't fetch via API
             // Use phone number as fallback
             contactName = senderId.startsWith("+") ? senderId : `+${senderId}`;
-            console.log(`📱 Using WhatsApp number as contact: ${contactName}`);
+            console.log(`[MOBILE] Using WhatsApp number as contact: ${contactName}`);
           }
         } catch (apiErr) {
-          console.warn(`⚠️ Error fetching profile:`, apiErr);
+ console.warn(` Error fetching profile:`, apiErr);
         }
 
         if (contactName) {
@@ -7228,7 +6821,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       } catch (err) {
-        console.error("❌ Error refreshing contact name:", err);
+        console.error("[ERROR] Error refreshing contact name:", err);
         res.status(500).json({ error: "Failed to refresh contact name" });
       }
     },
@@ -7241,7 +6834,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireBrand,
     async (req, res) => {
       try {
-        const brandId = req.brandMembership.brandId;
+        const brandId = req.brandMembership!.brandId;
 
         // Get all conversations for the brand
         const conversationsList =
@@ -7336,7 +6929,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               await storage.updateConversationMetadata(conversation.id, {
                 contactName,
               });
-              console.log(`✅ Updated: ${conversation.id} -> ${contactName}`);
+              console.log(`[OK] Updated: ${conversation.id} -> ${contactName}`);
               results.push({ id: conversation.id, contactName, success: true });
             } else {
               results.push({
@@ -7373,7 +6966,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           results,
         });
       } catch (err) {
-        console.error("❌ Error bulk refreshing contact names:", err);
+        console.error("[ERROR] Error bulk refreshing contact names:", err);
         res.status(500).json({ error: "Failed to refresh contact names" });
       }
     },
@@ -7387,7 +6980,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireBrand,
     async (req, res) => {
       try {
-        const brandId = req.brandMembership.brandId;
+        const brandId = req.brandMembership!.brandId;
 
         // Get all conversations for the brand
         const conversationsList =
@@ -7470,7 +7063,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           conversationCount: conversationsList.length,
         });
       } catch (err) {
-        console.error("❌ Error fetching inbox stats:", err);
+        console.error("[ERROR] Error fetching inbox stats:", err);
         res.status(500).json({ error: "Failed to fetch inbox stats" });
       }
     },
@@ -7482,7 +7075,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     isAuthenticated,
     async (req, res) => {
       try {
-        const userId = req.user.id;
+        const userId = (req.user as any)?.id;
         const integrations = await storage.getIntegrations(userId);
         if (!integrations || integrations.length === 0) {
           return res.json({ messages: [], providers: [], total: 0 });
@@ -7510,24 +7103,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   integration.id,
                 );
 
-                const localMessages: NormalizedMessage[] = dbMessages.map(
+                const localMessages = dbMessages.map(
                   (m) => ({
                     id: m.metaMessageId,
                     conversationId:
                       m.direction === "inbound" ? m.senderId : m.recipientId,
                     metaConversationId: m.metaConversationId,
                     text: m.textContent || "",
+                    imageUrl: null as string | null,
                     from:
                       m.direction === "outbound"
                         ? "You"
                         : m.contactName || "User",
                     fromId: m.senderId,
                     created_time: m.timestamp.toISOString(),
-                    provider: provider,
-                    accountId,
-                    direction: m.direction,
+                    provider: provider as string,
+                    accountId: accountId ?? undefined,
                   }),
-                );
+                ) as NormalizedMessage[];
 
                 // 🚫 Skip Meta API calls (Facebook/Instagram)
                 console.log(
@@ -7560,7 +7153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     return await fetchWhatsappMessagesFromDB(
                       integration.id,
                       convoId,
-                      accountId,
+                      accountId || '',
                     );
                   },
                 );
@@ -7588,13 +7181,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Adjunta el accountId a cada mensaje
             const providerMessages = result.value.messages.map((msg) => ({
               ...msg,
-              accountId, // 👈 agregado aquí
+              accountId: accountId ?? undefined,
             }));
 
-            allMessages.push(...providerMessages);
+            allMessages.push(...(providerMessages as NormalizedMessage[]));
             successfulProviders.push(provider);
           } else if (result.status === "rejected") {
-            console.error("🚫 Task rejected:", result.reason);
+ console.error(" Task rejected:", result.reason);
           }
         });
 
@@ -7637,7 +7230,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           unreadCounts, // Add unread counts to response
         });
       } catch (err) {
-        console.error("❌ Unified aggregation error:", err);
+        console.error("[ERROR] Unified aggregation error:", err);
         res.status(500).json({
           error: "Failed to fetch unified messages",
           details: err instanceof Error ? err.message : String(err),
@@ -7656,18 +7249,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req, res) => {
       try {
         const { provider, conversationId } = req.params;
-        const userId = req.user.id;
-        const brandId = req.brandMembership.brandId;
+        const userId = (req.user as any)?.id;
+        const brandId = req.brandMembership!.brandId;
         const messageConversationId = req.body.conversationId;
         const { content } = req.body;
 
         console.log("\n=============================");
-        console.log("📩 [BACKEND] Incoming message send request");
-        console.log("🧠 Provider:", provider);
-        console.log("💬 Conversation ID:", conversationId);
-        console.log("👤 Authenticated user:", userId);
-        console.log("🏢 Brand ID:", brandId);
-        console.log("✉️ Message content:", content);
+        console.log("[MESSAGE] [BACKEND] Incoming message send request");
+ console.log(" Provider:", provider);
+        console.log("[CHAT] Conversation ID:", conversationId);
+        console.log("[USER] Authenticated user:", userId);
+ console.log(" Brand ID:", brandId);
+        console.log("[EMAIL] Message content:", content);
         console.log("=============================\n");
 
         if (!content?.trim()) {
@@ -7683,7 +7276,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           integration = integrations.find((i) => i.provider === "instagram");
 
           if (integration) {
-            console.log("✔️ Using Instagram Business integration");
+ console.log(" Using Instagram Business integration");
           } else {
             // If not found, fallback to Facebook integration (they contain IG Business linkage)
             integration = integrations.find((i) => i.provider === "facebook");
@@ -7714,7 +7307,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // 🟦 FACEBOOK
         // =========================================================
         if (provider === "facebook") {
-          console.log(`💬 [Facebook] Sending message to ${conversationId}`);
+          console.log(`[CHAT] [Facebook] Sending message to ${conversationId}`);
 
           // 1️⃣ Obtener Page ID desde el token
           const pageInfoRes = await fetch(
@@ -7724,9 +7317,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const pageId = pageInfo.id;
 
           if (!pageId)
-            throw new Error("No se pudo obtener el Page ID desde el token.");
+            throw new Error("Could not get Page ID from token.");
 
-          console.log(`🆔 Page ID obtenido: ${pageId}`);
+          console.log(`[Meta API] Page ID obtained: ${pageId}`);
 
           // 2️⃣ Resolver meta_conversation_id
           metaConversationId = conversationId;
@@ -7766,25 +7359,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
               conversationId,
             );
 
-            if (localMsg?.meta_conversation_id) {
-              metaConversationId = localMsg.meta_conversation_id;
+            if ((localMsg as any)?.metaConversationId) {
+              metaConversationId = (localMsg as any).metaConversationId;
               console.log(
                 `Mapeado a meta_conversation_id: ${metaConversationId}`,
               );
             } else {
-              console.warn("⚠️ No se encontró meta_conversation_id asociado.");
+ console.warn(" No se encontró meta_conversation_id asociado.");
             }
           }
 
           // 3️⃣ Intentar obtener destinatario desde Meta
-          let messagesData = {};
+          let messagesData: any = {};
           try {
             const res = await fetch(
               `https://graph.facebook.com/v24.0/${metaConversationId}/messages?fields=from,to,created_time&limit=1&access_token=${integration.accessToken}`,
             );
             messagesData = await res.json();
           } catch (e) {
-            console.warn("⚠️ Error al intentar obtener mensajes:", e);
+ console.warn("[Messages] Error fetching messages:", e);
           }
 
           if (messagesData.data?.length) {
@@ -7797,7 +7390,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             } else {
               recipientId = lastMessage.from?.id;
             }
-            console.log(`📍 Recipient ID (Meta API): ${recipientId}`);
+ console.log(` Recipient ID (Meta API): ${recipientId}`);
           }
 
           // 4️⃣ Fallback local si no se pudo determinar destinatario
@@ -7809,12 +7402,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             );
 
             const inboundMsg = localMessages?.find(
-              (m) => m.direction === "inbound" && m.sender_id !== pageId,
+              (m: any) => m.direction === "inbound" && m.senderId !== pageId,
             );
 
             if (inboundMsg) {
-              recipientId = inboundMsg.sender_id;
-              console.log(`📍 Recipient ID (fallback DB): ${recipientId}`);
+              recipientId = (inboundMsg as any).senderId;
+ console.log(` Recipient ID (fallback DB): ${recipientId}`);
             } else {
               return res.status(400).json({
                 error:
@@ -7831,7 +7424,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             message: { text: content },
           };
 
-          console.log("✅ [Facebook] Payload final:", payload);
+          console.log("[OK] [Facebook] Payload final:", payload);
         }
 
         // =========================================================
@@ -7889,7 +7482,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           const participants = convoData.participants?.data || [];
           recipientId = participants.find(
-            (p) => !p.id.startsWith("1784") && p.id !== pageId,
+            (p: any) => !p.id.startsWith("1784") && p.id !== pageId,
           )?.id;
 
           if (!recipientId)
@@ -7897,7 +7490,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .status(400)
               .json({ error: "No se pudo determinar el destinatario de IG" });
 
-          console.log(`📍 Recipient ID (IG): ${recipientId}`);
+ console.log(` Recipient ID (IG): ${recipientId}`);
 
           // Construcción del payload
           url = `https://graph.facebook.com/v24.0/${pageId}/messages`;
@@ -7906,7 +7499,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             message: { text: content },
           };
 
-          console.log("✅ [Instagram] Payload final:", payload);
+          console.log("[OK] [Instagram] Payload final:", payload);
         }
 
         // =========================================================
@@ -7981,7 +7574,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             if (inboundMsg?.senderId) {
               recipientId = inboundMsg.senderId;
-              console.log(`📍 Recipient ID (fallback DB): ${recipientId}`);
+ console.log(` Recipient ID (fallback DB): ${recipientId}`);
             } else {
               return res.status(400).json({
                 error:
@@ -7990,7 +7583,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
 
-          console.log(`📍 Recipient ID (IG Direct): ${recipientId}`);
+ console.log(` Recipient ID (IG Direct): ${recipientId}`);
 
           // Instagram Direct uses /me/messages endpoint with Bearer token
           // Per Meta's API docs, uses Authorization header instead of access_token param
@@ -8002,7 +7595,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             message: JSON.stringify({ text: content }),
           };
 
-          console.log("✅ [Instagram Direct] Payload final:", payload);
+          console.log("[OK] [Instagram Direct] Payload final:", payload);
           console.log(
             "✅ [Instagram Direct] Using Authorization Bearer header",
           );
@@ -8012,7 +7605,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // 🟩 WHATSAPP
         // =========================================================
         else if (actualProvider === "whatsapp") {
-          console.log(`💬 [WhatsApp] Sending message to ${conversationId}`);
+          console.log(`[CHAT] [WhatsApp] Sending message to ${conversationId}`);
           const parts = conversationId.split("_");
           let finalRecipientId = conversationId;
 
@@ -8033,7 +7626,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
 
           const phoneNumberId =
-            integration.metadata?.phoneNumberId || integration.accountId;
+            (integration.metadata as any)?.phoneNumberId || integration.accountId;
           if (!phoneNumberId)
             return res
               .status(400)
@@ -8050,7 +7643,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           recipientId = finalRecipientId;
           metaConversationId = conversationId;
-          console.log("✅ [WhatsApp] Payload final:", payload);
+          console.log("[OK] [WhatsApp] Payload final:", payload);
         }
 
         // =========================================================
@@ -8068,7 +7661,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             phoneNumber = parts.slice(1).join("_");
           }
 
-          console.log(`📱 [WhatsApp Baileys] Phone number: ${phoneNumber}`);
+          console.log(`[MOBILE] [WhatsApp Baileys] Phone number: ${phoneNumber}`);
 
           if (!whatsappBaileysService) {
             return res
@@ -8129,7 +7722,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             textContent: content,
             direction: "outbound",
             timestamp: new Date(),
-            messageType: "text",
           });
 
           // Emit socket event for real-time update
@@ -8164,9 +7756,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // =========================================================
         // 🚀 ENVÍO A META API
         // =========================================================
-        console.log("🚀 Enviando mensaje a Meta API:");
-        console.log("🔗 URL:", url);
-        console.log("📦 Payload:", JSON.stringify(payload, null, 2));
+        console.log("[Meta API] Sending message:");
+ console.log(" URL:", url);
+ console.log(" Payload:", JSON.stringify(payload, null, 2));
 
         let response;
 
@@ -8225,7 +7817,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             platform: provider,
             metaMessageId: messageId,
             metaConversationId, // ✅ Guardamos siempre
-            senderId: integration.accountId,
+            senderId: integration.accountId || '',
             recipientId,
             textContent: content,
             direction: "outbound",
@@ -8238,7 +7830,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(
             `💾 [${provider.toUpperCase()}] Message saved: ${messageId}`,
           );
-          console.log(`🧩 meta_conversation_id: ${metaConversationId}`);
+ console.log(` meta_conversation_id: ${metaConversationId}`);
 
           // =========================================================
           // 📝 UPDATE CONVERSATION lastMessage and lastMessageAt
@@ -8254,7 +7846,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
 
-        console.log(`✅ [${provider.toUpperCase()}] Message sent successfully`);
+        console.log(`[OK] [${provider.toUpperCase()}] Message sent successfully`);
         res.json({
           success: true,
           provider,
@@ -8265,7 +7857,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           apiResponse,
         });
       } catch (err) {
-        console.error("❌ Send message error:", err);
+        console.error("[ERROR] Send message error:", err);
         res.status(500).json({
           error: "Failed to send message",
           details: err instanceof Error ? err.message : String(err),
@@ -8330,161 +7922,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  app.get("/api/analytics-mock", isAuthenticated, async (req: any, res) => {
-    try {
-      // Return comprehensive mock analytics
-      const mockAnalytics = {
-        overview: {
-          totalFollowers: 47832,
-          totalEngagement: 156940,
-          avgEngagementRate: 4.2,
-          totalReach: 245600,
-          totalImpressions: 892000,
-          growthRate: 12.5,
-        },
-        platformMetrics: {
-          instagram: {
-            followers: 18500,
-            posts: 45,
-            engagement: 4.1,
-            reach: 89000,
-            impressions: 234000,
-            topPost: "Spring collection reveal - 2,340 likes",
-          },
-          tiktok: {
-            followers: 22100,
-            posts: 38,
-            engagement: 6.8,
-            reach: 145000,
-            impressions: 456000,
-            topPost: "Product demo dance - 45.2K views",
-          },
-          facebook: {
-            followers: 5200,
-            posts: 28,
-            engagement: 2.9,
-            reach: 8500,
-            impressions: 67000,
-            topPost: "Behind the scenes - 89 reactions",
-          },
-          email: {
-            subscribers: 2032,
-            campaigns: 12,
-            openRate: 24.5,
-            clickRate: 3.2,
-            unsubscribeRate: 0.8,
-            topEmail: "Weekly newsletter #47",
-          },
-        },
-        timeSeriesData: [
-          {
-            date: "2024-03-01",
-            instagram: 1240,
-            tiktok: 2100,
-            facebook: 340,
-            email: 450,
-          },
-          {
-            date: "2024-03-02",
-            instagram: 1180,
-            tiktok: 2450,
-            facebook: 290,
-            email: 380,
-          },
-          {
-            date: "2024-03-03",
-            instagram: 1350,
-            tiktok: 2200,
-            facebook: 320,
-            email: 420,
-          },
-          {
-            date: "2024-03-04",
-            instagram: 1420,
-            tiktok: 2800,
-            facebook: 380,
-            email: 510,
-          },
-          {
-            date: "2024-03-05",
-            instagram: 1380,
-            tiktok: 2300,
-            facebook: 350,
-            email: 460,
-          },
-          {
-            date: "2024-03-06",
-            instagram: 1500,
-            tiktok: 2600,
-            facebook: 400,
-            email: 520,
-          },
-          {
-            date: "2024-03-07",
-            instagram: 1620,
-            tiktok: 2900,
-            facebook: 420,
-            email: 580,
-          },
-        ],
-        topContent: [
-          {
-            id: "post-1",
-            platform: "tiktok",
-            type: "video",
-            content: "Morning routine with our products",
-            engagement: 12450,
-            views: 89600,
-            date: "2024-03-05",
-          },
-          {
-            id: "post-2",
-            platform: "instagram",
-            type: "image",
-            content: "Spring collection flat lay",
-            engagement: 3420,
-            views: 28900,
-            date: "2024-03-04",
-          },
-          {
-            id: "post-3",
-            platform: "tiktok",
-            type: "video",
-            content: "Behind the scenes packaging",
-            engagement: 8900,
-            views: 67200,
-            date: "2024-03-03",
-          },
-        ],
-        demographics: {
-          ageGroups: {
-            "18-24": 32,
-            "25-34": 41,
-            "35-44": 18,
-            "45-54": 7,
-            "55+": 2,
-          },
-          gender: {
-            female: 68,
-            male: 29,
-            other: 3,
-          },
-          topLocations: [
-            { country: "United States", percentage: 45 },
-            { country: "Canada", percentage: 18 },
-            { country: "United Kingdom", percentage: 12 },
-            { country: "Australia", percentage: 8 },
-            { country: "Germany", percentage: 6 },
-          ],
-        },
-      };
-
-      res.json(mockAnalytics);
-    } catch (error) {
-      console.error("Error fetching analytics:", error);
-      res.status(500).json({ message: "Failed to fetch analytics" });
-    }
-  });
 
   // Activity logs
   app.get(
@@ -8509,70 +7946,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  app.get("/api/activity-mock", async (req: any, res) => {
-    try {
-      // Return mock activity logs for demo in Spanish
-      const mockActivities = [
-        {
-          id: "activity-1",
-          userId: "demo-user",
-          brandId: null,
-          action: "create_campaign",
-          description:
-            "Creada nueva campaña de Instagram: Lanzamiento Producto Primavera",
-          entityType: "campaign",
-          entityId: "camp-1",
-          createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-        },
-        {
-          id: "activity-2",
-          userId: "demo-user",
-          brandId: null,
-          action: "connect_social_account",
-          description: "Conectada cuenta de TikTok: @miempresa_oficial",
-          entityType: "social_account",
-          entityId: "social-1",
-          createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-        },
-        {
-          id: "activity-3",
-          userId: "demo-user",
-          brandId: null,
-          action: "generate_content_plan",
-          description: "Generado plan de contenido IA para Marzo 2024",
-          entityType: "content_plan",
-          entityId: "plan-1",
-          createdAt: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
-        },
-        {
-          id: "activity-4",
-          userId: "demo-user",
-          brandId: null,
-          action: "response_message",
-          description: "Respondido mensaje urgente de WhatsApp",
-          entityType: "message",
-          entityId: "msg-4",
-          createdAt: new Date(Date.now() - 1000 * 60 * 240).toISOString(),
-        },
-        {
-          id: "activity-5",
-          userId: "demo-user",
-          brandId: null,
-          action: "schedule_post",
-          description: "Programado post de Instagram para mañana 10:00 AM",
-          entityType: "post",
-          entityId: "post-1",
-          createdAt: new Date(Date.now() - 1000 * 60 * 300).toISOString(),
-        },
-      ];
-
-      const limit = req.query.limit ? parseInt(req.query.limit) : 20;
-      res.json(mockActivities.slice(0, limit));
-    } catch (error) {
-      console.error("Error fetching activity logs:", error);
-      res.status(500).json({ message: "Failed to fetch activity logs" });
-    }
-  });
 
   // AI visual generation
   app.post("/api/ai/generate-visual", isAuthenticated, async (req, res) => {
@@ -9405,9 +8778,7 @@ All content must be in English.`;
     async (req: any, res) => {
       try {
         const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
         const brandId = req.brandMembership.brandId;
         const { name, phone, platform, conversationId } = req.body;
 
@@ -9481,9 +8852,7 @@ All content must be in English.`;
     async (req: any, res) => {
       try {
         const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
         const brandId = req.brandMembership.brandId;
         const customerId = req.params.id;
         const updates = req.body;
@@ -9510,7 +8879,7 @@ All content must be in English.`;
       } catch (error) {
         res
           .status(500)
-          .json({ message: "Failed to update customer", error: error.message });
+          .json({ message: "Failed to update customer", error: (error as Error).message });
       }
     },
   );
@@ -9522,9 +8891,7 @@ All content must be in English.`;
     async (req: any, res) => {
       try {
         const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
         const brandId = req.brandMembership.brandId;
         const customerId = req.params.id;
 
@@ -9575,9 +8942,7 @@ All content must be in English.`;
     async (req: any, res) => {
       try {
         const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
         const brandId = req.brandMembership.brandId;
 
         // Validate client-provided data (without userId/brandId)
@@ -9626,9 +8991,7 @@ All content must be in English.`;
     async (req: any, res) => {
       try {
         const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
         const brandId = req.brandMembership.brandId;
         const invoiceId = req.params.id;
 
@@ -9680,7 +9043,7 @@ All content must be in English.`;
   app.get("/api/team-tasks", isAuthenticated, async (req: any, res) => {
     try {
       const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+        getUserId(req);
       const assignedOnly = req.query.assigned === "true";
 
       // Mock team tasks data
@@ -9786,7 +9149,7 @@ All content must be in English.`;
   app.post("/api/team-tasks", isAuthenticated, async (req: any, res) => {
     try {
       const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+        getUserId(req);
       const taskData = insertTeamTaskSchema.parse({
         ...req.body,
         assignedBy: userId,
@@ -9816,9 +9179,7 @@ All content must be in English.`;
     async (req: any, res) => {
       try {
         const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
         const taskId = req.params.id;
         const { notes, proofFileUrl } = req.body;
 
@@ -9913,7 +9274,7 @@ All content must be in English.`;
     try {
       const { code, state, domain_prefix: queryDomainPrefix } = req.query;
 
-      console.log("📥 Lightspeed OAuth callback received:", {
+ console.log(" Lightspeed OAuth callback received:", {
         hasCode: !!code,
         hasState: !!state,
         hasDomainPrefix: !!queryDomainPrefix,
@@ -9971,7 +9332,7 @@ All content must be in English.`;
         domainPrefix,
       );
 
-      console.log("✅ Lightspeed tokens received:", {
+      console.log("[OK] Lightspeed tokens received:", {
         hasAccessToken: !!tokens.access_token,
         hasRefreshToken: !!tokens.refresh_token,
         expiresIn: tokens.expires_in,
@@ -10000,7 +9361,7 @@ All content must be in English.`;
         tokens,
       );
 
-      console.log("✅ Lightspeed integration created:", integrationId);
+      console.log("[OK] Lightspeed integration created:", integrationId);
 
       // Initial sync of customers and sales, then register webhooks
       try {
@@ -10020,7 +9381,7 @@ All content must be in English.`;
           try {
             const webhooks =
               await lightspeedService.registerWebhooks(integration);
-            console.log(`✅ Webhooks registered:`, webhooks);
+            console.log(`[OK] Webhooks registered:`, webhooks);
           } catch (webhookError) {
             console.error(
               "Failed to register webhooks (sync still completed):",
@@ -10082,7 +9443,7 @@ All content must be in English.`;
         </html>
       `);
     } catch (error) {
-      console.error("❌ Lightspeed OAuth callback error:", error);
+      console.error("[ERROR] Lightspeed OAuth callback error:", error);
       res.status(500).send(`
         <html>
           <head><title>Error</title></head>
@@ -10352,7 +9713,7 @@ All content must be in English.`;
             signatureHeader,
           );
           if (!isValid) {
-            console.warn("⚠️ Lightspeed webhook signature verification failed");
+ console.warn(" Lightspeed webhook signature verification failed");
             // Continue processing anyway for now, as signature verification can be tricky
           }
         }
@@ -10360,14 +9721,14 @@ All content must be in English.`;
         // Parse the payload from the form data
         const payloadString = req.body.payload;
         if (!payloadString) {
-          console.log("📥 Lightspeed webhook received (no payload):", req.body);
+ console.log(" Lightspeed webhook received (no payload):", req.body);
           return res.status(200).send("OK");
         }
 
         const payload = JSON.parse(payloadString);
         const eventType = req.body.type || "unknown";
 
-        console.log(`📥 Lightspeed webhook received: ${eventType}`);
+ console.log(` Lightspeed webhook received: ${eventType}`);
 
         // Process the webhook event asynchronously
         lightspeedService
@@ -10538,7 +9899,7 @@ All content must be in English.`;
   app.post("/api/pos-integrations", isAuthenticated, async (req: any, res) => {
     try {
       const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+        getUserId(req);
       const integrationData = insertPosIntegrationSchema.parse({
         ...req.body,
         userId,
@@ -10616,9 +9977,7 @@ All content must be in English.`;
     async (req: any, res) => {
       try {
         const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
         const { id } = req.params;
         const deleted = await storage.deletePosIntegration(id, userId);
 
@@ -10638,7 +9997,7 @@ All content must be in English.`;
   app.get("/api/sales-transactions", isAuthenticated, async (req: any, res) => {
     try {
       const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+        getUserId(req);
       const limit = parseInt(req.query.limit as string) || 50;
       const transactions = await storage.getSalesTransactionsByUserId(
         userId,
@@ -10799,7 +10158,7 @@ All content must be in English.`;
   app.get("/api/campaign-triggers", isAuthenticated, async (req: any, res) => {
     try {
       const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+        getUserId(req);
       const triggers = await storage.getCampaignTriggersByUserId(userId);
       res.json(triggers);
     } catch (error) {
@@ -10812,7 +10171,7 @@ All content must be in English.`;
   app.post("/api/campaign-triggers", isAuthenticated, async (req: any, res) => {
     try {
       const userId =
-        (req.user as any)?.claims?.sub || (req.user as any)?.id || "demo-user";
+        getUserId(req);
       const triggerData = insertCampaignTriggerSchema.parse({
         ...req.body,
         userId,
@@ -10834,9 +10193,7 @@ All content must be in English.`;
         const { id } = req.params;
         const updates = req.body;
         const userId =
-          (req.user as any)?.claims?.sub ||
-          (req.user as any)?.id ||
-          "demo-user";
+          getUserId(req);
         const trigger = await storage.updateCampaignTrigger(
           id,
           userId,
@@ -10923,7 +10280,7 @@ All content must be in English.`;
   });
 
   // Message routes - Save messages from webhooks or manual creation
-  app.post("/api/messages", isAuthenticated, async (req: any, res) => {
+  app.post("/api/messages", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
       const userId = req.user?.id;
 
@@ -11054,7 +10411,7 @@ All content must be in English.`;
       const dot = rest.lastIndexOf(".");
       const publicId = dot !== -1 ? rest.slice(0, dot) : rest;
 
-      console.log("[Server] 🔎 extractPublicIdFromUrl", {
+ console.log("[Server] extractPublicIdFromUrl", {
         url,
         afterUpload,
         afterVersion,
@@ -11063,7 +10420,7 @@ All content must be in English.`;
       });
       return publicId || null;
     } catch (e) {
-      console.log("[Server] ⚠️ extractPublicIdFromUrl error", e);
+ console.log("[Server] extractPublicIdFromUrl error", e);
       return null;
     }
   }
@@ -11077,7 +10434,7 @@ All content must be in English.`;
       const { type } = req.params; // whiteLogo | blackLogo | whiteFavicon | blackFavicon
       const { brandDesignId } = req.query;
 
-      console.log("[Server] ➡️ DELETE /api/brand-design/logo/:type", {
+ console.log("[Server] DELETE /api/brand-design/logo/:type", {
         brandId,
         type,
         brandDesignId,
@@ -11087,19 +10444,19 @@ All content must be in English.`;
 
       try {
         if (!brandDesignId) {
-          console.log("[Server] ❌ Missing brandDesignId");
+ console.log("[Server] Missing brandDesignId");
           return res.status(400).json({ message: "brandDesignId is required" });
         }
 
         // Get brand design by brandId to validate ownership
         const brandDesign = await storage.getBrandDesignByBrandId(brandId);
-        console.log("[Server] 🔎 brandDesign", {
+ console.log("[Server] brandDesign", {
           found: !!brandDesign,
           id: brandDesign?.id,
         });
 
         if (!brandDesign || brandDesign.id !== brandDesignId) {
-          console.log("[Server] ❌ Unauthorized to delete this logo", {
+ console.log("[Server] Unauthorized to delete this logo", {
             requested: brandDesignId,
             actual: brandDesign?.id,
           });
@@ -11117,27 +10474,27 @@ All content must be in English.`;
         const fieldName = fieldMap[type];
 
         if (!fieldName) {
-          console.log("[Server] ❌ Invalid logo type", { type });
+ console.log("[Server] Invalid logo type", { type });
           return res.status(400).json({ message: "Invalid logo type" });
         }
 
         const logoUrl = brandDesign[fieldName];
-        console.log("[Server] 🔗 Current logo URL", { fieldName, logoUrl });
+ console.log("[Server] Current logo URL", { fieldName, logoUrl });
 
         if (!logoUrl) {
-          console.log("[Server] ⚠️ Logo not found in DB, nothing to delete");
+ console.log("[Server] Logo not found in DB, nothing to delete");
           return res.status(404).json({ message: "Logo not found" });
         }
 
         const publicId = extractPublicIdFromUrl(logoUrl as string);
-        console.log("[Server] 🧩 PublicId computed", { publicId });
+ console.log("[Server] PublicId computed", { publicId });
 
         if (publicId) {
           try {
             const result = await cloudinary.uploader.destroy(publicId, {
               resource_type: "image",
             });
-            console.log("[Server] ☁️ Cloudinary destroy result", result);
+ console.log("[Server] Cloudinary destroy result", result);
 
             if (result.result !== "ok" && result.result !== "not found") {
               throw new Error(`Cloudinary deletion failed: ${result.result}`);
@@ -11160,7 +10517,7 @@ All content must be in English.`;
         }
 
         // ⚠️ Aquí, evita mapToDb para updates parciales o usa mapPartialToDb
-        console.log("[Server] 🗃️ Updating DB: setting field to null", {
+ console.log("[Server] Updating DB: setting field to null", {
           brandDesignId,
           fieldName,
         });
@@ -11175,14 +10532,14 @@ All content must be in English.`;
           )
           .returning();
 
-        console.log("[Server] ✅ DB update result", {
+ console.log("[Server] DB update result", {
           updatedCount: updated?.length || 0,
           updatedRow: updated?.[0]?.id,
         });
 
         return res.json({ message: `${type} deleted successfully` });
       } catch (error) {
-        console.error("[Server] ❌ Unexpected error in delete logo:", error);
+ console.error("[Server] Unexpected error in delete logo:", error);
         return res.status(500).json({ message: "Failed to delete logo" });
       }
     },
@@ -11237,7 +10594,7 @@ All content must be in English.`;
           publicId,
           description,
         } = req.body;
-        console.log("📥 BODY recibido:", req.body);
+ console.log(" BODY recibido:", req.body);
         if (!brandDesignId || !url || !name) {
           return res.status(400).json({ error: "Missing required fields" });
         }
@@ -11257,7 +10614,7 @@ All content must be in English.`;
           publicId,
           description,
         });
-        console.log("✅ Insertado en DB:", newAsset);
+        console.log("[OK] Insertado en DB:", newAsset);
         res.json(newAsset);
       } catch (error) {
         console.error("Error uploading asset:", error);
@@ -11274,8 +10631,8 @@ All content must be in English.`;
     async (req: any, res) => {
       try {
         const brandId = req.brandId;
-        console.log("🛣ch�  GET /api/brand-assets");
-        console.log("🧭  req.query:", req.query, "req.params:", req.params);
+ console.log("ch� GET /api/brand-assets");
+ console.log(" req.query:", req.query, "req.params:", req.params);
         const { brandDesignId } = req.query;
         if (!brandDesignId) {
           return res.status(400).json({ message: "brandDesignId is required" });
@@ -11378,7 +10735,7 @@ All content must be in English.`;
         );
 
         if (deleted) {
-          console.log(`🗑️ Deleted asset from DB: ${assetId}`);
+ console.log(` Deleted asset from DB: ${assetId}`);
           res.json({ message: "Asset deleted successfully", asset: deleted });
         } else {
           res.status(404).json({ message: "Asset not found in database" });
@@ -11484,7 +10841,7 @@ All content must be in English.`;
       const file = new File([buffer], "voice-note.webm", {
         type: mimeType || "audio/webm",
       });
-      const transcription = await openai.audio.transcriptions.create({
+      const transcription = await openai!.audio.transcriptions.create({
         file,
         model: "whisper-1",
       });
@@ -11678,7 +11035,7 @@ All content must be in English.`;
       try {
         await storage.createMessage({
           socialAccountId:
-            socialAccounts.find((acc) => acc.platform === messageData.platform)
+            socialAccounts.find((acc: any) => acc.platform === messageData.platform)
               ?.id || socialAccounts[0].id,
           senderId: messageData.senderName,
           senderName: messageData.senderName,
@@ -11689,7 +11046,7 @@ All content must be in English.`;
               : messageData.sentiment === "positive"
                 ? "normal"
                 : "low",
-        });
+        } as any);
       } catch (error) {
         console.log(`Message might already exist`);
       }
@@ -11872,7 +11229,7 @@ All content must be in English.`;
         await storage.createCampaign({
           userId,
           ...campaignData,
-        });
+        } as any);
       } catch (error) {
         console.log(`Campaign might already exist`);
       }
@@ -11930,7 +11287,7 @@ All content must be in English.`;
         await storage.createContentPlan({
           userId,
           ...planData,
-        });
+        } as any);
       } catch (error) {
         console.log(`Content plan might already exist`);
       }
@@ -11973,7 +11330,7 @@ All content must be in English.`;
         await storage.createCustomer({
           userId,
           ...customerData,
-        });
+        } as any);
       } catch (error) {
         console.log(`Customer might already exist`);
       }
@@ -12252,7 +11609,7 @@ All content must be in English.`;
     for (const messageData of demoConversationsData) {
       try {
         if (messageData.socialAccountId) {
-          await storage.createMessage(messageData);
+          await storage.createMessage(messageData as any);
         }
       } catch (error) {
         console.log(`Message might already exist or social account not found`);
@@ -12264,23 +11621,28 @@ All content must be in English.`;
 
   const server = createServer(app);
 
-  // Initialize Socket.IO for real-time messaging
+  // Socket.IO CORS: use APP_URL in production, allow all in development
+  const socketCorsOrigin = process.env.NODE_ENV === "production"
+    ? (process.env.APP_URL || "https://app.leadboostapp.ai")
+    : "*";
+
   const io = new SocketIOServer(server, {
     cors: {
-      origin: "*",
+      origin: socketCorsOrigin,
       methods: ["GET", "POST"],
+      credentials: true,
     },
   });
 
   io.on("connection", (socket) => {
-    console.log("⚡ Socket.IO client connected:", socket.id);
+ console.log(" Socket.IO client connected:", socket.id);
 
     // Handle room joining for brand-specific updates
     socket.on("join_brand", (brandId: string) => {
       if (brandId) {
         const room = `brand:${brandId}`;
         socket.join(room);
-        console.log(`📢 Socket ${socket.id} joined room: ${room}`);
+ console.log(` Socket ${socket.id} joined room: ${room}`);
       }
     });
 
@@ -12289,12 +11651,12 @@ All content must be in English.`;
       if (brandId) {
         const room = `brand:${brandId}`;
         socket.leave(room);
-        console.log(`🚪 Socket ${socket.id} left room: ${room}`);
+ console.log(` Socket ${socket.id} left room: ${room}`);
       }
     });
 
     socket.on("disconnect", () => {
-      console.log("❌ Socket.IO client disconnected:", socket.id);
+      console.log("[ERROR] Socket.IO client disconnected:", socket.id);
     });
   });
 

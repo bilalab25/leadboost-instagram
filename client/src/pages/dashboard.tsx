@@ -1,9 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import TopHeader from "@/components/TopHeader";
 import { Button } from "@/components/ui/button";
@@ -11,18 +10,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Sparkles,
-  Zap,
   Target,
   ArrowRight,
   TrendingUp,
   Send,
-  Play,
   Clock,
   Star,
-  Archive,
   Plug,
   ShoppingBag,
   MessageSquare,
@@ -33,7 +29,6 @@ import {
   ChevronRight,
   MessageCircle,
   Wand2,
-  Bot,
   ArrowUpRight,
   CheckCircle2,
   HelpCircle,
@@ -50,15 +45,21 @@ import {
 } from "react-icons/si";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
-import boosty from "./boosty.png";
-import boostyFace from "./boosty_face.png";
+const boostyFace = "/images/boosty_face.png";
 import { useBrand } from "@/contexts/BrandContext";
 import HelpChatbot from "@/components/HelpChatbot";
 
 interface DashboardStats {
+  totalMessages: number;
   unreadMessages: number;
-  engagementRate: number;
+  totalCampaigns: number;
+  activeCampaigns: number;
+  totalSocialAccounts: number;
+  connectedPlatforms: string[];
   aiPosts: number;
+  monthlyEngagement: number;
+  responseTime: string;
+  engagementRate: number;
   revenue: number;
 }
 
@@ -157,22 +158,18 @@ export default function Dashboard() {
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading } = useAuth();
   const { activeBrandId, activeMembership } = useBrand();
-  const queryClient = useQueryClient();
   const { language, toggleLanguage, isSpanish } = useLanguage();
   const t = translations[language];
   const [, setLocation] = useLocation();
-  const [selectedPeriod, setSelectedPeriod] = useState<
-    "weekly" | "monthly" | "daily"
-  >("weekly");
-  const [boostyExpanded, setBoostyExpanded] = useState(true);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
-  const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
-    queryKey: ["/api/dashboard/stats"],
+  const { data: stats, isLoading: statsLoading, error: statsError } = useQuery<DashboardStats>({
+    queryKey: ["/api/dashboard/stats", { brandId: activeBrandId }],
+    enabled: !!activeBrandId,
     retry: false,
   });
 
-  const { data: latestConversationsData, isLoading: conversationsLoading } =
+  const { data: latestConversationsData, isLoading: conversationsLoading, error: conversationsError } =
     useQuery({
       queryKey: ["/api/conversations", activeBrandId, { limit: 5 }],
       queryFn: async () => {
@@ -189,7 +186,7 @@ export default function Dashboard() {
   const latestConversations = latestConversationsData?.conversations || [];
 
   // Fetch integrations for the active brand
-  const { data: integrationsData } = useQuery({
+  const { data: integrationsData, error: integrationsError } = useQuery({
     queryKey: ["/api/integrations", activeBrandId],
     queryFn: async () => {
       if (!activeBrandId) return [];
@@ -251,10 +248,13 @@ export default function Dashboard() {
       ].includes(i.provider),
   );
 
-  // Sample sparkline data
-  const salesData = [30, 45, 35, 50, 65, 55, 72];
-  const campaignData = [5, 8, 6, 10, 12, 9, 15];
-  const messageData = [20, 35, 28, 42, 38, 55, 48];
+  // Sparkline placeholder data (real time-series not yet available from API)
+  const revenue = stats?.revenue ?? 0;
+  const campaigns = stats?.activeCampaigns ?? 0;
+  const msgs = stats?.unreadMessages ?? 0;
+  const salesData = revenue > 0 ? [revenue * 0.6, revenue * 0.7, revenue * 0.65, revenue * 0.8, revenue * 0.9, revenue * 0.85, revenue].map(v => Math.round(v / 100)) : [0, 0, 0, 0, 0, 0, 0];
+  const campaignData = campaigns > 0 ? [campaigns * 0.5, campaigns * 0.7, campaigns * 0.6, campaigns * 0.8, campaigns * 0.9, campaigns * 0.75, campaigns].map(Math.round) : [0, 0, 0, 0, 0, 0, 0];
+  const messageData = msgs > 0 ? [msgs * 0.4, msgs * 0.6, msgs * 0.5, msgs * 0.7, msgs * 0.8, msgs * 0.9, msgs].map(Math.round) : [0, 0, 0, 0, 0, 0, 0];
 
   // Boosty suggestions
   const boostySuggestions = [
@@ -329,7 +329,42 @@ export default function Dashboard() {
       bgGradient: "from-red-500/10 to-red-600/5",
       name: "YouTube",
     },
+    messenger: {
+      icon: SiFacebook,
+      color: "#0084FF",
+      bgGradient: "from-blue-400/10 to-blue-500/5",
+      name: "Messenger",
+    },
+    threads: {
+      icon: SiInstagram,
+      color: "#000000",
+      bgGradient: "from-gray-800/10 to-gray-900/5",
+      name: "Threads",
+    },
   };
+
+  if (!activeBrandId && !isLoading) {
+    return (
+      <div className="flex min-h-screen">
+        <Sidebar />
+        <div className="flex-1 flex items-center justify-center">
+          <Card className="max-w-md text-center p-8">
+            <CardTitle className="mb-4">{isSpanish ? "Sin marca seleccionada" : "No brand selected"}</CardTitle>
+            <CardContent>
+              <p className="text-gray-500 mb-4">
+                {isSpanish
+                  ? "Crea o selecciona una marca para ver tu dashboard."
+                  : "Create or select a brand to view your dashboard."}
+              </p>
+              <Link href="/onboarding">
+                <Button>{isSpanish ? "Crea tu primera marca" : "Create your first brand"}</Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-brand-50/30">
@@ -432,39 +467,58 @@ export default function Dashboard() {
                   </motion.div>
                 </motion.div>
 
-                {/* Period Selector */}
-                <motion.div
-                  variants={fadeInUp}
-                  className="flex justify-between items-center"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-600">
-                      {isSpanish ? "Mostrando datos de:" : "Showing data from:"}
-                    </span>
-                  </div>
-                  <div className="flex items-center bg-white rounded-xl border border-gray-200 p-1 shadow-sm">
-                    {[
-                      { key: "daily", label: isSpanish ? "Hoy" : "Today" },
-                      { key: "weekly", label: isSpanish ? "Semana" : "Week" },
-                      { key: "monthly", label: isSpanish ? "Mes" : "Month" },
-                    ].map((period) => (
-                      <motion.button
-                        key={period.key}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => setSelectedPeriod(period.key as any)}
-                        className={`px-4 py-2 text-sm rounded-lg transition-all duration-200 ${
-                          selectedPeriod === period.key
-                            ? "bg-brand-500 text-white shadow-md"
-                            : "text-gray-600 hover:bg-gray-100"
-                        }`}
-                      >
-                        {period.label}
-                      </motion.button>
-                    ))}
-                  </div>
-                </motion.div>
+                {/* Error Alerts */}
+                {statsError && (
+                  <Alert variant="destructive" className="mb-4">
+                    <AlertTitle>{isSpanish ? "Error al cargar datos del dashboard" : "Failed to load dashboard data"}</AlertTitle>
+                    <AlertDescription>{(statsError as Error).message}</AlertDescription>
+                  </Alert>
+                )}
+                {conversationsError && (
+                  <Alert variant="destructive" className="mb-4">
+                    <AlertTitle>{isSpanish ? "Error al cargar conversaciones" : "Failed to load conversations"}</AlertTitle>
+                    <AlertDescription>{(conversationsError as Error).message}</AlertDescription>
+                  </Alert>
+                )}
+                {integrationsError && (
+                  <Alert variant="destructive" className="mb-4">
+                    <AlertTitle>{isSpanish ? "Error al cargar integraciones" : "Failed to load integrations"}</AlertTitle>
+                    <AlertDescription>{(integrationsError as Error).message}</AlertDescription>
+                  </Alert>
+                )}
+
 
                 {/* KPI Cards Grid */}
+                {statsLoading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="lg:col-span-2">
+                      <Card className="border-0 shadow-lg">
+                        <CardContent className="p-6 space-y-4">
+                          <Skeleton className="h-4 w-24" />
+                          <Skeleton className="h-10 w-32" />
+                          <Skeleton className="h-4 w-48" />
+                          <Skeleton className="h-2 w-full mt-4" />
+                        </CardContent>
+                      </Card>
+                    </div>
+                    <Card className="border-0 shadow-lg">
+                      <CardContent className="p-6 space-y-4">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-10 w-16" />
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-8 w-20 mt-4" />
+                      </CardContent>
+                    </Card>
+                    <Card className="border-0 shadow-lg">
+                      <CardContent className="p-6 space-y-4">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-10 w-16" />
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-8 w-20 mt-4" />
+                      </CardContent>
+                    </Card>
+                  </div>
+                ) : (
                 <motion.div
                   variants={staggerContainer}
                   className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
@@ -491,30 +545,21 @@ export default function Dashboard() {
                               <div className="flex items-baseline gap-2">
                                 <span className="text-4xl font-bold">
                                   <AnimatedCounter
-                                    value={
-                                      selectedPeriod === "daily"
-                                        ? "1,890"
-                                        : selectedPeriod === "weekly"
-                                          ? "12,450"
-                                          : "52,800"
-                                    }
+                                    value={stats?.revenue ? (stats.revenue / 100).toLocaleString() : "0"}
                                     prefix="$"
                                   />
                                 </span>
-                                <Badge className="bg-white/20 text-white border-0">
-                                  <TrendingUp className="w-3 h-3 mr-1" />+
-                                  {selectedPeriod === "daily"
-                                    ? "12"
-                                    : selectedPeriod === "weekly"
-                                      ? "47"
-                                      : "63"}
-                                  %
-                                </Badge>
+                                {stats?.revenue ? (
+                                  <Badge className="bg-white/20 text-white border-0">
+                                    <TrendingUp className="w-3 h-3 mr-1" />
+                                    {isSpanish ? "POS conectado" : "POS connected"}
+                                  </Badge>
+                                ) : null}
                               </div>
                               <p className="text-emerald-100 text-sm mt-2">
                                 {isSpanish
-                                  ? "vs antes de Lead Boost"
-                                  : "vs before Lead Boost"}
+                                  ? "desde punto de venta"
+                                  : "from point of sale"}
                               </p>
                             </div>
                             <div className="text-right">
@@ -524,17 +569,11 @@ export default function Dashboard() {
                           <div className="mt-4 pt-4 border-t border-white/20">
                             <div className="flex items-center justify-between text-sm">
                               <span className="text-emerald-100">
-                                {isSpanish ? "Meta mensual" : "Monthly goal"}
+                                {isSpanish ? "Total transacciones" : "Total transactions"}
                               </span>
-                              <span className="font-semibold">$85,000</span>
-                            </div>
-                            <div className="mt-2 h-2 bg-white/20 rounded-full overflow-hidden">
-                              <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: "62%" }}
-                                transition={{ duration: 1, delay: 0.5 }}
-                                className="h-full bg-white rounded-full"
-                              />
+                              <span className="font-semibold">
+                                {stats?.totalMessages ?? 0} {isSpanish ? "registros" : "records"}
+                              </span>
                             </div>
                           </div>
                         </CardContent>
@@ -593,26 +632,14 @@ export default function Dashboard() {
                           </p>
                           <div className="flex items-baseline gap-2 mb-2">
                             <span className="text-4xl font-bold">
-                              <AnimatedCounter
-                                value={
-                                  selectedPeriod === "daily"
-                                    ? 1
-                                    : selectedPeriod === "weekly"
-                                      ? 7
-                                      : 28
-                                }
-                              />
+                              <AnimatedCounter value={stats?.activeCampaigns ?? 0} />
                             </span>
                           </div>
                           <div className="flex items-center gap-1 text-violet-100 text-sm">
                             <Target className="w-4 h-4" />
                             <span>
-                              {selectedPeriod === "weekly"
-                                ? "147"
-                                : selectedPeriod === "monthly"
-                                  ? "588"
-                                  : "21"}{" "}
-                              posts
+                              {stats?.totalCampaigns ?? 0}{" "}
+                              {isSpanish ? "campañas totales" : "total campaigns"}
                             </span>
                           </div>
                           <div className="mt-4">
@@ -732,6 +759,7 @@ export default function Dashboard() {
                     )}
                   </motion.div>
                 </motion.div>
+                )}
 
                 {/* Main Content Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -834,10 +862,13 @@ export default function Dashboard() {
                                 const Icon = platform.icon;
                                 const isUnread = conversation.unreadCount > 0;
                                 const timeAgo = conversation.lastMessageAt
-                                  ? formatDistanceToNow(
-                                      new Date(conversation.lastMessageAt),
-                                      { addSuffix: true },
-                                    )
+                                  ? (() => {
+                                      try {
+                                        return formatDistanceToNow(new Date(conversation.lastMessageAt), { addSuffix: true });
+                                      } catch {
+                                        return "";
+                                      }
+                                    })()
                                   : "";
 
                                 return (
@@ -1035,7 +1066,7 @@ export default function Dashboard() {
                         </motion.div>
 
                         {/* Chat with Boosty */}
-                        <Link href="/home">
+                        <Link href="/waterfall">
                           <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}

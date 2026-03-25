@@ -44,7 +44,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useBrand } from "@/contexts/BrandContext";
 import { useLanguage } from "@/hooks/useLanguage";
 import { cn } from "@/lib/utils";
-import boosty_face from "./boosty_face.png";
+const boosty_face = "/images/boosty_face.png";
 import AdsDashboard from "./ads-dashboard";
 
 interface AIGeneratedPost {

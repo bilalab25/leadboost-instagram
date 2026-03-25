@@ -26,7 +26,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
-export default function BrandIdentity({
+export default function BrandIdentity(props: Record<string, any>) {
+  const {
   activeBrandId,
   brandDesign,
   brandStyles,
@@ -87,7 +88,7 @@ export default function BrandIdentity({
   setBlackFaviconFile,
   blackFaviconPreviewUrl,
   setBlackFaviconPreviewUrl,
-}) {
+  } = props;
   const { isSpanish } = useLanguage();
   const queryClient = useQueryClient(); // 👈 para invalidar cache tras borrar
 
@@ -661,11 +662,11 @@ export default function BrandIdentity({
                               variant="ghost"
                               size="sm"
                               onClick={() => {
-                                setCustomFontFiles((prev) =>
-                                  prev.filter((f) => f.name !== font.name),
+                                setCustomFontFiles((prev: any) =>
+                                  prev.filter((f: any) => f.name !== font.name),
                                 );
-                                setCustomFontOptions((prev) =>
-                                  prev.filter((f) => f !== font.family),
+                                setCustomFontOptions((prev: any) =>
+                                  prev.filter((f: any) => f !== font.family),
                                 );
                               }}
                             >

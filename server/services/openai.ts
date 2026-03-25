@@ -1,8 +1,24 @@
 import OpenAI from "openai";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "default_key" 
+const apiKey = process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR;
+if (!apiKey) {
+  console.warn("[OpenAI] OPENAI_API_KEY is not set. AI content generation features will not work.");
+}
+const openaiClient = apiKey ? new OpenAI({ apiKey }) : null;
+
+function getOpenAI(): OpenAI {
+  if (!openaiClient) {
+    throw new Error("OpenAI API key is not configured. Set OPENAI_API_KEY in your .env file.");
+  }
+  return openaiClient;
+}
+
+// Keep backward-compatible reference
+const openai = new Proxy({} as OpenAI, {
+  get(_, prop) {
+    return (getOpenAI() as any)[prop];
+  },
 });
 
 export interface ContentStrategy {
@@ -307,7 +323,7 @@ export async function generateVisualContent(description: string): Promise<{ url:
       quality: "standard",
     });
 
-    return { url: response.data[0]?.url || '' };
+    return { url: response.data?.[0]?.url || '' };
   } catch (error) {
     console.error("Error generating visual content:", error);
     const message = error instanceof Error ? error.message : 'Unknown error';

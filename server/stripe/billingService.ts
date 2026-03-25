@@ -282,7 +282,7 @@ export class BillingService {
         stripeSubscriptionId: subscription.id,
         subscriptionStatus: subscription.status,
         inboxSubscriptionActive: subscription.status === 'active',
-        subscriptionCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        subscriptionCurrentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
         updatedAt: new Date()
       })
       .where(eq(brandBilling.brandId, brandId));

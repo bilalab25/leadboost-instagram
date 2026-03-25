@@ -47,14 +47,14 @@ import {
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(1, "Password is required"),
 });
 
 const signupSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -116,97 +116,56 @@ export default function LoginPage() {
     },
   });
 
-  // --- FUNCIONES PARA LOGIN Y SIGNUP CON EMAIL/PASSWORD DE FIREBASE ---
+  // --- LOCAL EMAIL/PASSWORD AUTH ---
+  const [localAuthLoading, setLocalAuthLoading] = useState(false);
+
   const onLogin = async (data: LoginForm) => {
+    setLocalAuthLoading(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        data.email,
-        data.password,
-      );
-      const idToken = await userCredential.user.getIdToken();
-      firebaseAuthMutation.mutate(idToken); // Enviar el ID Token al backend
+      const response = await apiRequest("POST", "/api/local-login", {
+        email: data.email,
+        password: data.password,
+      });
+      const result = await response.json();
+      queryClient.setQueryData(["/api/auth/user"], { user: result.user });
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      toast({ title: "Welcome!", description: "Login successful." });
+      navigate("/dashboard");
     } catch (error: any) {
-      console.error("Firebase Email Login Error:", error);
-      let errorMessage = "An unexpected error occurred. Please try again.";
-
-      if (error && typeof error === "object" && "code" in error) {
-        const firebaseErrorCode = (error as any).code;
-        switch (firebaseErrorCode) {
-          case "auth/invalid-email":
-          case "auth/user-not-found":
-          case "auth/wrong-password":
-            errorMessage = "Invalid email or password.";
-            break;
-          case "auth/user-disabled":
-            errorMessage = "Your account has been disabled.";
-            break;
-          case "auth/too-many-requests":
-            errorMessage = "Too many login attempts. Please try again later.";
-            break;
-          default:
-            errorMessage = (error as any).message;
-            break;
-        }
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
+      console.error("Login Error:", error);
       toast({
         title: "Login Failed",
-        description: errorMessage,
+        description: error.message || "Invalid email or password.",
         variant: "destructive",
       });
+    } finally {
+      setLocalAuthLoading(false);
     }
   };
 
   const onSignup = async (data: SignupForm) => {
+    setLocalAuthLoading(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        data.email,
-        data.password,
-      );
-      // Actualizar el perfil del usuario con nombre y apellido en Firebase
-      if (userCredential.user) {
-        await updateProfile(userCredential.user, {
-          displayName: `${data.firstName} ${data.lastName}`,
-        });
-      }
-
-      const idToken = await userCredential.user.getIdToken();
-      firebaseAuthMutation.mutate(idToken); // Enviar el ID Token al backend
+      const response = await apiRequest("POST", "/api/local-signup", {
+        email: data.email,
+        password: data.password,
+        firstName: data.firstName,
+        lastName: data.lastName,
+      });
+      const result = await response.json();
+      queryClient.setQueryData(["/api/auth/user"], { user: result.user });
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      toast({ title: "Welcome!", description: "Account created successfully." });
+      navigate("/dashboard");
     } catch (error: any) {
-      console.error("Firebase Email Signup Error:", error);
-      let errorMessage = "An unexpected error occurred. Please try again.";
-
-      if (error && typeof error === "object" && "code" in error) {
-        const firebaseErrorCode = (error as any).code;
-        switch (firebaseErrorCode) {
-          case "auth/email-already-in-use":
-            errorMessage =
-              "This email is already registered. Please login or use a different email.";
-            break;
-          case "auth/invalid-email":
-            errorMessage = "Invalid email format.";
-            break;
-          case "auth/weak-password":
-            errorMessage =
-              "Password is too weak. Please choose a stronger password.";
-            break;
-          default:
-            errorMessage = (error as any).message;
-            break;
-        }
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
+      console.error("Signup Error:", error);
       toast({
         title: "Signup Failed",
-        description: errorMessage,
+        description: error.message || "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setLocalAuthLoading(false);
     }
   };
 
@@ -384,7 +343,7 @@ export default function LoginPage() {
                   <Button
                     type="submit"
                     className="w-full"
-                    disabled={firebaseAuthMutation.isPending}
+                    disabled={localAuthLoading || firebaseAuthMutation.isPending}
                     style={{
                       background:
                         "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
@@ -393,9 +352,7 @@ export default function LoginPage() {
                       borderRadius: "12px",
                     }}
                   >
-                    {firebaseAuthMutation.isPending
-                      ? "Signing in..."
-                      : "Sign In"}
+                    {localAuthLoading ? "Signing in..." : "Sign In"}
                   </Button>
                 </form>
               </Form>
@@ -462,7 +419,7 @@ export default function LoginPage() {
                           <Input
                             {...field}
                             type="password"
-                            placeholder="******"
+                            placeholder="Min. 8 characters"
                           />
                         </FormControl>
                         <FormMessage />
@@ -472,7 +429,7 @@ export default function LoginPage() {
                   <Button
                     type="submit"
                     className="w-full"
-                    disabled={firebaseAuthMutation.isPending}
+                    disabled={localAuthLoading || firebaseAuthMutation.isPending}
                     style={{
                       background:
                         "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
@@ -481,9 +438,7 @@ export default function LoginPage() {
                       borderRadius: "12px",
                     }}
                   >
-                    {firebaseAuthMutation.isPending
-                      ? "Creating..."
-                      : "Create Account"}
+                    {localAuthLoading ? "Creating..." : "Create Account"}
                   </Button>
                 </form>
               </Form>

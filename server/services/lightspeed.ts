@@ -11,8 +11,11 @@ const LIGHTSPEED_CLIENT_ID = process.env.LIGHTSPEED_CLIENT_ID!;
 const LIGHTSPEED_CLIENT_SECRET = process.env.LIGHTSPEED_CLIENT_SECRET!;
 const APP_URL = process.env.APP_URL || process.env.REPLIT_DEV_DOMAIN || "";
 
-const ENCRYPTION_KEY =
-  process.env.POS_ENCRYPTION_KEY || "default-32-char-key-for-development";
+const ENCRYPTION_KEY = process.env.POS_ENCRYPTION_KEY;
+if (!ENCRYPTION_KEY && process.env.NODE_ENV === "production") {
+  throw new Error("POS_ENCRYPTION_KEY is required in production. Generate with: node -e \"console.log(require('crypto').randomBytes(16).toString('hex'))\"");
+}
+const ENCRYPTION_KEY_SAFE = ENCRYPTION_KEY || "dev-only-insecure-key-32chars!!"; // Only used in development
 
 interface LightspeedTokenResponse {
   access_token: string;
@@ -60,7 +63,7 @@ interface LightspeedSale {
 
 export class LightspeedService {
   private encryptData(text: string): string {
-    const cipher = crypto.createCipher("aes-256-cbc", ENCRYPTION_KEY);
+    const cipher = crypto.createCipher("aes-256-cbc", ENCRYPTION_KEY_SAFE);
     let encrypted = cipher.update(text, "utf8", "hex");
     encrypted += cipher.final("hex");
     return encrypted;
@@ -68,7 +71,7 @@ export class LightspeedService {
 
   private decryptData(encryptedText: string): string {
     try {
-      const decipher = crypto.createDecipher("aes-256-cbc", ENCRYPTION_KEY);
+      const decipher = crypto.createDecipher("aes-256-cbc", ENCRYPTION_KEY_SAFE);
       let decrypted = decipher.update(encryptedText, "hex", "utf8");
       decrypted += decipher.final("utf8");
       return decrypted;

@@ -1,6 +1,64 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, RequestHandler } from "express";
 import { storage } from "./storage";
 import { SelectBrandMembership } from "@shared/schema";
+
+// --- RATE LIMITING ---
+// Simple in-memory rate limiter (no extra dependencies)
+// For production with multiple instances, replace with Redis-backed solution
+
+interface RateLimitEntry {
+  count: number;
+  resetAt: number;
+}
+
+const rateLimitStore = new Map<string, RateLimitEntry>();
+
+// Clean up expired entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  rateLimitStore.forEach((entry, key) => {
+    if (now > entry.resetAt) {
+      rateLimitStore.delete(key);
+    }
+  });
+}, 5 * 60 * 1000);
+
+/**
+ * Rate limit middleware factory.
+ * @param maxAttempts - Max requests allowed in the window
+ * @param windowMs - Time window in milliseconds
+ */
+export function rateLimit(maxAttempts: number, windowMs: number): RequestHandler {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const ip = req.ip || req.socket.remoteAddress || "unknown";
+    const key = `${req.path}:${ip}`;
+    const now = Date.now();
+
+    const entry = rateLimitStore.get(key);
+
+    if (!entry || now > entry.resetAt) {
+      // New window
+      rateLimitStore.set(key, { count: 1, resetAt: now + windowMs });
+      return next();
+    }
+
+    if (entry.count >= maxAttempts) {
+      const retryAfterSec = Math.ceil((entry.resetAt - now) / 1000);
+      res.set("Retry-After", String(retryAfterSec));
+      return res.status(429).json({
+        message: "Too many attempts. Please try again later.",
+        retryAfterSeconds: retryAfterSec,
+      });
+    }
+
+    entry.count++;
+    return next();
+  };
+}
+
+// Pre-configured rate limiters
+export const authRateLimit = rateLimit(10, 15 * 60 * 1000); // 10 attempts per 15 minutes
+export const signupRateLimit = rateLimit(5, 60 * 60 * 1000); // 5 signups per hour per IP
 
 // Define permission levels (higher number = more permissions)
 const ROLE_PERMISSIONS = {

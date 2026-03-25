@@ -3372,6 +3372,7 @@ export default function ContentCalendar() {
           onSave={handleSaveEditedImage}
           onAcceptWithoutEdit={handleAcceptWithoutEdit}
           isUploading={uploadEditedImageMutation.isPending}
+          hasPostingFrequency={!!hasPostingFrequency}
         />
 
         {/* AI Generation Loading Modal */}

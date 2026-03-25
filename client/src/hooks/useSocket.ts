@@ -4,7 +4,7 @@ import { io, Socket } from "socket.io-client";
 const SOCKET_URL = window.location.origin;
 
 let globalSocket: Socket | null = null;
-let connectionCount = 0;
+const mountedHooks = new Set<string>();
 
 function getSocket(): Socket {
   if (!globalSocket) {
@@ -17,11 +17,11 @@ function getSocket(): Socket {
     });
 
     globalSocket.on("connect", () => {
-      console.log("✅ Socket.IO connected:", globalSocket?.id);
+      // Connected — id available via globalSocket.id
     });
 
     globalSocket.on("disconnect", () => {
-      console.log("❌ Socket.IO disconnected");
+      // Will auto-reconnect based on reconnection settings
     });
 
     globalSocket.on("connect_error", (error) => {
@@ -33,15 +33,16 @@ function getSocket(): Socket {
 
 export function useSocket() {
   const [socket, setSocket] = useState<Socket | null>(null);
+  const idRef = useRef(Math.random().toString(36));
 
   useEffect(() => {
-    connectionCount++;
+    mountedHooks.add(idRef.current);
     const s = getSocket();
     setSocket(s);
 
     return () => {
-      connectionCount--;
-      if (connectionCount === 0 && globalSocket) {
+      mountedHooks.delete(idRef.current);
+      if (mountedHooks.size === 0 && globalSocket) {
         globalSocket.disconnect();
         globalSocket = null;
       }
@@ -66,7 +67,6 @@ export function useBrandSocket(brandId: string | null) {
     // Join new room
     socket.emit("join_brand", brandId);
     joinedRoomRef.current = brandId;
-    console.log(`📢 Joining brand room: ${brandId}`);
 
     return () => {
       if (joinedRoomRef.current) {
@@ -96,7 +96,9 @@ export function useNewMessageListener(
     socket.on("new_message", callback);
 
     return () => {
-      socket.off("new_message", callback);
+      if (socket) {
+        socket.off("new_message", callback);
+      }
     };
   }, [socket, callback]);
 }

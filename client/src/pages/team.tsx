@@ -37,7 +37,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, CheckCircle, Clock, AlertTriangle, Upload, Eye } from "lucide-react";
 import type { TeamTask, User } from "@shared/schema";
-import type { UploadResult } from "@uppy/core";
+
 import HelpChatbot from "@/components/HelpChatbot";
 import { useLanguage } from "@/hooks/useLanguage";
 
@@ -57,24 +57,24 @@ export default function TeamPage() {
   const { language, isSpanish,toggleLanguage } = useLanguage();
 
   // Fetch team tasks
-  const { data: assignedTasks = [], isLoading: assignedLoading } = useQuery({
+  const { data: assignedTasks = [], isLoading: assignedLoading } = useQuery<any[]>({
     queryKey: ['/api/team-tasks', { assigned: true }],
-    queryFn: () => apiRequest('/api/team-tasks?assigned=true'),
+    queryFn: () => apiRequest('GET', '/api/team-tasks?assigned=true').then(r => r.json()),
   });
 
-  const { data: createdTasks = [], isLoading: createdLoading } = useQuery({
+  const { data: createdTasks = [], isLoading: createdLoading } = useQuery<any[]>({
     queryKey: ['/api/team-tasks', { assigned: false }],
-    queryFn: () => apiRequest('/api/team-tasks?assigned=false'),
+    queryFn: () => apiRequest('GET', '/api/team-tasks?assigned=false').then(r => r.json()),
   });
 
   // Fetch all users for task assignment
-  const { data: users = [] } = useQuery({
+  const { data: users = [] } = useQuery<any[]>({
     queryKey: ['/api/users'],
   });
 
   // Task mutations
   const createTaskMutation = useMutation({
-    mutationFn: async (data: any) => apiRequest('/api/team-tasks', { method: 'POST', body: data }),
+    mutationFn: async (data: any) => apiRequest('POST', '/api/team-tasks', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/team-tasks'] });
       setShowAssignTask(false);
@@ -86,8 +86,8 @@ export default function TeamPage() {
   });
 
   const completeTaskMutation = useMutation({
-    mutationFn: async ({ taskId, data }: { taskId: string; data: any }) => 
-      apiRequest(`/api/team-tasks/${taskId}/complete`, { method: 'PUT', body: data }),
+    mutationFn: async ({ taskId, data }: { taskId: string; data: any }) =>
+      apiRequest('PUT', `/api/team-tasks/${taskId}/complete`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/team-tasks'] });
       setShowCompleteTask(false);
@@ -127,15 +127,16 @@ export default function TeamPage() {
 
   const handleFileUpload = async () => {
     try {
-      const response = await apiRequest('/api/objects/upload', { method: 'POST' });
-      return { method: 'PUT' as const, url: response.uploadURL };
+      const response = await apiRequest('POST', '/api/objects/upload');
+      const responseData = await response.json();
+      return { method: 'PUT' as const, url: responseData.uploadURL };
     } catch (error) {
       toast({ title: "Failed to get upload URL", variant: "destructive" });
       throw error;
     }
   };
 
-  const handleFileUploadComplete = (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+  const handleFileUploadComplete = (result: any) => {
     if (result.successful && result.successful[0]) {
       const fileUrl = result.successful[0].uploadURL;
       // Store the file URL in the form for submission

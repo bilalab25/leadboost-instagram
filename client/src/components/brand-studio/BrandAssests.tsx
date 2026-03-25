@@ -22,7 +22,7 @@ export default function BrandAssets({
   handleRemoveAsset,
   handleUpdateAssetCaption,
   uploads,
-}) {
+}: Record<string, any>) {
   const { isSpanish } = useLanguage();
 
   return (
@@ -38,7 +38,7 @@ export default function BrandAssets({
           {/* Upload progress */}
           {uploads.length > 0 && (
             <div className="mt-4 space-y-3">
-              {uploads.map((u) => (
+              {uploads.map((u: any) => (
                 <div key={u.id} className="text-left">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm text-gray-700 truncate">
@@ -61,9 +61,9 @@ export default function BrandAssets({
         {/* Accordion with categories */}
         <CardContent>
           <Accordion type="multiple" className="w-full">
-            {assetCategories.map((category) => {
+            {assetCategories.map((category: any) => {
               const assetsInCategory = assets.filter(
-                (asset) => asset.category === category.value,
+                (asset: any) => asset.category === category.value,
               );
 
               return (
@@ -117,7 +117,7 @@ export default function BrandAssets({
                     {/* Assets grid (new tile style + caption input) */}
                     {assetsInCategory.length > 0 ? (
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                        {assetsInCategory.map((asset) => (
+                        {assetsInCategory.map((asset: any) => (
                           <div key={asset.id} className="space-y-2">
                             {/* Tile */}
                             <div className="relative group rounded-[28px] border bg-muted/30 overflow-hidden shadow-sm">

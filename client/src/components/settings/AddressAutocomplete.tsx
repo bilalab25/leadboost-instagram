@@ -12,14 +12,14 @@ export default function AddressAutocomplete({
   isSpanish?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const autocompleteRef = useRef<any>(null);
 
   useEffect(() => {
     loadGoogleMapsScript()
       .then(() => {
-        if (!window.google?.maps?.places || !inputRef.current) return;
+        if (!(window as any).google?.maps?.places || !inputRef.current) return;
 
-        autocompleteRef.current = new google.maps.places.Autocomplete(
+        autocompleteRef.current = new (window as any).google.maps.places.Autocomplete(
           inputRef.current,
           {
             types: ["geocode"],

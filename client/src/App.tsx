@@ -6,13 +6,12 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/hooks/useLanguage";
 import { BrandProvider } from "@/contexts/BrandContext";
 import OnboardingGuard from "@/components/OnboardingGuard";
+import PrivateRoute from "@/components/PrivateRoute";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Login from "@/pages/login";
-// Importa tu componente PrivateRoute
-import PrivateRoute from "@/components/PrivateRoute"; // <--- IMPORTACIÓN CLAVE
 
-// Importa todos tus componentes de página
+// Page imports
 import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
 import Inbox from "@/pages/inbox";
@@ -24,7 +23,7 @@ import Customers from "@/pages/customers";
 import Team from "@/pages/team";
 import Integrations from "@/pages/integrations";
 import SpanishPreview from "@/pages/spanish-preview";
-import CampAIgner from "@/pages/waterfall"; // Asumo que waterfall es CampAIgner
+import CampAIgner from "@/pages/waterfall";
 import BrandStudio from "@/pages/brand-studio";
 import Pricing from "@/pages/pricing";
 import Approvals from "@/pages/approvals";
@@ -41,16 +40,15 @@ import WaitList from "./pages/waitlist";
 function Router() {
   return (
     <Switch>
-      {/* Rutas públicas: Accesibles para todos, incluyendo no autenticados */}
+      {/* Public routes */}
       <Route path="/" component={Landing} />
       <Route path="/login" component={Login} />
       <Route path="/pricing" component={Pricing} />
       <Route path="/spanish-preview" component={SpanishPreview} />
       <Route path="/privacy-policy" component={PrivacyPolicy} />
       <Route path="/waitlist" component={WaitList} />
-      {/* Rutas de la aplicación - PROTEGIDAS por PrivateRoute */}
-      {/* Si el usuario no está autenticado, PrivateRoute lo redirigirá a /login */}
-      {/* Onboarding is a special case - requires auth but not brands */}
+
+      {/* Protected routes (redirect to /login if not authenticated) */}
       <PrivateRoute path="/onboarding" component={Onboarding} />
       <PrivateRoute path="/home" component={Home} />
       <PrivateRoute path="/dashboard" component={Dashboard} />
@@ -73,7 +71,8 @@ function Router() {
       <PrivateRoute path="/whatsapp-templates" component={WhatsAppTemplates} />
       <PrivateRoute path="/sales" component={Sales} />
       <PrivateRoute path="/boosty" component={Boosty} />
-      {/* Ruta 404 para cualquier otra ruta no definida */}
+
+      {/* 404 */}
       <Route component={NotFound} />
     </Switch>
   );

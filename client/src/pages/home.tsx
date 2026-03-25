@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/hooks/useLanguage";
 import { 
   MessageSquare, 
@@ -32,6 +33,11 @@ export default function Home() {
     enabled: !!activeMembership?.brandId,
   });
 
+  const { data: stats, isLoading: statsLoading } = useQuery<any>({
+    queryKey: ["/api/dashboard/stats", { brandId: activeMembership?.brandId }],
+    enabled: !!activeMembership?.brandId,
+  });
+
   // Use server-provided flag to determine if onboarding is incomplete
   const isOnboardingIncomplete = onboardingProgress?.hasIncompleteBrand === true && 
     onboardingProgress?.onboardingCompleted !== true;
@@ -44,8 +50,13 @@ export default function Home() {
     );
   }
 
-  const handleLogout = () => {
-    window.location.href = "/api/logout";
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/logout", { method: "POST", credentials: "include" });
+    } catch {
+      // Ignore errors
+    }
+    window.location.href = "/login";
   };
 
   return (
@@ -129,7 +140,11 @@ export default function Home() {
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">42</div>
+              {statsLoading ? (
+                <div className="h-8 w-16 bg-gray-200 animate-pulse rounded" />
+              ) : (
+                <div className="text-2xl font-bold">{stats?.unreadMessages ?? 0}</div>
+              )}
               <p className="text-xs text-muted-foreground">Unread messages</p>
             </CardContent>
           </Card>
@@ -140,7 +155,11 @@ export default function Home() {
               <Zap className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">15</div>
+              {statsLoading ? (
+                <div className="h-8 w-16 bg-gray-200 animate-pulse rounded" />
+              ) : (
+                <div className="text-2xl font-bold">{stats?.activeCampaigns ?? 0}</div>
+              )}
               <p className="text-xs text-muted-foreground">Active campaigns</p>
             </CardContent>
           </Card>
@@ -151,19 +170,27 @@ export default function Home() {
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">8.7%</div>
+              {statsLoading ? (
+                <div className="h-8 w-16 bg-gray-200 animate-pulse rounded" />
+              ) : (
+                <div className="text-2xl font-bold">{stats?.engagementRate ?? 0}%</div>
+              )}
               <p className="text-xs text-muted-foreground">Engagement rate</p>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => window.location.href = "/team"}>
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => window.location.href = "/integrations"}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Team</CardTitle>
+              <CardTitle className="text-sm font-medium">Integrations</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">5</div>
-              <p className="text-xs text-muted-foreground">Team members</p>
+              {statsLoading ? (
+                <div className="h-8 w-16 bg-gray-200 animate-pulse rounded" />
+              ) : (
+                <div className="text-2xl font-bold">{stats?.totalSocialAccounts ?? 0}</div>
+              )}
+              <p className="text-xs text-muted-foreground">Social accounts</p>
             </CardContent>
           </Card>
 
@@ -173,7 +200,11 @@ export default function Home() {
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">28</div>
+              {statsLoading ? (
+                <div className="h-8 w-16 bg-gray-200 animate-pulse rounded" />
+              ) : (
+                <div className="text-2xl font-bold">{stats?.aiPosts ?? 0}</div>
+              )}
               <p className="text-xs text-muted-foreground">Planned posts</p>
             </CardContent>
           </Card>
@@ -193,37 +224,19 @@ export default function Home() {
         {/* Recent Activity */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Your latest AI-generated campaigns and messages</CardDescription>
+            <CardTitle>{isSpanish ? "Actividad Reciente" : "Recent Activity"}</CardTitle>
+            <CardDescription>
+              {isSpanish ? "Tu actividad más reciente" : "Your latest activity"}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-4 p-4 bg-blue-50 rounded-lg">
-                <Zap className="h-8 w-8 text-blue-600" />
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900">AI Campaign Generated</h4>
-                  <p className="text-sm text-gray-600">Created monthly campaign for Renuve Aesthetics Bar</p>
-                  <p className="text-xs text-gray-500 mt-1">2 hours ago</p>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-4 p-4 bg-green-50 rounded-lg">
-                <MessageSquare className="h-8 w-8 text-green-600" />
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900">High Priority Message</h4>
-                  <p className="text-sm text-gray-600">New urgent message from Carlos Rivera about surgery confirmation</p>
-                  <p className="text-xs text-gray-500 mt-1">30 minutes ago</p>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-4 p-4 bg-purple-50 rounded-lg">
-                <BarChart3 className="h-8 w-8 text-purple-600" />
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900">Performance Report</h4>
-                  <p className="text-sm text-gray-600">Weekly analytics report is ready for review</p>
-                  <p className="text-xs text-gray-500 mt-1">1 day ago</p>
-                </div>
-              </div>
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <BarChart3 className="h-12 w-12 text-gray-300 mb-3" />
+              <p className="text-sm text-gray-500">
+                {isSpanish
+                  ? "La actividad aparecerá aquí a medida que uses la plataforma."
+                  : "Activity will appear here as you use the platform."}
+              </p>
             </div>
           </CardContent>
         </Card>

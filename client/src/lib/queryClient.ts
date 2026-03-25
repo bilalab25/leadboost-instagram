@@ -2,8 +2,21 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    let message = res.statusText;
+    try {
+      const text = await res.text();
+      try {
+        const body = JSON.parse(text);
+        message = body.message || body.error || text;
+      } catch {
+        if (text) message = text;
+      }
+    } catch {
+      // Could not read response body
+    }
+    const error = new Error(message);
+    (error as any).status = res.status;
+    throw error;
   }
 }
 
@@ -63,8 +76,8 @@ export const queryClient = new QueryClient({
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
-      refetchOnWindowFocus: false,
-      staleTime: Infinity,
+      refetchOnWindowFocus: true,
+      staleTime: 5 * 60 * 1000, // 5 minutes — data refreshes when stale and window regains focus
       retry: false,
     },
     mutations: {

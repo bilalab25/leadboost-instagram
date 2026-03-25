@@ -1,4 +1,4 @@
-import { getStripeSync, getUncachableStripeClient } from './stripeClient';
+import { getStripeSync, getStripeClient, getWebhookSecret } from './stripeClient';
 import { billingService } from './billingService';
 import { triggerInitialSyncForBrand } from '../services/inboxSyncService';
 import Stripe from 'stripe';
@@ -9,23 +9,31 @@ export class WebhookHandlers {
       throw new Error(
         'STRIPE WEBHOOK ERROR: Payload must be a Buffer. ' +
         'Received type: ' + typeof payload + '. ' +
-        'This usually means express.json() parsed the body before reaching this handler. ' +
-        'FIX: Ensure webhook route is registered BEFORE app.use(express.json()).'
+        'Ensure webhook route is registered BEFORE app.use(express.json()).'
       );
     }
 
-    // Process with stripe-replit-sync for database sync
-    // This library handles signature verification internally using Replit's managed webhook secret
-    const sync = await getStripeSync();
-    await sync.processWebhook(payload, signature);
+    let event: Stripe.Event;
 
-    // Parse the event directly from the payload
-    // Security: stripe-replit-sync already verified the signature above
-    // We don't need to verify again - doing so would fail because we don't have
-    // access to the same webhook secret that Replit's connector uses
+    // Try Replit sync first (if available), then fall back to direct Stripe verification
+    const sync = await getStripeSync();
+
+    if (sync) {
+      // Replit mode: use stripe-replit-sync for signature verification + DB sync
+      await sync.processWebhook(payload, signature);
+      event = JSON.parse(payload.toString()) as Stripe.Event;
+    } else {
+      // Standalone mode: use Stripe SDK for signature verification
+      const webhookSecret = await getWebhookSecret();
+      if (!webhookSecret) {
+        throw new Error('STRIPE_WEBHOOK_SECRET is required for webhook verification. Set it in .env');
+      }
+
+      const stripe = await getStripeClient();
+      event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+    }
+
     try {
-      const event = JSON.parse(payload.toString()) as Stripe.Event;
-      
       console.log(`[Stripe Webhook] Processing event: ${event.type}`);
 
       // Handle subscription events
@@ -138,7 +146,7 @@ async function handlePaymentMethodDetached(paymentMethod: any) {
   console.log(`[Stripe Webhook] Payment method detached from customer ${customerId}`);
 
   // Check if customer still has any payment methods
-  const stripe = await getUncachableStripeClient();
+  const stripe = await getStripeClient();
   const paymentMethods = await stripe.paymentMethods.list({
     customer: customerId,
     type: 'card',

@@ -3,10 +3,10 @@ import OpenAI from 'openai';
 
 const router = Router();
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize OpenAI client (only if API key is available)
+const openai = process.env.OPENAI_API_KEY
+  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  : null;
 
 interface ChatRequest extends Request {
   body: {
@@ -51,7 +51,7 @@ CampAIgner is a SaaS platform that:
 
 Respond in a helpful, friendly, and professional manner. Keep responses concise but informative. If you're unsure about something specific, suggest contacting support or checking documentation.`;
 
-    const completion = await openai.chat.completions.create({
+    const completion = await openai!.chat.completions.create({
       model: 'gpt-4o', // the newest OpenAI model is "gpt-4o" which was released after your knowledge cutoff. do not change this unless explicitly requested by the user
       messages: [
         { role: 'system', content: systemPrompt },

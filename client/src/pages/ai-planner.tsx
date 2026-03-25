@@ -115,7 +115,7 @@ export default function AIPlanner() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const { language, toggleLanguage, isSpanish } = useLanguage();
-  const { activeBrand } = useBrand();
+  const { activeBrand } = useBrand() as any;
   const queryClient = useQueryClient();
   const t = translations[language];
   

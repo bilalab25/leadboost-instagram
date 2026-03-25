@@ -4,7 +4,6 @@ import {
   brandMemberships,
   brandInvitations,
   socialAccounts,
-  conversationThreads,
   conversations,
   messages,
   messageAttachments,
@@ -30,9 +29,8 @@ import {
   integrations,
   socialPostingFrequency,
   conversationHistory,
-  // Asegúrate de que estos tipos en @shared/schema incluyan firebaseUid y hagan password, email, firstName, lastName opcionales/nullable
   type User,
-  type UpsertUser, // Asumo que UpsertUser es para operaciones de upsert, no para updateUser
+  type UpsertUser,
   type InsertUser,
   type InsertBrand,
   type Brand,
@@ -43,8 +41,6 @@ import {
   type InsertBrandInvitation,
   type InsertSocialAccount,
   type SocialAccount,
-  type InsertConversationThread,
-  type ConversationThread,
   type InsertConversation,
   type Conversation,
   type InsertMessage,
@@ -669,7 +665,7 @@ export class DatabaseStorage implements IStorage {
       .from(messages)
       .innerJoin(
         socialAccounts,
-        eq(messages.socialAccountId, socialAccounts.id),
+        eq((messages as any).socialAccountId, socialAccounts.id),
       )
       .where(and(...whereConditions));
 
@@ -681,7 +677,7 @@ export class DatabaseStorage implements IStorage {
     return db
       .select()
       .from(messages)
-      .where(eq(messages.socialAccountId, accountId))
+      .where(eq((messages as any).socialAccountId, accountId))
       .orderBy(desc(messages.createdAt));
   }
 
@@ -764,7 +760,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async assignMessage(id: string, assignedTo: string): Promise<void> {
-    await db.update(messages).set({ assignedTo }).where(eq(messages.id, id));
+    await db.update(messages).set({ assignedTo } as any).where(eq(messages.id, id));
   }
 
   async markMessageAsRead(id: string): Promise<void> {
@@ -791,7 +787,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateMessagePriority(id: string, priority: string): Promise<void> {
-    await db.update(messages).set({ priority }).where(eq(messages.id, id));
+    await db.update(messages).set({ priority } as any).where(eq(messages.id, id));
   }
 
   async findMessageByMetaId(
@@ -1239,7 +1235,7 @@ export class DatabaseStorage implements IStorage {
   async createCustomer(customer: InsertCustomer): Promise<Customer> {
     const [newCustomer] = await db
       .insert(customers)
-      .values(customer)
+      .values(customer as any)
       .returning();
     return newCustomer;
   }
@@ -1331,7 +1327,7 @@ export class DatabaseStorage implements IStorage {
 
   // Invoice operations
   async createInvoice(invoice: InsertInvoice): Promise<Invoice> {
-    const [newInvoice] = await db.insert(invoices).values(invoice).returning();
+    const [newInvoice] = await db.insert(invoices).values(invoice as any).returning();
     return newInvoice;
   }
 
@@ -1428,8 +1424,8 @@ export class DatabaseStorage implements IStorage {
     return tasks.map((row) => ({
       ...row.task,
       assignedByUser: row.assignedByUser!,
-      assignedTo: row.assignedToUser!, // Corregido: assignedToUser
-    }));
+      assignedToUser: row.assignedToUser!, // Corregido: assignedToUser
+    })) as any;
   }
 
   async updateTaskStatus(id: string, status: string): Promise<void> {

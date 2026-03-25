@@ -1,7 +1,7 @@
 export function loadGoogleMapsScript(): Promise<void> {
   return new Promise((resolve, reject) => {
     // Si ya está cargado, no lo cargues de nuevo
-    if (window.google?.maps) {
+    if ((window as any).google?.maps) {
       resolve();
       return;
     }

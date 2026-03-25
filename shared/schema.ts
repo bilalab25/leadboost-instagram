@@ -107,7 +107,7 @@ export const brandMemberships = pgTable(
       .references(() => brands.id, { onDelete: "cascade" }),
     role: varchar("role").notNull().default("viewer"), // owner, admin, editor, viewer
     status: varchar("status").notNull().default("active"), // active, invited, suspended
-    invitedBy: varchar("invited_by").references(() => users.id),
+    invitedBy: varchar("invited_by").references(() => users.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
   },
@@ -147,24 +147,31 @@ export const brandInvitations = pgTable(
 );
 
 // Social media accounts connected to users and brands
-export const socialAccounts = pgTable("social_accounts", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id, {
-    onDelete: "cascade",
-  }),
-  brandId: uuid("brand_id").references(() => brands.id, {
-    onDelete: "cascade",
-  }),
-  platform: varchar("platform").notNull(), // instagram, whatsapp, email, tiktok
-  accountId: varchar("account_id").notNull(),
-  accountName: varchar("account_name").notNull(),
-  accessToken: text("access_token"),
-  refreshToken: text("refresh_token"),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+export const socialAccounts = pgTable(
+  "social_accounts",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id").references(() => users.id, {
+      onDelete: "cascade",
+    }),
+    brandId: uuid("brand_id").references(() => brands.id, {
+      onDelete: "cascade",
+    }),
+    platform: varchar("platform").notNull(), // instagram, whatsapp, email, tiktok
+    accountId: varchar("account_id").notNull(),
+    accountName: varchar("account_name").notNull(),
+    accessToken: text("access_token"),
+    refreshToken: text("refresh_token"),
+    isActive: boolean("is_active").default(true),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("social_accounts_user_idx").on(table.userId),
+    index("social_accounts_brand_idx").on(table.brandId),
+  ],
+);
 
 // Conversations table - Groups messages from Meta platforms
 export const conversations = pgTable(
@@ -207,24 +214,7 @@ export const conversations = pgTable(
   ],
 );
 
-// DEPRECATED: Old conversation threads table - Use conversations table instead
-export const conversationThreads = pgTable("conversation_threads", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  socialAccountId: uuid("social_account_id").references(
-    () => socialAccounts.id,
-    { onDelete: "cascade" },
-  ),
-  participantId: varchar("participant_id").notNull(), // customer's ID on the platform
-  participantName: varchar("participant_name").notNull(),
-  participantAvatar: varchar("participant_avatar"),
-  platform: varchar("platform").notNull(), // instagram, whatsapp, etc.
-  lastMessageAt: timestamp("last_message_at").defaultNow(),
-  lastMessagePreview: text("last_message_preview"),
-  isRead: boolean("is_read").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+// NOTE: conversation_threads table was deprecated and removed. Use conversations table instead.
 
 // Messages from all social platforms - Webhook storage
 export const messages = pgTable(
@@ -269,20 +259,26 @@ export const messages = pgTable(
 );
 
 // Message attachments (images, videos, files)
-export const messageAttachments = pgTable("message_attachments", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  messageId: uuid("message_id").references(() => messages.id, {
-    onDelete: "cascade",
-  }),
-  type: varchar("type").notNull(), // image, video, file, audio
-  url: text("url").notNull(),
-  fileName: varchar("file_name"),
-  fileSize: integer("file_size"), // in bytes
-  mimeType: varchar("mime_type"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+export const messageAttachments = pgTable(
+  "message_attachments",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    messageId: uuid("message_id").references(() => messages.id, {
+      onDelete: "cascade",
+    }),
+    type: varchar("type").notNull(), // image, video, file, audio
+    url: text("url").notNull(),
+    fileName: varchar("file_name"),
+    fileSize: integer("file_size"), // in bytes
+    mimeType: varchar("mime_type"),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("message_attachments_message_idx").on(table.messageId),
+  ],
+);
 
 // Conversation history between user and AI agent
 export const conversationHistory = pgTable(
@@ -311,90 +307,118 @@ export const conversationHistory = pgTable(
 );
 
 // AI-generated content plans per brand
-export const contentPlans = pgTable("content_plans", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id, {
-    onDelete: "cascade",
-  }),
-  brandId: uuid("brand_id").references(() => brands.id, {
-    onDelete: "cascade",
-  }),
-  title: varchar("title").notNull(),
-  month: integer("month").notNull(),
-  year: integer("year").notNull(),
-  strategy: text("strategy"),
-  insights: jsonb("insights"),
-  posts: jsonb("posts"), // Array of planned posts
-  status: varchar("status").default("draft"), // draft, approved, published
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+export const contentPlans = pgTable(
+  "content_plans",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id").references(() => users.id, {
+      onDelete: "cascade",
+    }),
+    brandId: uuid("brand_id").references(() => brands.id, {
+      onDelete: "cascade",
+    }),
+    title: varchar("title").notNull(),
+    month: integer("month").notNull(),
+    year: integer("year").notNull(),
+    strategy: text("strategy"),
+    insights: jsonb("insights"),
+    posts: jsonb("posts"), // Array of planned posts
+    status: varchar("status").default("draft"), // draft, approved, published
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    index("content_plans_user_idx").on(table.userId),
+    index("content_plans_brand_idx").on(table.brandId),
+  ],
+);
 
 // Social media campaigns per brand
-export const campaigns = pgTable("campaigns", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id, {
-    onDelete: "cascade",
-  }),
-  brandId: uuid("brand_id").references(() => brands.id, {
-    onDelete: "cascade",
-  }),
-  title: varchar("title").notNull(),
-  description: text("description"),
-  platforms: text("platforms").array(), // which platforms to post to
-  content: jsonb("content"), // post content, images, etc
-  platformContent: jsonb("platform_content"), // platform-specific content variations
-  adFormats: jsonb("ad_formats"), // selected ad formats per platform
-  targetAudience: jsonb("target_audience"), // audience targeting per platform
-  budget: jsonb("budget"), // budget allocation per platform/format
-  scheduledFor: timestamp("scheduled_for"),
-  status: varchar("status").default("draft"), // draft, scheduled, published, failed
-  aiGenerated: boolean("ai_generated").default(false),
-  performance: jsonb("performance"), // engagement metrics
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+export const campaigns = pgTable(
+  "campaigns",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id").references(() => users.id, {
+      onDelete: "cascade",
+    }),
+    brandId: uuid("brand_id").references(() => brands.id, {
+      onDelete: "cascade",
+    }),
+    title: varchar("title").notNull(),
+    description: text("description"),
+    platforms: text("platforms").array(), // which platforms to post to
+    content: jsonb("content"), // post content, images, etc
+    platformContent: jsonb("platform_content"), // platform-specific content variations
+    adFormats: jsonb("ad_formats"), // selected ad formats per platform
+    targetAudience: jsonb("target_audience"), // audience targeting per platform
+    budget: jsonb("budget"), // budget allocation per platform/format
+    scheduledFor: timestamp("scheduled_for"),
+    status: varchar("status").default("draft"), // draft, scheduled, published, failed
+    aiGenerated: boolean("ai_generated").default(false),
+    performance: jsonb("performance"), // engagement metrics
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    index("campaigns_user_idx").on(table.userId),
+    index("campaigns_brand_idx").on(table.brandId),
+  ],
+);
 
 // Business analytics data per brand
-export const analytics = pgTable("analytics", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id, {
-    onDelete: "cascade",
-  }),
-  brandId: uuid("brand_id").references(() => brands.id, {
-    onDelete: "cascade",
-  }),
-  platform: varchar("platform").notNull(),
-  metric: varchar("metric").notNull(), // reach, engagement, clicks, etc
-  value: integer("value").notNull(),
-  period: varchar("period").default("daily"), // daily, weekly, monthly
-  recordedAt: timestamp("recorded_at").defaultNow(),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+export const analytics = pgTable(
+  "analytics",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id").references(() => users.id, {
+      onDelete: "cascade",
+    }),
+    brandId: uuid("brand_id").references(() => brands.id, {
+      onDelete: "cascade",
+    }),
+    platform: varchar("platform").notNull(),
+    metric: varchar("metric").notNull(), // reach, engagement, clicks, etc
+    value: integer("value").notNull(),
+    period: varchar("period").default("daily"), // daily, weekly, monthly
+    recordedAt: timestamp("recorded_at").defaultNow(),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("analytics_user_idx").on(table.userId),
+    index("analytics_brand_idx").on(table.brandId),
+  ],
+);
 
 // Team activity logs per brand
-export const activityLogs = pgTable("activity_logs", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id, {
-    onDelete: "cascade",
-  }),
-  brandId: uuid("brand_id").references(() => brands.id, {
-    onDelete: "cascade",
-  }),
-  action: varchar("action").notNull(),
-  description: text("description"),
-  entityType: varchar("entity_type"), // message, campaign, content_plan, brand
-  entityId: varchar("entity_id"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+export const activityLogs = pgTable(
+  "activity_logs",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id").references(() => users.id, {
+      onDelete: "cascade",
+    }),
+    brandId: uuid("brand_id").references(() => brands.id, {
+      onDelete: "cascade",
+    }),
+    action: varchar("action").notNull(),
+    description: text("description"),
+    entityType: varchar("entity_type"), // message, campaign, content_plan, brand
+    entityId: varchar("entity_id"),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("activity_logs_user_idx").on(table.userId),
+    index("activity_logs_brand_idx").on(table.brandId),
+  ],
+);
 
 // POS system integrations (Square, Shopify, etc.) per brand
 export const posIntegrations = pgTable("pos_integrations", {
@@ -423,59 +447,73 @@ export const posIntegrations = pgTable("pos_integrations", {
 });
 
 // Sales transactions from POS systems
-export const salesTransactions = pgTable("sales_transactions", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  posIntegrationId: uuid("pos_integration_id").references(
-    () => posIntegrations.id,
-    { onDelete: "cascade" },
-  ),
-  userId: varchar("user_id").references(() => users.id, {
-    onDelete: "cascade",
-  }),
-  posCustomerId: uuid("pos_customer_id"), // link to internal posCustomers table
-  transactionId: varchar("transaction_id").notNull(), // external transaction ID
-  customerId: varchar("customer_id"), // external customer ID
-  customerEmail: varchar("customer_email"),
-  customerName: varchar("customer_name"),
-  customerPhone: varchar("customer_phone"),
-  totalAmount: integer("total_amount").notNull(), // in cents
-  currency: varchar("currency").default("USD"),
-  status: varchar("status").notNull(), // completed, refunded, pending
-  paymentMethod: varchar("payment_method"), // card, cash, digital_wallet
-  items: jsonb("items"), // array of purchased items
-  metadata: jsonb("metadata"), // additional transaction data
-  transactionDate: timestamp("transaction_date").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+export const salesTransactions = pgTable(
+  "sales_transactions",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    posIntegrationId: uuid("pos_integration_id").references(
+      () => posIntegrations.id,
+      { onDelete: "cascade" },
+    ),
+    userId: varchar("user_id").references(() => users.id, {
+      onDelete: "cascade",
+    }),
+    posCustomerId: uuid("pos_customer_id"), // link to internal posCustomers table
+    transactionId: varchar("transaction_id").notNull(), // external transaction ID
+    customerId: varchar("customer_id"), // external customer ID
+    customerEmail: varchar("customer_email"),
+    customerName: varchar("customer_name"),
+    customerPhone: varchar("customer_phone"),
+    totalAmount: integer("total_amount").notNull(), // in cents
+    currency: varchar("currency").default("USD"),
+    status: varchar("status").notNull(), // completed, refunded, pending
+    paymentMethod: varchar("payment_method"), // card, cash, digital_wallet
+    items: jsonb("items"), // array of purchased items
+    metadata: jsonb("metadata"), // additional transaction data
+    transactionDate: timestamp("transaction_date").notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("sales_transactions_pos_integration_idx").on(table.posIntegrationId),
+    index("sales_transactions_user_idx").on(table.userId),
+  ],
+);
 
 // Product catalog from POS systems
-export const products = pgTable("products", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  posIntegrationId: uuid("pos_integration_id").references(
-    () => posIntegrations.id,
-    { onDelete: "cascade" },
-  ),
-  userId: varchar("user_id").references(() => users.id, {
-    onDelete: "cascade",
-  }),
-  externalProductId: varchar("external_product_id").notNull(),
-  name: varchar("name").notNull(),
-  description: text("description"),
-  price: integer("price"), // in cents
-  currency: varchar("currency").default("USD"),
-  sku: varchar("sku"),
-  category: varchar("category"),
-  imageUrl: varchar("image_url"),
-  isActive: boolean("is_active").default(true),
-  stockQuantity: integer("stock_quantity"),
-  metadata: jsonb("metadata"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+export const products = pgTable(
+  "products",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    posIntegrationId: uuid("pos_integration_id").references(
+      () => posIntegrations.id,
+      { onDelete: "cascade" },
+    ),
+    userId: varchar("user_id").references(() => users.id, {
+      onDelete: "cascade",
+    }),
+    externalProductId: varchar("external_product_id").notNull(),
+    name: varchar("name").notNull(),
+    description: text("description"),
+    price: integer("price"), // in cents
+    currency: varchar("currency").default("USD"),
+    sku: varchar("sku"),
+    category: varchar("category"),
+    imageUrl: varchar("image_url"),
+    isActive: boolean("is_active").default(true),
+    stockQuantity: integer("stock_quantity"),
+    metadata: jsonb("metadata"),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    index("products_pos_integration_idx").on(table.posIntegrationId),
+    index("products_user_idx").on(table.userId),
+  ],
+);
 
 // POS Customers - Customers synced from POS systems (Lightspeed, Square, etc.)
 export const posCustomers = pgTable(
@@ -525,24 +563,30 @@ export const posCustomers = pgTable(
 );
 
 // Automated campaign triggers based on POS data
-export const campaignTriggers = pgTable("campaign_triggers", {
-  id: uuid("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id, {
-    onDelete: "cascade",
-  }),
-  name: varchar("name").notNull(),
-  triggerType: varchar("trigger_type").notNull(), // purchase_milestone, low_stock, new_customer, abandoned_cart
-  conditions: jsonb("conditions"), // trigger conditions
-  campaignTemplate: jsonb("campaign_template"), // template for auto-generated campaigns
-  platforms: text("platforms").array(), // which platforms to post to
-  isActive: boolean("is_active").default(true),
-  lastTriggered: timestamp("last_triggered"),
-  triggerCount: integer("trigger_count").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+export const campaignTriggers = pgTable(
+  "campaign_triggers",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id").references(() => users.id, {
+      onDelete: "cascade",
+    }),
+    name: varchar("name").notNull(),
+    triggerType: varchar("trigger_type").notNull(), // purchase_milestone, low_stock, new_customer, abandoned_cart
+    conditions: jsonb("conditions"), // trigger conditions
+    campaignTemplate: jsonb("campaign_template"), // template for auto-generated campaigns
+    platforms: text("platforms").array(), // which platforms to post to
+    isActive: boolean("is_active").default(true),
+    lastTriggered: timestamp("last_triggered"),
+    triggerCount: integer("trigger_count").default(0),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    index("campaign_triggers_user_idx").on(table.userId),
+  ],
+);
 
 // Customers table for business customer management
 export const customers = pgTable(
@@ -601,7 +645,11 @@ export const invoices = pgTable(
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
   },
-  (table) => [index("invoices_brand_idx").on(table.brandId)],
+  (table) => [
+    index("invoices_customer_idx").on(table.customerId),
+    index("invoices_user_idx").on(table.userId),
+    index("invoices_brand_idx").on(table.brandId),
+  ],
 );
 
 // Team tasks for enhanced team management
@@ -623,9 +671,9 @@ export const teamTasks = pgTable("team_tasks", {
   requiresProof: boolean("requires_proof").default(true),
   proofFileUrl: varchar("proof_file_url"), // URL to uploaded proof file
   proofSubmittedAt: timestamp("proof_submitted_at"),
-  proofSubmittedBy: varchar("proof_submitted_by").references(() => users.id),
+  proofSubmittedBy: varchar("proof_submitted_by").references(() => users.id, { onDelete: "set null" }),
   approvalStatus: varchar("approval_status").default("pending"), // pending, submitted, approved, rejected
-  approvedBy: varchar("approved_by").references(() => users.id),
+  approvedBy: varchar("approved_by").references(() => users.id, { onDelete: "set null" }),
   approvedAt: timestamp("approved_at"),
   rejectionReason: text("rejection_reason"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -657,7 +705,7 @@ export const taskApprovals = pgTable("task_approvals", {
     onDelete: "cascade",
   }),
   approverLevel: integer("approver_level").notNull(), // Hierarchy level required to approve
-  approverId: varchar("approver_id").references(() => users.id),
+  approverId: varchar("approver_id").references(() => users.id, { onDelete: "set null" }),
   status: varchar("status").default("pending"), // pending, approved, rejected
   comments: text("comments"),
   approvedAt: timestamp("approved_at"),
@@ -761,15 +809,6 @@ export const conversationsRelations = relations(
   }),
 );
 
-export const conversationThreadsRelations = relations(
-  conversationThreads,
-  ({ one }) => ({
-    socialAccount: one(socialAccounts, {
-      fields: [conversationThreads.socialAccountId],
-      references: [socialAccounts.id],
-    }),
-  }),
-);
 
 export const messagesRelations = relations(messages, ({ one }) => ({
   user: one(users, {
@@ -921,13 +960,6 @@ export const insertSocialAccountSchema = createInsertSchema(
   createdAt: true,
 });
 
-export const insertConversationThreadSchema = createInsertSchema(
-  conversationThreads,
-).omit({
-  id: true,
-  createdAt: true,
-  lastMessageAt: true,
-});
 
 export const insertConversationSchema = createInsertSchema(conversations).omit({
   id: true,
@@ -1103,10 +1135,6 @@ export type InsertCampaignTrigger = typeof campaignTriggers.$inferInsert;
 export type CampaignTrigger = typeof campaignTriggers.$inferSelect;
 export type InsertSocialAccount = z.infer<typeof insertSocialAccountSchema>;
 export type SocialAccount = typeof socialAccounts.$inferSelect;
-export type InsertConversationThread = z.infer<
-  typeof insertConversationThreadSchema
->;
-export type ConversationThread = typeof conversationThreads.$inferSelect;
 
 export type InsertConversation = z.infer<typeof insertConversationSchema>;
 export type Conversation = typeof conversations.$inferSelect;
@@ -1787,9 +1815,8 @@ export const waitlist = pgTable("waitlist", {
 });
 
 export const insertWaitlistSchema = createInsertSchema(waitlist).omit({
-  id: true,
   createdAt: true,
-});
+} as any);
 
 export type InsertWaitlist = z.infer<typeof insertWaitlistSchema>;
 export type Waitlist = typeof waitlist.$inferSelect;

@@ -103,7 +103,7 @@ const generatePrompt = async (
   // Try to get brand design for colors and style context
   let brandDesign = null;
   try {
-    brandDesign = await storage.getBrandDesign(brandId);
+    brandDesign = await storage.getBrandDesignByBrandId(brandId);
   } catch (e) {
     // Brand design may not exist yet
   }

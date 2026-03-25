@@ -14,10 +14,10 @@ import {
 } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize OpenAI client (only if API key is available)
+const openai = process.env.OPENAI_API_KEY
+  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  : null;
 
 export interface ChatbotResponse {
   message: string;
@@ -96,7 +96,7 @@ export class ChatbotService {
       const conversationContext = conversationHistory.join('\n');
 
       // Generate AI response
-      const completion = await openai.chat.completions.create({
+      const completion = await openai!.chat.completions.create({
         model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released August 7, 2025. do not change this unless explicitly requested by the user
         messages: [
           { role: "system", content: systemPrompt },
@@ -226,7 +226,7 @@ Remember: You're helping a business convert leads into appointments!`;
           customerEmail: schedulingData.customerEmail || null,
           customerPhone: schedulingData.customerPhone || null,
           status: 'scheduled'
-        })
+        } as any)
         .returning();
 
       return {

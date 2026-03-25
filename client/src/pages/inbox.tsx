@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -8,7 +8,6 @@ import TopHeader from "@/components/TopHeader";
 import MessageList from "@/components/MessageList";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Filter,
   Search,
@@ -19,13 +18,10 @@ import {
   Loader2,
   MessageCircle,
   Clock,
-  AlertTriangle,
   Inbox as InboxIcon,
-  TrendingUp,
   Mail,
   Twitter,
   Instagram,
-  Info,
   Link2,
   ArrowRight,
   Sparkles,
@@ -48,6 +44,8 @@ import { motion } from "framer-motion";
 import { InboxSubscriptionOverlay } from "@/components/billing/InboxSubscriptionOverlay";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
 import FlowsDashboard from "./flows-dashboard";
+
+const MESSAGE_PREVIEW_MAX_LENGTH = 50;
 
 interface InboxStats {
   totalMessages: number;
@@ -100,13 +98,8 @@ export default function Inbox() {
       message: any;
       brandId?: string;
     }) => {
-      console.log("📨 Real-time message received:", data);
-
       // Verify the message is for the current active brand (safety check)
       if (data.brandId && data.brandId !== activeBrandId) {
-        console.log(
-          `⏭️ Message is for brand ${data.brandId}, ignoring (active: ${activeBrandId})`,
-        );
         return;
       }
 
@@ -136,7 +129,7 @@ export default function Inbox() {
       toast({
         title: isSpanish ? "Nuevo mensaje" : "New message",
         description: data.message?.contactName
-          ? `${data.message.contactName}: ${data.message.textContent?.substring(0, 50) || ""}`
+          ? `${data.message.contactName}: ${data.message.textContent?.substring(0, MESSAGE_PREVIEW_MAX_LENGTH) || ""}`
           : isSpanish
             ? "Tienes un nuevo mensaje"
             : "You have a new message",
@@ -153,13 +146,9 @@ export default function Inbox() {
     }) => {
       // Validate brandId matches active brand (safety check like new_message)
       if (data.brandId && data.brandId !== activeBrandId) {
-        console.log(
-          `⏭️ Sync started event is for brand ${data.brandId}, ignoring (active: ${activeBrandId})`,
-        );
         return;
       }
 
-      console.log("🔄 Inbox sync started:", data);
       setIsSyncing(true);
       setSyncingIntegrations(data.integrations || []);
       toast({
@@ -177,13 +166,9 @@ export default function Inbox() {
     }) => {
       // Validate brandId matches active brand (safety check like new_message)
       if (data.brandId && data.brandId !== activeBrandId) {
-        console.log(
-          `⏭️ Sync completed event is for brand ${data.brandId}, ignoring (active: ${activeBrandId})`,
-        );
         return;
       }
 
-      console.log("✅ Inbox sync completed:", data);
       setIsSyncing(false);
       setSyncingIntegrations([]);
 
@@ -217,6 +202,7 @@ export default function Inbox() {
     socket.on("inbox_sync_completed", handleSyncCompleted);
 
     return () => {
+      if (!socket) return;
       socket.off("new_message", handleNewMessage);
       socket.off("inbox_sync_started", handleSyncStarted);
       socket.off("inbox_sync_completed", handleSyncCompleted);
@@ -224,7 +210,7 @@ export default function Inbox() {
   }, [socket, queryClient, toast, isSpanish, activeBrandId]);
 
   // Fetch inbox statistics from the API
-  const { data: inboxStats, isLoading: statsLoading } = useQuery<InboxStats>({
+  const { data: inboxStats, isLoading: statsLoading, error: statsError } = useQuery<InboxStats>({
     queryKey: ["/api/inbox/stats", activeBrandId],
     queryFn: async () => {
       const res = await fetch(`/api/inbox/stats?brandId=${activeBrandId}`);
@@ -232,7 +218,7 @@ export default function Inbox() {
       return res.json();
     },
     enabled: isAuthenticated && !!activeBrandId,
-    refetchInterval: 30000,
+    refetchInterval: isAuthenticated && activeBrandId ? 30000 : false,
   });
 
   // Redirect if not authenticated
@@ -270,7 +256,7 @@ export default function Inbox() {
       );
       setIntegrations(messagingIntegrations);
     } catch (err) {
-      console.error("❌ Error fetching integrations:", err);
+      console.error("[Inbox] Error fetching integrations:", err);
     }
   }
 

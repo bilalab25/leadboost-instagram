@@ -20,12 +20,6 @@ export function log(message: string, source = "express") {
 }
 
 export async function setupVite(app: Express, server: Server) {
-  const serverOptions = {
-    middlewareMode: true,
-    hmr: { server },
-    allowedHosts: true as const,
-  };
-
   const vite = await createViteServer({
     ...viteConfig,
     configFile: false,
@@ -36,7 +30,15 @@ export async function setupVite(app: Express, server: Server) {
         process.exit(1);
       },
     },
-    server: serverOptions,
+    server: {
+      middlewareMode: true,
+      hmr: { server },
+      allowedHosts: true as const,
+      fs: {
+        strict: false,
+        allow: [".."],
+      },
+    },
     appType: "custom",
   });
 
@@ -76,10 +78,26 @@ export function serveStatic(app: Express) {
     );
   }
 
-  app.use(express.static(distPath));
+  // Serve hashed assets (JS, CSS) with long cache (1 year) — Vite adds content hashes to filenames
+  app.use(
+    "/assets",
+    express.static(path.resolve(distPath, "assets"), {
+      maxAge: "1y",
+      immutable: true,
+    }),
+  );
 
-  // fall through to index.html if the file doesn't exist
+  // Serve other static files with short cache (1 hour)
+  app.use(
+    express.static(distPath, {
+      maxAge: "1h",
+      etag: true,
+    }),
+  );
+
+  // SPA fallback — serve index.html for all non-file routes (no cache)
   app.use("*", (_req, res) => {
+    res.setHeader("Cache-Control", "no-cache");
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }

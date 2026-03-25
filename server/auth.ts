@@ -1,54 +1,56 @@
 import session from "express-session";
-import type { Express, Request, Response, NextFunction } from "express"; // Importar Request, Response, NextFunction
+import type { Express, Request, Response, NextFunction, RequestHandler } from "express";
 import passport from "passport";
-import admin from "firebase-admin"; // Importación corregida para firebase-admin
-import { storage } from "./storage"; // Asumiendo que storage maneja la persistencia de usuarios
+import admin from "firebase-admin";
+import bcrypt from "bcrypt";
+import { storage } from "./storage";
+import { authRateLimit, signupRateLimit } from "./middleware";
 
-// --- INICIALIZACIÓN DE FIREBASE ADMIN SDK ---
-// Cargar credenciales de Firebase desde variables de entorno
+const BCRYPT_SALT_ROUNDS = 12;
+
+// --- FIREBASE ADMIN SDK INITIALIZATION ---
 const firebaseConfig = {
   projectId: process.env.FIREBASE_PROJECT_ID,
-  // Reemplazar '\n' literales con saltos de línea reales para la clave privada
   privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
   clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
 };
 
-// Verificar que las credenciales estén presentes
-if (
-  !firebaseConfig.projectId ||
-  !firebaseConfig.privateKey ||
-  !firebaseConfig.clientEmail
-) {
-  console.error(
-    "FATAL: Firebase Admin SDK credentials are not fully set in environment variables.",
+const isProduction = process.env.NODE_ENV === "production";
+const hasFirebaseCredentials =
+  firebaseConfig.projectId &&
+  firebaseConfig.privateKey &&
+  firebaseConfig.clientEmail;
+
+if (!hasFirebaseCredentials) {
+  if (isProduction) {
+    console.error(
+      "FATAL: Firebase Admin SDK credentials are missing in production. " +
+      "Set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY.",
+    );
+    process.exit(1);
+  }
+  console.warn(
+    "[Auth] Firebase Admin SDK credentials not set. Firebase auth (Google/Apple/Microsoft) will not work. " +
+    "Local email/password auth is still available.",
   );
-  // En un entorno de producción, podrías considerar terminar el proceso aquí:
-  // process.exit(1);
 } else {
   try {
-    // Solo inicializar si no ha sido inicializado ya
     if (!admin.apps.length) {
       admin.initializeApp({
         credential: admin.credential.cert(firebaseConfig),
       });
-      console.log("Firebase Admin SDK initialized successfully.");
+      console.log("[Auth] Firebase Admin SDK initialized successfully.");
     }
   } catch (error) {
-    console.error("Error initializing Firebase Admin SDK:", error);
-    // En un entorno de producción, podrías considerar terminar el proceso aquí:
-    // process.exit(1);
+    if (isProduction) {
+      console.error("[Auth] FATAL: Firebase Admin SDK initialization failed:", error);
+      process.exit(1);
+    }
+    console.error("[Auth] Firebase Admin SDK initialization failed:", error);
   }
 }
-// --- FIN INICIALIZACIÓN FIREBASE ADMIN SDK ---
+// --- END FIREBASE ADMIN SDK INITIALIZATION ---
 
-// --- INICIO DE CÓDIGO RELACIONADO CON LA CONTRASEÑA DEL SITIO (A ELIMINAR/COMENTAR) ---
-// // Site password protection - require environment variable
-// const SITE_PASSWORD = process.env.WEBSITE_PASSWORD;
-// if (!SITE_PASSWORD) {
-//   console.error("FATAL: WEBSITE_PASSWORD environment variable is required for site protection");
-//   // process.exit(1); // Descomentar en producción
-// }
-// --- FIN DE CÓDIGO RELACIONADO CON LA CONTRASEÑA DEL SITIO ---
 
 // Función para configurar la sesión de Express
 export async function getSession() {
@@ -109,18 +111,7 @@ export async function getSession() {
   });
 }
 
-// --- INICIO DE CÓDIGO RELACIONADO CON LA CONTRASEÑA DEL SITIO (A ELIMINAR/COMENTAR) ---
-// // Middleware para verificar el acceso al sitio (si tienes una contraseña general)
-// export const checkSiteAccess: RequestHandler = (req, res, next) => {
-//   const session = req.session as any;
-//   if (session.siteAccess) {
-//     return next();
-//   }
-//   return res.status(401).json({ message: "Site access required" });
-// };
-// --- FIN DE CÓDIGO RELACIONADO CON LA CONTRASEÑA DEL SITIO ---
-
-// Configuración principal de autenticación
+// Main authentication setup
 export async function setupAuth(app: Express) {
   app.set("trust proxy", 1);
   app.use(await getSession());
@@ -153,15 +144,18 @@ export async function setupAuth(app: Express) {
     }
   });
 
-  // --- FUNCIÓN CENTRALIZADA PARA VERIFICAR TOKEN DE FIREBASE Y ESTABLECER SESIÓN ---
-  // Esta función es un middleware que se puede usar en múltiples rutas
+  // --- CENTRALIZED FIREBASE TOKEN VERIFICATION AND SESSION CREATION ---
   const verifyFirebaseTokenAndLogin = async (req: Request, res: Response) => {
+    // Guard: Firebase must be initialized for this route
+    if (!hasFirebaseCredentials || !admin.apps.length) {
+      return res.status(503).json({
+        message: "Firebase authentication is not configured. Use email/password login instead.",
+      });
+    }
+
     const { idToken } = req.body;
 
     if (!idToken) {
-      console.error(
-        "verifyFirebaseTokenAndLogin: ID Token is missing in request body.",
-      );
       return res.status(400).json({ message: "ID Token is required" });
     }
 
@@ -294,10 +288,107 @@ export async function setupAuth(app: Express) {
 
   // --- FIN FUNCIÓN CENTRALIZADA ---
 
-  // --- RUTAS DE AUTENTICACIÓN ---
-  // Ambas rutas (signup y login) ahora usan la función centralizada
-  app.post("/api/signup", verifyFirebaseTokenAndLogin);
-  app.post("/api/login", verifyFirebaseTokenAndLogin);
+  // --- AUTHENTICATION ROUTES ---
+
+  // Email/password signup
+  app.post("/api/local-signup", signupRateLimit, async (req: Request, res: Response) => {
+    try {
+      const { email, password, firstName, lastName } = req.body;
+
+      // Validate required fields
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: "Invalid email format" });
+      }
+
+      // Validate password strength
+      if (password.length < 8) {
+        return res.status(400).json({ message: "Password must be at least 8 characters long" });
+      }
+
+      // Check if user already exists
+      let user = await storage.getUserByEmail(email);
+      if (user) {
+        return res.status(409).json({ message: "User with this email already exists. Try logging in." });
+      }
+
+      // Hash password with bcrypt
+      const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+
+      const { nanoid } = await import("nanoid");
+      const userId = nanoid();
+      user = await storage.createUser({
+        id: userId,
+        firebaseUid: `local_${userId}`,
+        email,
+        password: hashedPassword,
+        firstName: firstName || "",
+        lastName: lastName || "",
+        provider: "local",
+      });
+
+      req.login(user, (err) => {
+        if (err) {
+          return res.status(500).json({ message: "Failed to establish session" });
+        }
+        const { password: _, ...userWithoutPassword } = user;
+        res.status(200).json({ user: userWithoutPassword });
+      });
+    } catch (error: any) {
+      console.error("Local signup error:", error.message, error.stack);
+      res.status(500).json({ message: error.message || "Signup failed" });
+    }
+  });
+
+  // Email/password login
+  app.post("/api/local-login", authRateLimit, async (req: Request, res: Response) => {
+    try {
+      const { email, password } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        // Use generic message to prevent email enumeration
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+
+      // Check if user signed up with a social provider (no local password)
+      if (!user.password) {
+        const provider = user.provider || "social login";
+        return res.status(401).json({
+          message: `This account uses ${provider}. Please sign in with ${provider} instead.`,
+        });
+      }
+
+      // Validate password against stored hash
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+
+      req.login(user, (err) => {
+        if (err) {
+          return res.status(500).json({ message: "Failed to establish session" });
+        }
+        const { password: _, ...userWithoutPassword } = user;
+        res.status(200).json({ user: userWithoutPassword });
+      });
+    } catch (error: any) {
+      console.error("Local login error:", error);
+      res.status(500).json({ message: error.message || "Login failed" });
+    }
+  });
+
+  // Firebase-based auth routes
+  app.post("/api/signup", signupRateLimit, verifyFirebaseTokenAndLogin);
+  app.post("/api/login", authRateLimit, verifyFirebaseTokenAndLogin);
 
   app.post("/api/logout", (req, res, next) => {
     req.logout((err) => {
@@ -320,449 +411,16 @@ export async function setupAuth(app: Express) {
   app.get("/api/auth/user", (req, res) => {
     if (req.isAuthenticated() && req.user) {
       const user = req.user as any;
-      const { password: _, ...userWithoutPassword } = user; // Asegúrate de que la contraseña no se envíe
+      const { password: _, ...userWithoutPassword } = user;
       res.json({ user: userWithoutPassword });
     } else {
-      res.status(401).json({ user: null });
+      res.status(200).json({ user: null });
     }
   });
 } // FIN DE setupAuth
 
-// --- MIDDLEWARE DE PROTECCIÓN DE SITIO Y AUTENTICACIÓN ---
-// ESTOS MIDDLEWARES DEBEN ESTAR FUERA DE `setupAuth` PARA SER EXPORTADOS CORRECTAMENTE
+// --- AUTHENTICATION MIDDLEWARE (exported separately from setupAuth) ---
 
-// --- INICIO DE CÓDIGO RELACIONADO CON LA CONTRASEÑA DEL SITIO (A ELIMINAR/COMENTAR) ---
-// // Middleware de protección de contraseña para todo el sitio
-// export const requireSitePassword: RequestHandler = (req, res, next) => {
-//   const session = req.session as any;
-
-//   // Si la ruta es para autenticar la contraseña del sitio, permite el paso
-//   if (req.path === '/api/site-auth') {
-//     return next();
-//   }
-
-//   // Si el usuario ya ha introducido la contraseña correcta del sitio
-//   if (session && session.siteAccess) {
-//     return next();
-//   }
-
-//   // Si no, muestra la página de protección de contraseña
-//   const passwordPage = `
-//     <!DOCTYPE html>
-//     <html lang="en">
-//     <head>
-//       <meta charset="UTF-8">
-//       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-//       <title>LeadBoost - Access Required</title>
-//       <style>
-//         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
-//         * {
-//           margin: 0;
-//           padding: 0;
-//           box-sizing: border-box;
-//         }
-
-//         body {
-//           font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-//           background: #F8F8FA;
-//           min-height: 100vh;
-//           min-height: -webkit-fill-available;
-//           display: flex;
-//           align-items: center;
-//           justify-content: center;
-//           margin: 0;
-//           padding: 16px;
-//           overflow: hidden;
-//           position: relative;
-//         }
-
-//         /* Tech pattern background */
-//         body::before {
-//           content: '';
-//           position: absolute;
-//           top: 0;
-//           left: 0;
-//           width: 100%;
-//           height: 100%;
-//           background-image: radial-gradient(circle at 25px 25px, #3b82f6 1px, transparent 1px);
-//           background-size: 50px 50px;
-//           opacity: 0.05;
-//         }
-
-//         /* Floating particles */
-//         .particles {
-//           position: absolute;
-//           width: 100%;
-//           height: 100%;
-//           pointer-events: none;
-//         }
-
-//         .particle {
-//           position: absolute;
-//           width: 2px;
-//           height: 2px;
-//           background: linear-gradient(45deg, #3b82f6, #8b5cf6);
-//           border-radius: 50%;
-//           animation: float 6s ease-in-out infinite;
-//         }
-//         @keyframes float {
-//           0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
-//           50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
-//         }
-
-//         .container {
-//           background: rgba(248, 248, 250, 0.95);
-//           backdrop-filter: blur(20px);
-//           border: 1px solid rgba(59, 130, 246, 0.1);
-//           padding: 3rem 2.5rem;
-//           border-radius: 24px;
-//           box-shadow:
-//             0 0 0 1px rgba(255, 255, 255, 0.1),
-//             0 16px 32px rgba(0, 0, 0, 0.05),
-//             inset 0 1px 0 rgba(255, 255, 255, 0.2);
-//           width: 100%;
-//           max-width: 450px;
-//           text-align: center;
-//           margin: 0 auto;
-//           position: relative;
-//           z-index: 10;
-//         }
-
-//         /* Floating social media cards */
-//         .social-cards {
-//           position: absolute;
-//           width: 100%;
-//           height: 100%;
-//           pointer-events: none;
-//           opacity: 0.04;
-//           z-index: 1;
-//         }
-
-//         .social-card {
-//           position: absolute;
-//           border-radius: 12px;
-//           box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-//           display: flex;
-//           align-items: center;
-//           justify-content: center;
-//           animation: floatCard 8s ease-in-out infinite;
-//         }
-
-//         .instagram { background: linear-gradient(135deg, #e91e63, #9c27b0); width: 80px; height: 80px; }
-//         .linkedin { background: linear-gradient(135deg, #1976d2, #1565c0); width: 100px; height: 50px; }
-//         .tiktok { background: linear-gradient(135deg, #000000, #424242); width: 50px; height: 90px; }
-//         .facebook { background: linear-gradient(135deg, #1976d2, #1565c0); width: 100px; height: 50px; }
-//         .twitter { background: linear-gradient(135deg, #000000, #424242); width: 90px; height: 50px; }
-//         .youtube { background: linear-gradient(135deg, #d32f2f, #c62828); width: 110px; height: 60px; }
-
-//         @keyframes floatCard {
-//           0%, 100% { transform: translateY(0) rotate(0deg); }
-//           50% { transform: translateY(-20px) rotate(2deg); }
-//         }
-
-//         @media (max-width: 480px) {
-//           .container {
-//             padding: 2rem 1.5rem;
-//             margin: 0;
-//             border-radius: 20px;
-//           }
-//         }
-//         .logo {
-//           margin-bottom: 0.5rem;
-//           display: flex;
-//           justify-content: center;
-//           align-items: center;
-//           gap: 8px;
-//         }
-
-//         .logo-text {
-//           font-size: 2.5rem;
-//           font-weight: 700;
-//           background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
-//           background-size: 200% 200%;
-//           -webkit-background-clip: text;
-//           -webkit-text-fill-color: transparent;
-//           background-clip: text;
-//           animation: textShine 3s ease-in-out infinite;
-//           letter-spacing: -0.02em;
-//         }
-
-//         .logo-arrows {
-//           font-size: 2.5rem;
-//           font-weight: 700;
-//           background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
-//           background-size: 200% 200%;
-//           -webkit-background-clip: text;
-//           -webkit-text-fill-color: transparent;
-//           background-clip: text;
-//           animation: textShine 3s ease-in-out infinite;
-//           letter-spacing: -0.02em;
-//         }
-
-//         @keyframes textShine {
-//           0%, 100% { background-position: 0% 50%; }
-//           50% { background-position: 100% 50%; }
-//         }
-
-//         .logo-subtitle {
-//           color: #6b7280;
-//           font-size: 0.875rem;
-//           font-weight: 500;
-//           margin-bottom: 2rem;
-//           opacity: 0.8;
-//         }
-
-//         .access-title {
-//           font-size: 1.5rem;
-//           font-weight: 600;
-//           background: linear-gradient(135deg, #1f2937 0%, #374151 50%, #4b5563 100%);
-//           background-size: 200% 200%;
-//           -webkit-background-clip: text;
-//           -webkit-text-fill-color: transparent;
-//           background-clip: text;
-//           margin-bottom: 0.5rem;
-//           animation: textShine 3s ease-in-out infinite;
-//           letter-spacing: -0.02em;
-//         }
-
-//         .access-subtitle {
-//           color: #6b7280;
-//           font-size: 0.95rem;
-//           margin-bottom: 2rem;
-//           font-weight: 400;
-//         }
-//         input {
-//           width: 100%;
-//           padding: 16px 20px;
-//           background: rgba(255, 255, 255, 0.8);
-//           border: 1px solid rgba(59, 130, 246, 0.2);
-//           border-radius: 12px;
-//           font-size: 16px;
-//           color: #1f2937;
-//           margin-bottom: 1.5rem;
-//           box-sizing: border-box;
-//           -webkit-appearance: none;
-//           font-family: 'Inter', sans-serif;
-//           font-weight: 500;
-//           transition: all 0.3s ease;
-//           backdrop-filter: blur(10px);
-//         }
-
-//         input::placeholder {
-//           color: #64748b;
-//           font-weight: 400;
-//         }
-
-//         input:focus {
-//           outline: none;
-//           border-color: #3b82f6;
-//           box-shadow:
-//             0 0 0 3px rgba(59, 130, 246, 0.1),
-//             0 0 20px rgba(59, 130, 246, 0.2);
-//           background: rgba(15, 23, 42, 0.8);
-//         }
-
-//         @media (max-width: 480px) {
-//           input {
-//             font-size: 16px;
-//             padding: 14px 16px;
-//           }
-//         }
-//         input:focus {
-//           outline: none;
-//           border-color: #667eea;
-//         }
-//         button {
-//           width: 100%;
-//           padding: 16px 12px;
-//           background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-//           color: white;
-//           border: none;
-//           border-radius: 12px;
-//           font-size: 16px;
-//           font-weight: 600;
-//           cursor: pointer;
-//           transition: all 0.3s ease;
-//           -webkit-appearance: none;
-//           touch-action: manipulation;
-//           position: relative;
-//           overflow: hidden;
-//           font-family: 'Inter', sans-serif;
-//           box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
-//           letter-spacing: 0.025em;
-//         }
-
-//         button:hover {
-//           transform: translateY(-2px);
-//           box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
-//         }
-
-//         button:active {
-//           transform: translateY(0);
-//         }
-
-//         button::before {
-//           content: '';
-//           position: absolute;
-//           top: 0;
-//           left: -100%;
-//           width: 100%;
-//           height: 100%;
-//           background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-//           transition: left 0.5s;
-//         }
-
-//         button:hover::before {
-//           left: 100%;
-//         }
-
-//         @media (max-width: 480px) {
-//           button {
-//             padding: 14px 12px;
-//             font-size: 16px;
-//           }
-//         }
-//         .error {
-//           color: #f87171;
-//           background: rgba(239, 68, 68, 0.1);
-//           border: 1px solid rgba(239, 68, 68, 0.3);
-//           padding: 12px 16px;
-//           border-radius: 8px;
-//           margin-top: 1rem;
-//           display: none;
-//           font-size: 0.875rem;
-//           font-weight: 500;
-//         }
-//       </style>
-//     </head>
-//     <body>
-//       <!-- Floating Social Media Cards -->
-//       <div class="social-cards">
-//         <div class="social-card instagram" style="left: 8%; top: 20%; animation-delay: 0s;"></div>
-//         <div class="social-card tiktok" style="right: 12%; top: 25%; animation-delay: 1s;"></div>
-//         <div class="social-card linkedin" style="left: 6%; top: 65%; animation-delay: 2s;"></div>
-//         <div class="social-card facebook" style="right: 10%; top: 70%; animation-delay: 0.5s;"></div>
-//         <div class="social-card twitter" style="left: 15%; top: 40%; animation-delay: 3s;"></div>
-//         <div class="social-card youtube" style="right: 22%; top: 50%; animation-delay: 2.5s;"></div>
-//       </div>
-
-//       <div class="particles"></div>
-//       <div class="container">
-//         <div class="logo">
-//           <div class="logo-text">Lead</div>
-//           <div class="logo-arrows">››</div>
-//           <div class="logo-text">Boost</div>
-//         </div>
-//         <div class="logo-subtitle">AI-Powered Marketing</div>
-//         <div class="access-title">Access Required</div>
-//         <div class="access-subtitle">Enter site password to continue</div>
-//         <form id="passwordForm">
-//           <input type="password" id="password" placeholder="Enter password" required>
-//           <button type="submit">Access Site</button>
-//         </form>
-//         <div id="error" class="error">Invalid password. Please try again.</div>
-//       </div>
-
-//       <script>
-//         // Create floating particles
-//         function createParticles() {
-//           const particlesContainer = document.querySelector('.particles');
-//           const particleCount = 15;
-
-//           for (let i = 0; i < particleCount; i++) {
-//             const particle = document.createElement('div');
-//             particle.className = 'particle';
-//             particle.style.left = Math.random() * 100 + '%';
-//             particle.style.top = Math.random() * 100 + '%';
-//             particle.style.animationDelay = Math.random() * 6 + 's';
-//             particle.style.animationDuration = (3 + Math.random() * 3) + 's';
-//             particlesContainer.appendChild(particle);
-//           }
-//         }
-
-//         // Initialize particles on load
-//         createParticles();
-
-//         // Add typing effect to subtitle
-//         function typeEffect(element, text, speed = 100) {
-//           let i = 0;
-//           element.textContent = '';
-//           const timer = setInterval(() => {
-//             if (i < text.length) {
-//               element.textContent += text.charAt(i);
-//               i++;
-//             } else {
-//               clearInterval(timer);
-//             }
-//           }, speed);
-//         }
-
-//         // Start typing effect after page load
-//         setTimeout(() => {
-//           const subtitle = document.querySelector('.access-subtitle');
-//           typeEffect(subtitle, 'Enter site password to continue', 80);
-//         }, 500);
-
-//         document.getElementById('passwordForm').addEventListener('submit', async (e) => {
-//           e.preventDefault();
-//           const password = document.getElementById('password').value;
-//           const button = e.target.querySelector('button');
-//           const originalText = button.textContent;
-
-//           // Add loading state
-//           button.textContent = 'Authenticating...';
-//           button.disabled = true;
-
-//           try {
-//             const response = await fetch('/api/site-auth', {
-//               method: 'POST',
-//               headers: {
-//                 'Content-Type': 'application/json',
-//               },
-//               body: JSON.stringify({ password }),
-//             });
-
-//             const result = await response.json();
-
-//             if (result.success) {
-//               button.textContent = 'Access Granted ✓';
-//               button.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-//               setTimeout(() => window.location.href = window.location.href, 800);
-//             } else {
-//               document.getElementById('error').style.display = 'block';
-//               button.textContent = originalText;
-//               button.disabled = false;
-
-//               // Add shake animation
-//               const container = document.querySelector('.container');
-//               container.style.animation = 'shake 0.5s ease-in-out';
-//               setTimeout(() => {
-//                 container.style.animation = 'containerGlow 3s ease-in-out infinite';
-//               }, 500);
-//             }
-//           } catch (error) {
-//             document.getElementById('error').style.display = 'block';
-//             button.textContent = originalText;
-//             button.disabled = false;
-//           }
-//         });
-
-//         // Add shake animation keyframes
-//         const shakeStyle = document.createElement('style');
-//         shakeStyle.textContent = '@keyframes shake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); } 20%, 40%, 60%, 80% { transform: translateX(5px); } }';
-//         document.head.appendChild(shakeStyle);
-//       </script>
-//     </body>
-//     </html>
-//   `;
-
-//   res.send(passwordPage);
-// };
-// --- FIN DE CÓDIGO RELACIONADO CON LA CONTRASEÑA DEL SITIO ---
-
-// Middleware para verificar si el usuario está autenticado
-// ESTA DECLARACIÓN DEBE ESTAR FUERA DE `setupAuth`
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   if (req.isAuthenticated() && req.user) {
     return next();
@@ -770,15 +428,4 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   return res.status(401).json({ message: "Unauthorized" });
 };
 
-// Extender el tipo Request de Express para incluir user e isAuthenticated de Passport
-// Esto asegura que TypeScript reconozca las propiedades añadidas por Passport
-declare global {
-  namespace Express {
-    interface Request {
-      user?: any; // Define la propiedad user (Passport la añade)
-      isAuthenticated(): boolean; // Define el método isAuthenticated (Passport lo añade)
-      login(user: any, done: (err: any) => void): void; // Define el método login (Passport lo añade)
-      logout(done: (err: any) => void): void; // Define el método logout (Passport lo añade)
-    }
-  }
-}
+// Express Request types are extended by @types/passport (user, isAuthenticated, login, logout)

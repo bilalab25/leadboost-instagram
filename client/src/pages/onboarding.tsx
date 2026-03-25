@@ -102,12 +102,12 @@ import {
   SiX,
 } from "react-icons/si";
 
-import minimal from "./brand-images/minimalist.png";
-import luxury from "./brand-images/luxury.png";
-import fun from "./brand-images/fun.png";
-import corporate from "./brand-images/corporate.png";
-import creative from "./brand-images/creative.png";
-import bold from "./brand-images/bold.png";
+const minimal = "/images/brand-images/minimalist.png";
+const luxury = "/images/brand-images/luxury.png";
+const fun = "/images/brand-images/fun.png";
+const corporate = "/images/brand-images/corporate.png";
+const creative = "/images/brand-images/creative.png";
+const bold = "/images/brand-images/bold.png";
 
 import ColorPreviewWithPicker from "@/components/brand-studio/ColorPreviewWithPicker";
 import FontSelector from "@/components/brand-studio/FontSelector";
@@ -1399,7 +1399,7 @@ export default function Onboarding() {
             description: existingBrand.description || "",
             preferredLanguage:
               existingBrand.preferredLanguage ||
-              brandDesign?.preferredLanguage ||
+              (brandDesign as any)?.preferredLanguage ||
               "",
             brandCategory: existingBrand.brandCategory || "",
             domain: domainValue,
@@ -1414,7 +1414,7 @@ export default function Onboarding() {
             description: existingBrand.description || "",
             preferredLanguage:
               existingBrand.preferredLanguage ||
-              brandDesign?.preferredLanguage ||
+              (brandDesign as any)?.preferredLanguage ||
               "",
             brandCategory: existingBrand.brandCategory || "",
             domain: domainValue,
@@ -2800,8 +2800,8 @@ export default function Onboarding() {
 
                       const startListening = () => {
                         const SpeechRecognition =
-                          window.SpeechRecognition ||
-                          window.webkitSpeechRecognition;
+                          (window as any).SpeechRecognition ||
+                          (window as any).webkitSpeechRecognition;
 
                         if (!SpeechRecognition) {
                           alert(
@@ -2821,7 +2821,7 @@ export default function Onboarding() {
                         recognition.continuous = true;
                         recognition.interimResults = false;
 
-                        recognition.onresult = (event) => {
+                        recognition.onresult = (event: any) => {
                           const transcript =
                             event.results[event.results.length - 1][0]
                               .transcript;
@@ -4727,7 +4727,7 @@ export default function Onboarding() {
       </div>
 
       <LogoGeneratorModal
-        brandId={createdBrandId || ""}
+        brandId={String(createdBrandId || "")}
         isOpen={isLogoGeneratorOpen}
         onClose={() => setIsLogoGeneratorOpen(false)}
         onAccept={async (logoDataUrl) => {

@@ -451,8 +451,8 @@ export default function BrandIdentity() {
 
                   const startListening = () => {
                     const SpeechRecognition =
-                      window.SpeechRecognition ||
-                      window.webkitSpeechRecognition;
+                      (window as any).SpeechRecognition ||
+                      (window as any).webkitSpeechRecognition;
 
                     if (!SpeechRecognition) {
                       alert(
@@ -468,7 +468,7 @@ export default function BrandIdentity() {
                     recognition.continuous = true;
                     recognition.interimResults = false;
 
-                    recognition.onresult = (event) => {
+                    recognition.onresult = (event: any) => {
                       const transcript =
                         event.results[event.results.length - 1][0].transcript;
                       field.onChange(

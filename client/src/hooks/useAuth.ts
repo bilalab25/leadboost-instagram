@@ -4,7 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 interface ApiUser {
   id: string;
   email: string;
-  // agrega aquí los campos que regreses en req.user (ej. name, role, etc.)
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  address?: string;
+  role?: string;
+  profileImageUrl?: string;
+  [key: string]: any;
 }
 
 export function useAuth() {
@@ -17,8 +23,9 @@ export function useAuth() {
   });
 
   return {
-    user: data?.user ?? null, // 👈 ahora sí devuelve el objeto user directo
+    user: data?.user ?? null,
     isAuthenticated: !!data?.user && !error,
     isLoading,
+    loading: isLoading,
   };
 }

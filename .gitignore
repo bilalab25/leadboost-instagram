@@ -4,3 +4,32 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+
+# Environment variables (NEVER commit these)
+.env
+.env.*
+!.env.example
+
+# Session and runtime data
+whatsapp-sessions/
+uploads/
+
+# Logs
+*.log
+logs_*.txt
+server_activity.log
+
+# Temporary/debug files from Facebook webhooks
+facebook_attach_*.json
+
+# Analysis/debug artifacts
+endpoint_analysis.txt
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+Thumbs.db
+*.swp
+*.swo

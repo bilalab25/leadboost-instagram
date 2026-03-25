@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+// @ts-ignore
 import WebFont from "webfontloader";
 
 export function useGoogleFontLoader(fonts: string[]) {

@@ -13,12 +13,12 @@ import { Badge } from "@/components/ui/badge";
 import { Upload, Trash2 } from "lucide-react";
 import { useGoogleFontLoader } from "@/hooks/useGoogleFontLoader";
 import HelpChatbot from "@/components/HelpChatbot";
-import minimal from "./brand-images/minimalist.png";
-import luxury from "./brand-images/luxury.png";
-import fun from "./brand-images/fun.png";
-import corporate from "./brand-images/corporate.png";
-import creative from "./brand-images/creative.png";
-import bold from "./brand-images/bold.png";
+const minimal = "/images/brand-images/minimalist.png";
+const luxury = "/images/brand-images/luxury.png";
+const fun = "/images/brand-images/fun.png";
+const corporate = "/images/brand-images/corporate.png";
+const creative = "/images/brand-images/creative.png";
+const bold = "/images/brand-images/bold.png";
 import BrandAssets from "@/components/brand-studio/BrandAssests";
 import BrandIdentity from "@/components/brand-studio/BrandIdentity";
 import BrandInfo from "@/components/brand-studio/BrandInfo";
@@ -442,9 +442,9 @@ export default function BrandStudio() {
           const loadedCustomFontNames = brandDesign.typography.customFonts.map(
             (f: any) => f.name,
           );
-          setCustomFontOptions((prev) => [
-            ...new Set([...prev, ...loadedCustomFontNames]),
-          ]);
+          setCustomFontOptions((prev) =>
+            Array.from(new Set([...prev, ...loadedCustomFontNames])),
+          );
         }
       }
 
@@ -470,9 +470,9 @@ export default function BrandStudio() {
           const loadedCustomFontNames = brandDesign.typography.customFonts.map(
             (f: any) => f.name,
           );
-          setCustomFontOptions((prev) => [
-            ...new Set([...prev, ...loadedCustomFontNames]),
-          ]);
+          setCustomFontOptions((prev) =>
+            Array.from(new Set([...prev, ...loadedCustomFontNames])),
+          );
         }
       }
       if (

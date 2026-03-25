@@ -41,11 +41,11 @@ import {
 import { useLanguage } from "@/hooks/useLanguage";
 import { InteractiveDemo } from "@/components/InteractiveDemo";
 import { HelpDropdown } from "@/components/HelpDropdown";
-import leadBoostLogo from "@assets/Lead Boost (500 x 200 px) (500 x 160 px)_1756873932398.png";
-import boostyLoopVideo2 from "@assets/Boosty_Mascot_Looping_Animation_1764608756145.mp4";
-import boostyWavingVideo2 from "@assets/Video_de_Boosty_Saludando_1764609155806.mp4";
-import boostyComputer from "@assets/boosty_computadora.png";
-import contentDemoVideo from "@assets/Screen_Recording_2026-03-02_at_10.07.50_a.m._1772467708783.mov";
+const leadBoostLogo = "/images/leadboost-logo.png";
+const boostyLoopVideo2 = "";
+const boostyWavingVideo2 = "";
+const boostyComputer = "/images/boosty_computadora.png";
+const contentDemoVideo = "";
 import TrustpilotWidget from "@/components/TrustpilotWidget";
 
 export default function Landing() {

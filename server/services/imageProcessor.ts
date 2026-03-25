@@ -57,7 +57,7 @@ export class ImageProcessor {
       throw new Error(`Failed to fetch image: ${response.statusText}`);
     }
     
-    const imageBuffer = await response.buffer();
+    const imageBuffer = Buffer.from(await response.arrayBuffer());
     const sourceImage = sharp(imageBuffer);
     const metadata = await sourceImage.metadata();
     
@@ -138,7 +138,7 @@ export class ImageProcessor {
   /**
    * Get brand style overlay configuration
    */
-  private  (brandStyle: string): { r: number; g: number; b: number; alpha: number } | null {
+  private getBrandStyleOverlay(brandStyle: string): { r: number; g: number; b: number; alpha: number } | null {
     switch (brandStyle) {
       case 'luxury':
         return { r: 0, g: 0, b: 0, alpha: 0.1 };

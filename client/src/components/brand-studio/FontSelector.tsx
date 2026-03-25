@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo, useEffect, useRef } from "react";
+// @ts-ignore
 import WebFont from "webfontloader";
 import { motion, AnimatePresence } from "framer-motion";
 import {

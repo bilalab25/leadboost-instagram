@@ -1,8 +1,11 @@
 import { Link } from "wouter";
-import boosty from "./boosty.png";
+const boosty = "/images/boosty_sidebar.png";
 
 interface HelpChatbotProps {
   mascot?: string;
+  isSpanish?: boolean;
+  toggleLanguage?: () => void;
+  [key: string]: any;
 }
 
 export default function HelpChatbot({ mascot }: HelpChatbotProps) {

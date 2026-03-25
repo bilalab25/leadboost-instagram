@@ -5,7 +5,7 @@ import BrandSwitcher from "@/components/BrandSwitcher";
 import { HelpDropdown } from "@/components/HelpDropdown";
 import { Bell, Zap, Database } from "lucide-react";
 import { Link, useLocation } from "wouter";
-import leadBoostLogo from "@assets/Lead Boost (500 x 200 px) (500 x 160 px)_1756771199959.png";
+const leadBoostLogo = "/images/leadboost-logo-alt.png";
 
 interface TopHeaderProps {
   pageName?: string;
