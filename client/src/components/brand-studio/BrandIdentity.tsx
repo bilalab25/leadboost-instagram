@@ -132,7 +132,6 @@ export default function BrandIdentity(props: Record<string, any>) {
             : `${label} deleted successfully`,
         });
       } catch (err) {
-        console.error("❌ Error deleting logo:", err);
         toast({
           title: isSpanish ? "Error" : "Error",
           description: isSpanish
@@ -284,19 +283,6 @@ export default function BrandIdentity(props: Record<string, any>) {
           <AccordionContent>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                {/*         <CardTitle className="flex items-center">
-                  <Palette className="mr-2 h-5 w-5" />
-                  {isSpanish ? "Paleta de Colores" : "Color Palette"}
-                </CardTitle>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleGenerateRandomPalette}
-                  data-testid="button-generate-random-palette"
-                >
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  {isSpanish ? "Generar Aleatorio" : "Generate Random"}
-                </Button> */}
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">

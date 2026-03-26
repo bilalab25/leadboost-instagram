@@ -1,5 +1,7 @@
-// Mock social media platform integration service
-// In production, this would integrate with actual platform APIs
+/**
+ * Social Media Platform Integration Service
+ * Provides credential validation and cross-platform posting via real APIs
+ */
 
 export interface PlatformMessage {
   id: string;
@@ -19,19 +21,9 @@ export interface PostContent {
 }
 
 export class SocialMediaService {
-  // Fetch messages from all connected platforms
-  async fetchMessagesFromPlatform(
-    platform: string,
-    accessToken: string,
-    lastFetchTime?: Date
-  ): Promise<PlatformMessage[]> {
-    // In production, this would make actual API calls to each platform
-    // For now, return empty array to avoid errors
-    console.log(`Fetching messages from ${platform} (would use real API in production)`);
-    return [];
-  }
-
-  // Post content to multiple platforms
+  /**
+   * Post content to multiple platforms using their respective APIs
+   */
   async postToMultiplePlatforms(
     platforms: string[],
     content: PostContent,
@@ -40,20 +32,27 @@ export class SocialMediaService {
     const results: { [platform: string]: { success: boolean; postId?: string; error?: string } } = {};
 
     for (const platform of platforms) {
+      const token = accessTokens[platform];
+      if (!token) {
+        results[platform] = { success: false, error: 'No access token available' };
+        continue;
+      }
+
       try {
-        // In production, implement actual platform posting logic
-        console.log(`Posting to ${platform}:`, content.text);
-        
-        // Mock successful post
-        results[platform] = {
-          success: true,
-          postId: `mock_post_${Date.now()}_${platform}`,
-        };
+        switch (platform) {
+          case 'facebook':
+            results[platform] = await this.postToFacebook(content, token);
+            break;
+          case 'instagram':
+            results[platform] = await this.postToInstagram(content, token);
+            break;
+          default:
+            results[platform] = { success: false, error: `Platform "${platform}" posting is not yet supported` };
+        }
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
         results[platform] = {
           success: false,
-          error: message,
+          error: error instanceof Error ? error.message : 'Unknown error',
         };
       }
     }
@@ -61,46 +60,93 @@ export class SocialMediaService {
     return results;
   }
 
-  // Schedule post for later
-  async schedulePost(
-    platforms: string[],
+  /**
+   * Post to Facebook Page via Graph API
+   */
+  private async postToFacebook(
     content: PostContent,
-    scheduledTime: Date,
-    accessTokens: { [platform: string]: string }
-  ): Promise<string> {
-    // In production, this would integrate with platform scheduling APIs
-    // or use a job queue system
-    console.log(`Scheduling post for ${scheduledTime}:`, content.text);
-    return `scheduled_post_${Date.now()}`;
+    pageAccessToken: string
+  ): Promise<{ success: boolean; postId?: string; error?: string }> {
+    // Get the page ID from the token first
+    const meRes = await fetch(`https://graph.facebook.com/v24.0/me?access_token=${pageAccessToken}`);
+    const meData = await meRes.json();
+    if (meData.error) return { success: false, error: meData.error.message };
+
+    const pageId = meData.id;
+
+    // Post to the page feed
+    const postRes = await fetch(`https://graph.facebook.com/v24.0/${pageId}/feed`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: content.text,
+        access_token: pageAccessToken,
+      }),
+    });
+
+    const postData = await postRes.json();
+    if (postData.error) return { success: false, error: postData.error.message };
+
+    return { success: true, postId: postData.id };
   }
 
-  // Get platform-specific analytics
-  async getPlatformAnalytics(
-    platform: string,
-    accessToken: string,
-    startDate: Date,
-    endDate: Date
-  ): Promise<{
-    reach: number;
-    engagement: number;
-    clicks: number;
-    conversions: number;
-    impressions: number;
-  }> {
-    // In production, fetch real analytics data
-    console.log(`Fetching analytics for ${platform} from ${startDate} to ${endDate}`);
-    
-    // Return mock data for demonstration
-    return {
-      reach: Math.floor(Math.random() * 100000) + 50000,
-      engagement: Math.floor(Math.random() * 5000) + 1000,
-      clicks: Math.floor(Math.random() * 1000) + 100,
-      conversions: Math.floor(Math.random() * 100) + 10,
-      impressions: Math.floor(Math.random() * 200000) + 100000,
-    };
+  /**
+   * Post to Instagram via Content Publishing API (requires Facebook Page token)
+   */
+  private async postToInstagram(
+    content: PostContent,
+    pageAccessToken: string
+  ): Promise<{ success: boolean; postId?: string; error?: string }> {
+    if (!content.images?.length) {
+      return { success: false, error: 'Instagram requires at least one image to post' };
+    }
+
+    // Get the Instagram Business Account ID via the page
+    const pagesRes = await fetch(`https://graph.facebook.com/v24.0/me/accounts?access_token=${pageAccessToken}`);
+    const pagesData = await pagesRes.json();
+    const page = pagesData.data?.[0];
+    if (!page) return { success: false, error: 'No Facebook Page found' };
+
+    const igRes = await fetch(
+      `https://graph.facebook.com/v24.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`
+    );
+    const igData = await igRes.json();
+    const igAccountId = igData.instagram_business_account?.id;
+    if (!igAccountId) return { success: false, error: 'No Instagram Business Account linked to this page' };
+
+    // Create media container
+    const containerRes = await fetch(`https://graph.facebook.com/v24.0/${igAccountId}/media`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        image_url: content.images[0],
+        caption: content.text,
+        access_token: page.access_token,
+      }),
+    });
+
+    const containerData = await containerRes.json();
+    if (containerData.error) return { success: false, error: containerData.error.message };
+
+    // Publish the container
+    const publishRes = await fetch(`https://graph.facebook.com/v24.0/${igAccountId}/media_publish`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        creation_id: containerData.id,
+        access_token: page.access_token,
+      }),
+    });
+
+    const publishData = await publishRes.json();
+    if (publishData.error) return { success: false, error: publishData.error.message };
+
+    return { success: true, postId: publishData.id };
   }
 
-  // Validate platform credentials
+  /**
+   * Validate platform credentials by making a test API call
+   */
   async validatePlatformCredentials(platform: string, accessToken: string): Promise<{
     valid: boolean;
     accountInfo?: {
@@ -110,31 +156,44 @@ export class SocialMediaService {
     };
     error?: string;
   }> {
-    // In production, validate against each platform's API
-    console.log(`Validating credentials for ${platform}`);
-    
-    // Mock validation - always return valid for demo
-    return {
-      valid: true,
-      accountInfo: {
-        id: `mock_account_${platform}`,
-        name: `Business Account (${platform})`,
-        profilePicture: `https://via.placeholder.com/100?text=${platform.toUpperCase()}`,
-      },
-    };
-  }
+    if (!accessToken) {
+      return { valid: false, error: 'Access token is required' };
+    }
 
-  // Send reply to a message
-  async replyToMessage(
-    platform: string,
-    messageId: string,
-    replyContent: string,
-    accessToken: string
-  ): Promise<{ success: boolean; error?: string }> {
-    // In production, use platform-specific reply APIs
-    console.log(`Replying to ${platform} message ${messageId}:`, replyContent);
-    
-    return { success: true };
+    try {
+      switch (platform) {
+        case 'facebook': {
+          const res = await fetch(`https://graph.facebook.com/v24.0/me?fields=id,name,picture&access_token=${accessToken}`);
+          const data = await res.json();
+          if (data.error) return { valid: false, error: data.error.message };
+          return {
+            valid: true,
+            accountInfo: {
+              id: data.id,
+              name: data.name,
+              profilePicture: data.picture?.data?.url,
+            },
+          };
+        }
+        case 'instagram':
+        case 'instagram_direct': {
+          const res = await fetch(`https://graph.instagram.com/v24.0/me?fields=user_id,username&access_token=${accessToken}`);
+          const data = await res.json();
+          if (data.error) return { valid: false, error: data.error.message };
+          return {
+            valid: true,
+            accountInfo: {
+              id: data.user_id || data.id,
+              name: data.username || 'Instagram User',
+            },
+          };
+        }
+        default:
+          return { valid: false, error: `Validation for platform "${platform}" is not yet supported` };
+      }
+    } catch (error) {
+      return { valid: false, error: 'Failed to connect to platform API' };
+    }
   }
 }
 

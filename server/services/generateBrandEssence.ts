@@ -1,23 +1,14 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { storage } from "../storage";
+import type { BrandEssence } from "@shared/schema";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY!,
 });
 
-export interface BrandEssence {
-  toneOfVoice: string;
-  personality: string;
-  emotionalFeel: string;
-  visualKeywords: string;
-  brandPromise: string;
-}
-
 export async function generateBrandEssence(
   brandId: string,
 ): Promise<BrandEssence> {
-  console.log(`[BrandEssence] Generating essence for brand: ${brandId}`);
-
   const brand = await storage.getBrandByIdOnly(brandId);
   const design = await storage.getBrandDesignByBrandId(brandId);
   const assets = await storage.getAssetsByBrandId(brandId);
@@ -33,6 +24,16 @@ export async function generateBrandEssence(
     )
     .join("\n");
 
+  // Build accent colors list, filtering out nulls
+  const accentColors = [
+    design.colorAccent1,
+    design.colorAccent2,
+    design.colorAccent3,
+    design.colorAccent4,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
   const prompt = `
 You are a senior brand strategist and creative director.
 
@@ -43,10 +44,10 @@ Name: ${brand.name}
 Description: ${brand.description || "No description provided"}
 
 ### BRAND DESIGN
-Primary Color: ${design.colorPrimary}
-Accent Colors: ${design.colorAccent1}, ${design.colorAccent2}, ${design.colorAccent3}, ${design.colorAccent4}
-Brand Style: ${design.brandStyle}
-Fonts: Primary ${design.fontPrimary}, Secondary ${design.fontSecondary}
+Primary Color: ${design.colorPrimary || "Not set"}
+Accent Colors: ${accentColors || "Not set"}
+Brand Style: ${design.brandStyle || "Not set"}
+Fonts: Primary ${design.fontPrimary || "Not set"}, Secondary ${design.fontSecondary || "Not set"}
 
 ### BRAND ASSETS (visual analysis)
 ${assetDescriptions || "No assets uploaded"}
@@ -90,12 +91,35 @@ Produce concise but powerful descriptions.
     },
   });
 
-  const essence: BrandEssence = JSON.parse(response.text!);
+  if (!response.text) {
+    throw new Error("AI returned empty response for brand essence");
+  }
 
-  console.log("[BrandEssence] Generated essence:", essence);
+  let essence: {
+    toneOfVoice: string;
+    personality: string;
+    emotionalFeel: string;
+    visualKeywords: string;
+    brandPromise: string;
+  };
+  try {
+    essence = JSON.parse(response.text);
+  } catch {
+    throw new Error("AI returned invalid JSON for brand essence");
+  }
+
+  // Validate required fields
+  if (
+    !essence.toneOfVoice ||
+    !essence.personality ||
+    !essence.emotionalFeel ||
+    !essence.visualKeywords ||
+    !essence.brandPromise
+  ) {
+    throw new Error("AI response missing required brand essence fields");
+  }
+
   await storage.upsertBrandEssence(brandId, essence);
 
-  console.log("[BrandEssence] Saved to DB");
-
-  return essence;
+  return await storage.getBrandEssence(brandId) as BrandEssence;
 }

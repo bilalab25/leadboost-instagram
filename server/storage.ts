@@ -29,6 +29,9 @@ import {
   integrations,
   socialPostingFrequency,
   conversationHistory,
+  chatbotConfigs,
+  calendarIntegrations,
+  appointments,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -90,6 +93,9 @@ import {
   type ConversationHistory,
   type BrandProduct,
   type InsertBrandProduct,
+  type ChatbotConfig,
+  type CalendarIntegration,
+  type Appointment,
 } from "@shared/schema";
 import { db } from "./db";
 import {
@@ -410,6 +416,36 @@ export interface IStorage {
   ): Promise<BrandDesign | undefined>;
   deleteBrandDesign(id: string, brandId: string): Promise<boolean>;
 
+  // Brand asset operations
+  createBrandAsset(asset: InsertBrandAsset): Promise<BrandAsset>;
+  getAssetsByBrandDesignId(brandDesignId: string): Promise<BrandAsset[]>;
+  getAssetsByBrandId(brandId: string): Promise<BrandAsset[]>;
+  updateBrandAssetCaption(
+    id: string,
+    brandDesignId: string,
+    caption: string,
+  ): Promise<BrandAsset | undefined>;
+  deleteBrandAsset(
+    id: string,
+    brandDesignId: string,
+  ): Promise<BrandAsset | undefined>;
+
+  // Brand essence operations
+  upsertBrandEssence(
+    brandId: string,
+    essence: {
+      toneOfVoice: string;
+      personality: string;
+      emotionalFeel: string;
+      visualKeywords: string;
+      brandPromise: string;
+    },
+  ): Promise<BrandEssence>;
+  getBrandEssence(brandId: string): Promise<BrandEssence | undefined>;
+
+  // Brand lookup (without user scoping)
+  getBrandByIdOnly(brandId: string): Promise<Brand | undefined>;
+
   // Campaign design operations
   createCampaignDesign(design: InsertCampaignDesign): Promise<CampaignDesign>;
   getCampaignDesignsByCampaignId(campaignId: string): Promise<CampaignDesign[]>;
@@ -440,6 +476,9 @@ export interface IStorage {
   findIntegrationByAccount(
     accountId: string,
     provider: string,
+  ): Promise<Integration | undefined>;
+  findWhatsAppIntegrationByPhoneNumberId(
+    phoneNumberId: string,
   ): Promise<Integration | undefined>;
 
   // Check if an account is already connected anywhere in the platform (for duplicate prevention)
@@ -1853,7 +1892,6 @@ export class DatabaseStorage implements IStorage {
 
   // Obtener assets de un BrandDesign
   async getAssetsByBrandDesignId(brandDesignId: string): Promise<BrandAsset[]> {
-    console.log("🗄️  getAssetsByBrandDesignId:", brandDesignId);
     return db
       .select()
       .from(brandAssets)
@@ -1955,50 +1993,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Chatbot operations
-  async getChatbotConfigs(brandId: string): Promise<any[]> {
-    // Return mock config for now
-    return [
-      {
-        id: "config-1",
-        brandId,
-        language: "es",
-        greeting:
-          "¡Hola! Soy el asistente virtual de Renuve. ¿En qué puedo ayudarte hoy?",
-        businessHours: {
-          monday: { start: "09:00", end: "18:00" },
-          tuesday: { start: "09:00", end: "18:00" },
-          wednesday: { start: "09:00", end: "18:00" },
-          thursday: { start: "09:00", end: "18:00" },
-          friday: { start: "09:00", end: "18:00" },
-          saturday: { start: "10:00", end: "16:00" },
-          sunday: { start: "closed", end: "closed" },
-        },
-        services: [
-          { id: "botox", name: "Botox", duration: 30, price: 300 },
-          {
-            id: "facial",
-            name: "Tratamiento Facial",
-            duration: 60,
-            price: 150,
-          },
-          {
-            id: "dermal-fillers",
-            name: "Rellenos Dérmicos",
-            duration: 45,
-            price: 400,
-          },
-        ],
-      },
-    ];
+  async getChatbotConfigs(brandId: string): Promise<ChatbotConfig[]> {
+    return db
+      .select()
+      .from(chatbotConfigs)
+      .where(eq(chatbotConfigs.brandId, brandId));
   }
 
-  async createChatbotConfig(config: any): Promise<any> {
-    // Mock implementation
-    return {
-      id: `config-${Date.now()}`,
-      ...config,
-      createdAt: new Date().toISOString(),
-    };
+  async createChatbotConfig(config: any): Promise<ChatbotConfig> {
+    const [created] = await db
+      .insert(chatbotConfigs)
+      .values(config)
+      .returning();
+    return created;
   }
 
   // ✅ Función corregida y completa con brandId
@@ -2098,56 +2105,36 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getCalendarIntegrations(brandId: string): Promise<any[]> {
-    // Return mock calendar integration
-    return [
-      {
-        id: "cal-1",
-        brandId,
-        provider: "google",
-        calendarId: "primary",
-        isActive: true,
-        createdAt: new Date().toISOString(),
-      },
-    ];
+  async getCalendarIntegrations(brandId: string): Promise<CalendarIntegration[]> {
+    return db
+      .select()
+      .from(calendarIntegrations)
+      .where(eq(calendarIntegrations.brandId, brandId));
   }
 
-  async createCalendarIntegration(integration: any): Promise<any> {
-    // Mock implementation
-    return {
-      id: `cal-${Date.now()}`,
-      ...integration,
-      createdAt: new Date().toISOString(),
-    };
+  async createCalendarIntegration(integration: any): Promise<CalendarIntegration> {
+    const [created] = await db
+      .insert(calendarIntegrations)
+      .values(integration)
+      .returning();
+    return created;
   }
 
-  async getAppointments(brandId: string): Promise<any[]> {
-    // Return mock appointments
-    const now = new Date();
-    return [
-      {
-        id: "apt-1",
-        brandId,
-        customerName: "María González",
-        customerPhone: "+1234567890",
-        service: "Botox",
-        date: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-        time: "10:00",
-        status: "confirmed",
-        notes: "Primera cita, consulta inicial incluida",
-      },
-      {
-        id: "apt-2",
-        brandId,
-        customerName: "Carmen López",
-        customerPhone: "+1234567891",
-        service: "Tratamiento Facial",
-        date: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-        time: "14:30",
-        status: "pending",
-        notes: "Cliente habitual, piel sensible",
-      },
-    ];
+  async getAppointments(brandId: string): Promise<Appointment[]> {
+    const calIntegrations = await db
+      .select()
+      .from(calendarIntegrations)
+      .where(eq(calendarIntegrations.brandId, brandId));
+
+    if (calIntegrations.length === 0) return [];
+
+    const calIds = calIntegrations.map((c) => c.id);
+    const { inArray } = await import("drizzle-orm");
+    return db
+      .select()
+      .from(appointments)
+      .where(inArray(appointments.calendarIntegrationId, calIds))
+      .orderBy(desc(appointments.startTime));
   }
 
   // Integration operations
@@ -2361,6 +2348,38 @@ export class DatabaseStorage implements IStorage {
     }
 
     return integration;
+  }
+
+  async findWhatsAppIntegrationByPhoneNumberId(
+    phoneNumberId: string,
+  ): Promise<Integration | undefined> {
+    // First check by accountId (some integrations store phoneNumberId as accountId)
+    let [integration] = await db
+      .select()
+      .from(integrations)
+      .where(
+        and(
+          eq(integrations.accountId, phoneNumberId),
+          eq(integrations.provider, "whatsapp"),
+        ),
+      )
+      .limit(1);
+
+    if (integration) return integration;
+
+    // Fallback: search all whatsapp integrations and check metadata.phoneNumberId
+    const whatsappIntegrations = await db
+      .select()
+      .from(integrations)
+      .where(eq(integrations.provider, "whatsapp"));
+
+    return whatsappIntegrations.find((int) => {
+      let meta: any = int.metadata;
+      if (typeof meta === "string") {
+        try { meta = JSON.parse(meta); } catch { return false; }
+      }
+      return meta?.phoneNumberId === phoneNumberId;
+    });
   }
 
   async checkDuplicateIntegration(
@@ -2785,37 +2804,24 @@ export class DatabaseStorage implements IStorage {
   ): Promise<BrandEssence> {
     const now = new Date();
 
-    // Check if essence already exists for this brand
-    const [existing] = await db
-      .select()
-      .from(brandEssence)
-      .where(eq(brandEssence.brandId, brandId))
-      .limit(1);
-
-    if (existing) {
-      // Update existing
-      const [updated] = await db
-        .update(brandEssence)
-        .set({
+    // Atomic upsert using ON CONFLICT to avoid race conditions
+    const [result] = await db
+      .insert(brandEssence)
+      .values({
+        brandId,
+        ...essence,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .onConflictDoUpdate({
+        target: brandEssence.brandId,
+        set: {
           ...essence,
           updatedAt: now,
-        })
-        .where(eq(brandEssence.brandId, brandId))
-        .returning();
-      return updated;
-    } else {
-      // Insert new
-      const [created] = await db
-        .insert(brandEssence)
-        .values({
-          brandId,
-          ...essence,
-          createdAt: now,
-          updatedAt: now,
-        })
-        .returning();
-      return created;
-    }
+        },
+      })
+      .returning();
+    return result;
   }
 
   async getBrandEssence(brandId: string): Promise<BrandEssence | undefined> {

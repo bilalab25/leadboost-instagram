@@ -157,16 +157,39 @@ export class ImageProcessor {
    * Add text overlays with dynamic positioning based on platform dimensions
    */
   private async addTextOverlays(
-    image: sharp.Sharp, 
-    overlays: TextOverlay[], 
+    image: sharp.Sharp,
+    overlays: TextOverlay[],
     dimensions: PlatformDimensions
   ): Promise<sharp.Sharp> {
-    
-    // For now, we'll skip SVG text overlays and focus on the image processing
-    // In a full implementation, you'd generate SVG text elements and composite them
-    // This requires more complex text rendering which could be added later
-    
-    return image;
+    if (overlays.length === 0) return image;
+
+    // Build SVG text elements for all overlays
+    const svgTexts = overlays.map((overlay) => {
+      const escapedText = overlay.text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+      const anchor = overlay.align === "center" ? "middle" : overlay.align === "right" ? "end" : "start";
+      const weight = overlay.fontWeight === "bold" ? 700 : 400;
+
+      return `<text
+        x="${overlay.x}"
+        y="${overlay.y}"
+        font-size="${overlay.fontSize}"
+        font-family="sans-serif"
+        font-weight="${weight}"
+        fill="${overlay.color}"
+        text-anchor="${anchor}"
+      >${escapedText}</text>`;
+    }).join("\n");
+
+    const svgOverlay = Buffer.from(
+      `<svg width="${dimensions.width}" height="${dimensions.height}" xmlns="http://www.w3.org/2000/svg">
+        ${svgTexts}
+      </svg>`
+    );
+
+    return image.composite([{ input: svgOverlay, top: 0, left: 0 }]);
   }
 
   /**

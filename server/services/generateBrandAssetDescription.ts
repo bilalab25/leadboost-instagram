@@ -8,9 +8,31 @@ export async function generateBrandAssetDescription(
   imageUrl: string,
 ): Promise<string> {
   try {
-    const response = await fetch(imageUrl);
+    // Fetch image with timeout and status check
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
+    let response: Response;
+    try {
+      response = await fetch(imageUrl, { signal: controller.signal });
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: HTTP ${response.status}`);
+    }
+
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.startsWith("image/")) {
+      throw new Error(`URL does not point to an image (content-type: ${contentType})`);
+    }
+
     const buffer = await response.arrayBuffer();
     const base64 = Buffer.from(buffer).toString("base64");
+
+    // Determine mime type from response headers
+    const mimeType = contentType.split(";")[0].trim() || "image/jpeg";
 
     const prompt = `
     You are an expert brand identity analyst and visual language classifier.
@@ -23,19 +45,19 @@ export async function generateBrandAssetDescription(
     ### SECTION A: ASSET AND SUBJECT FIDELITY (MANDATORY TECHNICAL DETAIL)
     The goal of this section is to describe the primary subject with **absolute technical precision** so it can be replicated without error. Include:
 
-    1. **Asset Type & Subject:** Clearly identify the asset's function (e.g., "Product Hero Shot," "Location Photo," "Marketing Template") and provide a **complete, technical description of the primary object or scene** (e.g., "A modern cafe interior," "A 45mm stainless steel diver's watch," "A luxury leather wallet," "A bowl of pho with basil garnish").
-    2. **Key Factual Details:** Precisely detail the **exact material, color, finish, texture, and specific physical features** of the subject. Use precise terms related to the asset type (e.g., "The dominant material is brushed aluminum," "The fabric has a linen texture," "The bowl is glossy ceramic with a green rim," "Features a single call-to-action button in a fixed position"). This description must be long and verbose.
-    3. **Geometry/Arrangement:** Describe the shape of the product/subject or the specific arrangement/composition of elements (e.g., "Oval-shaped hoop earrings," "Asymmetrical plating," "Thin, continuous band," "Rule-of-thirds composition centered on a monitor").
+    1. **Asset Type & Subject:** Clearly identify the asset's function (e.g., "Product Hero Shot," "Location Photo," "Marketing Template") and provide a **complete, technical description of the primary object or scene**.
+    2. **Key Factual Details:** Precisely detail the **exact material, color, finish, texture, and specific physical features** of the subject.
+    3. **Geometry/Arrangement:** Describe the shape of the product/subject or the specific arrangement/composition of elements.
 
     ---
     ### SECTION B: VISUAL STYLING SYNTHESIS
-    The goal of this section is to describe the style, lighting, and mood for future inspiration (style, lighting, mood). Include:
+    The goal of this section is to describe the style, lighting, and mood for future inspiration. Include:
 
-    1. **Dominant Color Palette** (use specific color terms, like “deep charcoal gray”, “soft beige highlight”, “vibrant teal accent”)
-    2. **Lighting Style** (softbox, high-key, hard rim-light, diffused shadows, dramatic spotlight, natural window light)
-    3. **Composition Type** (macro close-up, flat lay, minimal centered, high ratio of negative space, editorial lifestyle)
-    4. **Mood / Emotional Tone** (premium, clinical, rustic, warm, dramatic, energetic, sophisticated luxury)
-    5. **GENERATIVE VISUAL TOKENS** (photorealistic 8K render, high-contrast glossy highlights, hyper-detailed texture rendering, commercially perfect)
+    1. **Dominant Color Palette** (use specific color terms)
+    2. **Lighting Style** (softbox, high-key, hard rim-light, etc.)
+    3. **Composition Type** (macro close-up, flat lay, minimal centered, etc.)
+    4. **Mood / Emotional Tone** (premium, clinical, rustic, warm, etc.)
+    5. **GENERATIVE VISUAL TOKENS** (photorealistic 8K render, high-contrast glossy highlights, etc.)
     ---
 
     Rules:
@@ -50,7 +72,7 @@ export async function generateBrandAssetDescription(
         {
           inlineData: {
             data: base64,
-            mimeType: "image/jpeg",
+            mimeType,
           },
         },
         { text: prompt },
@@ -63,6 +85,6 @@ export async function generateBrandAssetDescription(
     return result?.text?.trim() || "No description generated.";
   } catch (error) {
     console.error("[BrandAsset] Error generating description:", error);
-    return "Error generating automatic description for this asset.";
+    throw error; // Let the route handler return proper error response
   }
 }

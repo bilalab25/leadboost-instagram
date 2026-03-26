@@ -63,20 +63,25 @@ interface LightspeedSale {
 
 export class LightspeedService {
   private encryptData(text: string): string {
-    const cipher = crypto.createCipher("aes-256-cbc", ENCRYPTION_KEY_SAFE);
+    const iv = crypto.randomBytes(16);
+    const key = crypto.scryptSync(ENCRYPTION_KEY_SAFE, "salt", 32);
+    const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
     let encrypted = cipher.update(text, "utf8", "hex");
     encrypted += cipher.final("hex");
-    return encrypted;
+    return iv.toString("hex") + ":" + encrypted;
   }
 
   private decryptData(encryptedText: string): string {
     try {
-      const decipher = crypto.createDecipher("aes-256-cbc", ENCRYPTION_KEY_SAFE);
-      let decrypted = decipher.update(encryptedText, "hex", "utf8");
+      const [ivHex, encrypted] = encryptedText.split(":");
+      if (!ivHex || !encrypted) return "";
+      const iv = Buffer.from(ivHex, "hex");
+      const key = crypto.scryptSync(ENCRYPTION_KEY_SAFE, "salt", 32);
+      const decipher = crypto.createDecipheriv("aes-256-cbc", key, iv);
+      let decrypted = decipher.update(encrypted, "hex", "utf8");
       decrypted += decipher.final("utf8");
       return decrypted;
     } catch (error) {
-      console.error("Failed to decrypt Lightspeed data:", error);
       return "";
     }
   }

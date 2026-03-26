@@ -145,7 +145,6 @@ export default function BrandsTab() {
       setMemberships([]);
     }
   };
-  console.log(memberships, "memberships");
   useEffect(() => {
     fetchBrandMemberships();
   }, []);

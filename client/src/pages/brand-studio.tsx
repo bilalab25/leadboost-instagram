@@ -181,6 +181,13 @@ export default function BrandStudio() {
   const { activeBrandId } = useBrand();
   const captionDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Clean up debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (captionDebounceRef.current) clearTimeout(captionDebounceRef.current);
+    };
+  }, []);
+
   const [selectedStyle, setSelectedStyle] = useState<string>("");
   // Replaced customColors with individual states for explicit control
   const [mainColor, setMainColor] = useState<string>("#2563eb"); // Default blue
@@ -254,19 +261,11 @@ export default function BrandStudio() {
     enabled: !!activeBrandId && !!brandDesign?.id,
     queryFn: async () => {
       const url = `/api/brand-assets?brandId=${activeBrandId}&brandDesignId=${brandDesign!.id}`;
-
-      console.log("🌐 GET", url);
-
       const res = await apiRequest("GET", url);
-
-      const text = await res.text();
-      console.log("⬅️ RAW RESPONSE /api/brand-assets:", text);
-
       if (!res.ok) {
-        throw new Error(`HTTP ${res.status} - ${text}`);
+        throw new Error(`HTTP ${res.status}`);
       }
-
-      return JSON.parse(text);
+      return res.json();
     },
     retry: false,
   });
@@ -309,7 +308,6 @@ export default function BrandStudio() {
     const files = Array.from(inputEl.files || []); // lee los files desde el input capturado
     // Use the passed category or fall back to state
     const effectiveCategory = categoryValue || currentAssetUploadCategory;
-    console.log("[BrandStudio] Uploading with category:", effectiveCategory);
 
     for (const file of files) {
       const id = crypto.randomUUID();
@@ -322,23 +320,6 @@ export default function BrandStudio() {
           );
         });
         if (data.secure_url) {
-          /* let description = "";
-          try {
-            const descResponse = await apiRequest(
-              "POST",
-              "/api/brand-assets/generate-description",
-              {
-                imageUrl: data.secure_url,
-              },
-            );
-            const descData = await descResponse.json();
-            description = descData.description || "";
-          } catch (descErr) {
-            console.error(
-              "[Onboarding] Error generating asset description:",
-              descErr,
-            );
-          } */
           await saveAssetToDB(
             {
               id,
@@ -357,29 +338,16 @@ export default function BrandStudio() {
       }
     }
 
-    // ✅ usa la referencia capturada, no 'e'
     inputEl.value = "";
     await queryClient.invalidateQueries({
       queryKey: ["/api/brand-assets", activeBrandId, brandDesign.id],
     });
   };
 
-  useEffect(() => {
-    console.log("📦 assets (query data):", assets);
-    console.log(
-      "⏳ isAssetsLoading:",
-      isAssetsLoading,
-      "isAssetsFetching:",
-      isAssetsFetching,
-    );
-    if (assetsError) console.error("🧨 assetsError:", assetsError);
-  }, [assets, isAssetsLoading, isAssetsFetching, assetsError]);
-
   useGoogleFontLoader([primaryFont, secondaryFont]);
 
   // Effect to initialize states when brandDesign data is loaded
   useEffect(() => {
-    console.log("Brand Design Data:", brandDesign);
     if (brandDesign) {
       if (brandDesign.colorPalette || brandDesign.colorPrimary) {
         setMainColor(
@@ -450,30 +418,6 @@ export default function BrandStudio() {
 
       if (brandDesign.brandStyle) {
         setSelectedStyle(brandDesign.brandStyle);
-      }
-      if (brandDesign.colorPalette) {
-        setMainColor(brandDesign.colorPalette.primary || "#2563eb");
-        setAccentColor1(brandDesign.colorPalette.accent1 || "#60a5fa");
-        setAccentColor2(brandDesign.colorPalette.accent2 || "#1e40af");
-        setText1Color(brandDesign.colorPalette.text1 || "#333333");
-        setText2Color(brandDesign.colorPalette.text2 || "#666666");
-      }
-      if (brandDesign.typography) {
-        setPrimaryFont(brandDesign.typography.primary || "Roboto");
-        setSecondaryFont(brandDesign.typography.secondary || "Open Sans");
-        if (
-          brandDesign.typography.customFonts &&
-          Array.isArray(brandDesign.typography.customFonts)
-        ) {
-          // For simplicity, we're just adding the names to the options here.
-          // A full solution would involve fetching these font files if their URLs are persistent.
-          const loadedCustomFontNames = brandDesign.typography.customFonts.map(
-            (f: any) => f.name,
-          );
-          setCustomFontOptions((prev) =>
-            Array.from(new Set([...prev, ...loadedCustomFontNames])),
-          );
-        }
       }
       if (
         brandDesign.brandKit &&
@@ -655,7 +599,6 @@ export default function BrandStudio() {
       // Llama tu mutation
       saveBrandDesignMutation.mutate(designData);
     } catch (err) {
-      console.error("❌ Error saving design:", err);
       toast({
         title: isSpanish ? "Error" : "Error",
         description: isSpanish
@@ -714,7 +657,11 @@ export default function BrandStudio() {
 
     if (file) {
       const localPreview = URL.createObjectURL(file);
-      setPreviewUrl(localPreview);
+      // Revoke previous object URL to prevent memory leak
+      setPreviewUrl((prev) => {
+        if (prev && prev.startsWith("blob:")) URL.revokeObjectURL(prev);
+        return localPreview;
+      });
       toast({
         title: isSpanish ? "Archivo cargado" : "File selected",
         description: isSpanish
@@ -741,8 +688,15 @@ export default function BrandStudio() {
       `/api/brand-assets?brandId=${activeBrandId}`,
       payload,
     );
-    const data = await res.json();
-    return data;
+    if (!res.ok) {
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description: isSpanish ? "No se pudo guardar el recurso" : "Failed to save asset",
+        variant: "destructive",
+      });
+      return null;
+    }
+    return await res.json();
   };
 
   const handleRemoveAsset = async (id: string) => {
@@ -777,7 +731,6 @@ export default function BrandStudio() {
         });
       }
     } catch (error) {
-      console.error("Error deleting asset:", error);
       toast({
         title: isSpanish ? "Error" : "Error",
         description: isSpanish
@@ -824,8 +777,8 @@ export default function BrandStudio() {
         caption,
         brandDesignId,
         brandId: activeBrandId,
-      }).catch((err) => {
-        console.error("Failed to save caption:", err);
+      }).catch(() => {
+        // Caption save failed silently — will retry on next edit
       });
     }, 600);
   }

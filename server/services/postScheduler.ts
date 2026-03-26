@@ -1,7 +1,10 @@
 import cron from "node-cron";
 import { db } from "../db";
 import { aiGeneratedPosts, brands, integrations } from "@shared/schema";
-import { eq, lte, isNull, and, inArray } from "drizzle-orm";
+import { eq, lte, isNull, and, inArray, lt } from "drizzle-orm";
+
+// Lock expiry: 10 minutes — if a process crashes mid-publish, the lock auto-expires
+const LOCK_EXPIRY_MS = 10 * 60 * 1000;
 
 class PostSchedulerService {
   private isRunning = false;
@@ -12,15 +15,38 @@ class PostSchedulerService {
       return;
     }
 
-    console.log(
-      "[PostScheduler] Starting scheduler - checking every minute for posts to publish",
-    );
+    console.log("[PostScheduler] Starting scheduler - checking every 2 minutes");
 
-    cron.schedule("* * * * *", async () => {
+    // Check every 2 minutes instead of every minute to reduce DB load
+    cron.schedule("*/2 * * * *", async () => {
+      await this.cleanStaleLocks();
       await this.checkAndPublishPosts();
     });
 
     this.isRunning = true;
+  }
+
+  // Bug 11: Clean up stale locks from crashed processes
+  private async cleanStaleLocks() {
+    try {
+      const expiryThreshold = new Date(Date.now() - LOCK_EXPIRY_MS);
+      const stale = await db
+        .update(aiGeneratedPosts)
+        .set({ lockedAt: null, updatedAt: new Date() })
+        .where(
+          and(
+            lt(aiGeneratedPosts.lockedAt!, expiryThreshold),
+            eq(aiGeneratedPosts.status, "accepted"),
+          ),
+        )
+        .returning({ id: aiGeneratedPosts.id });
+
+      if (stale.length > 0) {
+        console.log(`[PostScheduler] Cleaned ${stale.length} stale lock(s)`);
+      }
+    } catch (error) {
+      console.error("[PostScheduler] Error cleaning stale locks:", error);
+    }
   }
 
   private async lockPost(postId: string): Promise<boolean> {
@@ -66,7 +92,7 @@ class PostSchedulerService {
 
         if (!brand[0] || brand[0].autoPostEnabled === false) {
           console.log(
-            `[PostScheduler] Skipping post ${post.id} - auto-post disabled for brand ${post.brandId}`,
+            `[PostScheduler] Skipping post ${post.id} - auto-post disabled`,
           );
           await db
             .update(aiGeneratedPosts)
@@ -79,12 +105,7 @@ class PostSchedulerService {
         }
 
         const locked = await this.lockPost(post.id);
-        if (!locked) {
-          console.log(
-            `[PostScheduler] Post ${post.id} already locked by another process, skipping`,
-          );
-          continue;
-        }
+        if (!locked) continue;
 
         await this.publishPost(post);
       }
@@ -94,8 +115,6 @@ class PostSchedulerService {
   }
 
   private async publishPost(post: typeof aiGeneratedPosts.$inferSelect) {
-    console.log(`[PostScheduler] Publishing post ${post.id}`);
-
     try {
       const providers =
         post.platform === "instagram"
@@ -131,8 +150,9 @@ class PostSchedulerService {
       }
 
       const accessToken = integration.accessToken;
+      let published = false;
 
-      // Publish to Facebook
+      // Publish to Facebook (image)
       if (post.platform === "facebook" && post.type === "image") {
         const params = new URLSearchParams({
           url: post.imageUrl!,
@@ -151,12 +171,10 @@ class PostSchedulerService {
         if (!response.ok || data.error) {
           throw new Error(data.error?.message || "Facebook publish failed");
         }
-
-        console.log(
-          `[PostScheduler] Facebook post published with id ${data.post_id || data.id}`,
-        );
+        published = true;
       }
 
+      // Publish to Facebook (video)
       if (post.platform === "facebook" && post.type === "video") {
         if (!post.imageUrl) {
           throw new Error("Missing imageUrl for Facebook video post");
@@ -178,14 +196,29 @@ class PostSchedulerService {
         const data = await response.json();
 
         if (!response.ok || data.error) {
-          throw new Error(
-            data.error?.message || "Facebook video publish failed",
-          );
+          throw new Error(data.error?.message || "Facebook video publish failed");
         }
+        published = true;
+      }
 
-        console.log(
-          `[PostScheduler] Facebook video published with id ${data.id}`,
+      // Publish to Facebook (text-only or unrecognized type — fallback to feed post)
+      if (post.platform === "facebook" && post.type !== "image" && post.type !== "video") {
+        const params = new URLSearchParams({
+          message: post.content ?? "",
+          access_token: accessToken,
+        });
+
+        const response = await fetch(
+          `https://graph.facebook.com/v24.0/${integration.accountId}/feed`,
+          { method: "POST", body: params },
         );
+
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+          throw new Error(data.error?.message || "Facebook text post failed");
+        }
+        published = true;
       }
 
       // Publish to Instagram
@@ -195,7 +228,6 @@ class PostSchedulerService {
           ? "https://graph.instagram.com"
           : "https://graph.facebook.com";
 
-        const commonHeaders: Record<string, string> = {};
         const hashtagsString = post.hashtags?.length
           ? "\n\n" + post.hashtags
           : "";
@@ -210,7 +242,7 @@ class PostSchedulerService {
 
         const containerResponse = await fetch(
           `${baseUrl}/v24.0/${integration.accountId}/media`,
-          { method: "POST", headers: commonHeaders, body: containerParams },
+          { method: "POST", body: containerParams },
         );
 
         const containerData = await containerResponse.json();
@@ -221,8 +253,36 @@ class PostSchedulerService {
           );
         }
 
-        // 2) Publish container
-        await new Promise((res) => setTimeout(res, 2000));
+        // Poll for container readiness (10 attempts, 3s interval = 30s max)
+        let containerReady = false;
+        for (let i = 0; i < 10; i++) {
+          await new Promise((res) => setTimeout(res, 3000));
+          try {
+            const statusParams = new URLSearchParams({
+              fields: "status_code",
+              access_token: accessToken,
+            });
+            const statusRes = await fetch(
+              `${baseUrl}/v24.0/${containerData.id}`,
+              { method: "POST", body: statusParams },
+            );
+            const statusData = await statusRes.json();
+            if (statusData.status_code === "FINISHED") {
+              containerReady = true;
+              break;
+            }
+            if (statusData.status_code === "ERROR") {
+              throw new Error("Instagram container processing failed");
+            }
+          } catch {
+            // Continue polling
+          }
+        }
+
+        if (!containerReady) {
+          // Fallback: try publishing anyway after polling timeout
+          console.log("[PostScheduler] Container polling timed out, attempting publish");
+        }
 
         const publishParams = new URLSearchParams({
           creation_id: containerData.id,
@@ -231,7 +291,7 @@ class PostSchedulerService {
 
         const publishResponse = await fetch(
           `${baseUrl}/v24.0/${integration.accountId}/media_publish`,
-          { method: "POST", headers: commonHeaders, body: publishParams },
+          { method: "POST", body: publishParams },
         );
 
         const publishData = await publishResponse.json();
@@ -241,6 +301,23 @@ class PostSchedulerService {
             publishData.error?.message || "Instagram publish failed",
           );
         }
+        published = true;
+      }
+
+      // Bug 18: Unsupported platforms (TikTok, etc.) — mark as unsupported instead of silent success
+      if (!published) {
+        console.log(
+          `[PostScheduler] Platform "${post.platform}" not yet supported for auto-publish`,
+        );
+        await db
+          .update(aiGeneratedPosts)
+          .set({
+            status: "platform_not_supported",
+            lockedAt: null,
+            updatedAt: new Date(),
+          })
+          .where(eq(aiGeneratedPosts.id, post.id));
+        return;
       }
 
       await db
@@ -254,11 +331,10 @@ class PostSchedulerService {
         .where(eq(aiGeneratedPosts.id, post.id));
 
       console.log(`[PostScheduler] Post ${post.id} published successfully`);
-    } catch (error) {
-      console.error(
-        `[PostScheduler] Failed to publish post ${post.id}:`,
-        error,
-      );
+    } catch (error: any) {
+      // Bug 44: Sanitize error message to avoid logging access tokens
+      const safeMessage = error?.message?.replace(/access_token=[^&\s]+/gi, "access_token=[REDACTED]") || "Unknown error";
+      console.error(`[PostScheduler] Failed to publish post ${post.id}: ${safeMessage}`);
 
       await db
         .update(aiGeneratedPosts)

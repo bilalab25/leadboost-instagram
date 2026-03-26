@@ -38,7 +38,7 @@ const LogoGeneratorModal = ({
 
       for (let attempt = 0; attempt < maxAttempts; attempt++) {
         try {
-          const response = await fetch(`/api/logo-generator/status/${jobId}`);
+          const response = await fetch(`/api/logo-generator/status/${jobId}`, { credentials: "include" });
           if (!response.ok) throw new Error("Failed to get job status");
 
           const job: JobStatus = await response.json();
@@ -94,6 +94,7 @@ const LogoGeneratorModal = ({
       const response = await fetch(`/api/logo-generator/${brandId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -126,7 +127,6 @@ const LogoGeneratorModal = ({
         );
       }
     } catch (err) {
-      console.error("Error generating logo:", err);
       setError(
         err instanceof Error
           ? err.message

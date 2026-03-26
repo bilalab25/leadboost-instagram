@@ -265,28 +265,24 @@ const INTEGRATION_PROVIDERS = {
     icon: CreditCard,
     description: "Point of sale and payment processing",
     category: "pos",
-    comingSoon: true,
   },
   stripe: {
     name: "Stripe",
     icon: CreditCard,
     description: "Online payment processing",
     category: "pos",
-    comingSoon: true,
   },
   shopify: {
     name: "Shopify",
     icon: ShoppingBag,
     description: "E-commerce platform",
     category: "ecommerce",
-    comingSoon: true,
   },
   woocommerce: {
     name: "WooCommerce",
     icon: Globe,
     description: "WordPress e-commerce plugin",
     category: "ecommerce",
-    comingSoon: true,
   },
   wix: {
     name: "Wix",

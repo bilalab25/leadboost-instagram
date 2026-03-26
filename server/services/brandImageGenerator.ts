@@ -57,7 +57,7 @@ function sha256(buf: Buffer): string {
   return crypto.createHash("sha256").update(buf).digest("hex");
 }
 
-/* async function overlayLogoOnImage(
+async function overlayLogoOnImage(
   imageBuffer: Buffer,
   logoUrl: string,
   options: {
@@ -77,9 +77,6 @@ function sha256(buf: Buffer): string {
   try {
     const logoResponse = await fetch(logoUrl);
     if (!logoResponse.ok) {
-      console.log(
-        `[BrandImageGen] Logo overlay: failed to fetch logo (${logoResponse.status})`,
-      );
       return imageBuffer;
     }
     const logoArrayBuffer = await logoResponse.arrayBuffer();
@@ -142,16 +139,12 @@ function sha256(buf: Buffer): string {
       ])
       .toBuffer();
 
-    console.log(
-      `[BrandImageGen] ✅ Logo watermark applied (${position}, ${logoSize}px, ${Math.round(opacity * 100)}% opacity)`,
-    );
     return result;
   } catch (error) {
-    console.error(`[BrandImageGen] Logo overlay error:`, error);
+    // If logo overlay fails, return original image without overlay
     return imageBuffer;
   }
 }
- */
 const assetUsageCache = new Map<string, Record<string, number>>();
 const categoryUsageCache = new Map<string, Record<string, number>>();
 
@@ -786,9 +779,9 @@ Generate a single, stunning, scroll-stopping social media image.`;
             }
             seenHashes.add(hash);
 
-            /*   if (logoUrl) {
+            if (logoUrl) {
               imageBuffer = await overlayLogoOnImage(imageBuffer, logoUrl);
-            } */
+            }
 
             const finalBase64 = imageBuffer.toString("base64");
             const mimeType = part.inlineData.mimeType || "image/png";

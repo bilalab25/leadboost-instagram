@@ -211,6 +211,7 @@ export const conversations = pgTable(
     index("conversations_integration_idx").on(table.integrationId),
     index("conversations_user_idx").on(table.userId),
     index("conversations_brand_idx").on(table.brandId),
+    index("conversations_meta_conversation_idx").on(table.metaConversationId),
   ],
 );
 
@@ -255,6 +256,8 @@ export const messages = pgTable(
     ),
     index("messages_conversation_idx").on(table.conversationId),
     index("messages_brand_idx").on(table.brandId),
+    index("messages_integration_idx").on(table.integrationId),
+    index("messages_integration_conversation_idx").on(table.integrationId, table.conversationId),
   ],
 );
 
@@ -1217,7 +1220,7 @@ export const brandDesigns = pgTable("brand_designs", {
     .default(sql`gen_random_uuid()`),
   brandId: uuid("brand_id").references(() => brands.id, {
     onDelete: "cascade",
-  }),
+  }).notNull(),
   brandStyle: varchar("brand_style"), // minimalist, luxury, etc.
   colorPrimary: varchar("color_primary"),
   colorAccent1: varchar("color_accent1"),
@@ -1241,7 +1244,9 @@ export const brandDesigns = pgTable("brand_designs", {
   preferredLanguage: varchar("preferred_language").default("en"), // Language for AI-generated posts (en, es, etc.)
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("brand_designs_brand_idx").on(table.brandId),
+]);
 
 // Campaign Design Assets
 export const campaignDesigns = pgTable("campaign_designs", {
@@ -1271,18 +1276,20 @@ export const brandAssets = pgTable("brand_assets", {
   id: uuid("id")
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  brandDesignId: uuid("brand_design_id").references(() => brandDesigns.id, {
+  brandDesignId: uuid("brand_design_id").notNull().references(() => brandDesigns.id, {
     onDelete: "cascade",
   }),
   url: varchar("url").notNull(),
   name: varchar("name").notNull(),
   category: varchar("category"),
   assetType: varchar("asset_type").notNull(), // image, video, document
-  publicId: varchar("public_id").notNull(), // 🔹 para borrar en Cloudinary
+  publicId: varchar("public_id").notNull(), // for Cloudinary deletion
   createdAt: timestamp("created_at").defaultNow(),
   description: text("description"),
   caption: text("caption"),
-});
+}, (table) => [
+  index("brand_assets_design_idx").on(table.brandDesignId),
+]);
 
 // Brand Design schemas
 export const insertBrandDesignSchema = createInsertSchema(brandDesigns).omit({
@@ -1591,7 +1598,10 @@ export const postGeneratorJobs = pgTable("post_generator_jobs", {
   error: text("error"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("post_generator_jobs_brand_id_idx").on(table.brandId),
+  index("post_generator_jobs_brand_status_idx").on(table.brandId, table.status),
+]);
 
 // AI Generated Posts - Posts suggested by n8n AI that user can accept/reject
 export const aiGeneratedPosts = pgTable("ai_generated_posts", {
@@ -1619,7 +1629,11 @@ export const aiGeneratedPosts = pgTable("ai_generated_posts", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   type: text("type").notNull().default("image"),
-});
+}, (table) => [
+  index("ai_generated_posts_brand_id_idx").on(table.brandId),
+  index("ai_generated_posts_job_id_idx").on(table.jobId),
+  index("ai_generated_posts_brand_status_idx").on(table.brandId, table.status),
+]);
 
 // Chatbot schemas
 export const insertChatbotConfigSchema = createInsertSchema(

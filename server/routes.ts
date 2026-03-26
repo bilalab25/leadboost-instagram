@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import fs from "fs";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./auth";
+import { setupAuth, isAuthenticated, getSession } from "./auth";
 import { requireBrand, requireRole } from "./middleware";
 import {
   logFacebookRequest,
@@ -85,6 +85,17 @@ interface LogoJob {
 }
 
 const logoJobs = new Map<string, LogoJob>();
+const LOGO_JOB_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+// Periodically clean up stale logo jobs to prevent memory leaks
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, job] of logoJobs) {
+    if (now - job.createdAt.getTime() > LOGO_JOB_TTL_MS) {
+      logoJobs.delete(id);
+    }
+  }
+}, 10 * 60 * 1000); // Run cleanup every 10 minutes
 
 async function createLogoJob(
   brandId: string,
@@ -498,12 +509,9 @@ async function performInitialSync(
         if (fromId === accountId || fromId === integration.pageId)
           isOutbound = true;
 
-        // Especial para Instagram/Threads
+        // Additional check for Instagram/Threads — match by account name
         if (!isOutbound && provider !== "facebook") {
-          if (
-            fromId.startsWith("1784") ||
-            fromName?.toLowerCase() === integration.accountName?.toLowerCase()
-          ) {
+          if (fromName?.toLowerCase() === integration.accountName?.toLowerCase()) {
             isOutbound = true;
           }
         }
@@ -745,7 +753,7 @@ async function performInstagramDirectSync(
         const toName =
           m.to?.data?.[0]?.username || m.to?.data?.[0]?.name || "Unknown";
 
-        const isOutbound = fromId === igbaId || fromId.startsWith("1784");
+        const isOutbound = fromId === igbaId;
 
         const contactName = isOutbound ? toName : fromName;
         const messageTimestamp = new Date(m.created_time);
@@ -1029,8 +1037,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Chat routes
-  app.use("/api", chatRoutes);
+  // Chat routes (requires authentication)
+  app.use("/api", isAuthenticated, chatRoutes);
 
   // Subscription plan routes
   app.get("/api/subscription-plans", async (req: any, res) => {
@@ -1385,27 +1393,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Brand memberships endpoint
   app.get("/api/brand-memberships", isAuthenticated, async (req: any, res) => {
     try {
-      console.log("─────────────────────────────────────────────");
-      console.log("[HOT] [BRAND-MEMBERSHIPS] Incoming request");
-
       const userId = getUserId(req);
-
- console.log(" Querying getBrandMemberships(userId)…");
-
       const memberships = await storage.getBrandMemberships(userId);
-
- console.log(" Result from getBrandMemberships:");
-      console.log(JSON.stringify(memberships, null, 2));
-
-      if (memberships.length === 0) {
-        console.log(
-          "⚠️ No memberships found. This usually means userId mismatched with DB.",
-        );
-      } else {
-        console.log("[OK] Memberships found:", memberships.length);
-      }
-
-      console.log("─────────────────────────────────────────────");
 
       res.json(memberships);
     } catch (error) {
@@ -1479,22 +1468,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/brands/:brandId/generate-essence",
     isAuthenticated,
+    requireBrand,
     async (req: any, res) => {
       try {
-        const { brandId } = req.params;
+        const brandId = req.brandId;
 
-        if (!brandId) {
-          return res.status(400).json({ message: "Brand ID is required" });
-        }
-
-        console.log(`[API] Generating brand essence for brand: ${brandId}`);
         const essence = await generateBrandEssence(brandId);
 
         res.json({ success: true, essence });
       } catch (error: any) {
         console.error("Error generating brand essence:", error);
         res.status(500).json({
-          message: error.message || "Failed to generate brand essence",
+          message: "Failed to generate brand essence",
         });
       }
     },
@@ -1504,6 +1489,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/brand-assets/generate-description",
     isAuthenticated,
+    requireBrand,
     async (req: any, res) => {
       try {
         const { imageUrl } = req.body;
@@ -1512,14 +1498,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "Image URL is required" });
         }
 
-        console.log(`[API] Generating asset description for image`);
+        // Validate URL format to prevent SSRF
+        try {
+          const parsed = new URL(imageUrl);
+          if (!["http:", "https:"].includes(parsed.protocol)) {
+            return res.status(400).json({ message: "Only HTTP/HTTPS URLs are allowed" });
+          }
+        } catch {
+          return res.status(400).json({ message: "Invalid URL format" });
+        }
+
         const description = await generateBrandAssetDescription(imageUrl);
 
         res.json({ success: true, description });
       } catch (error: any) {
         console.error("Error generating asset description:", error);
         res.status(500).json({
-          message: error.message || "Failed to generate asset description",
+          message: "Failed to generate asset description",
         });
       }
     },
@@ -1582,7 +1577,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
               : null,
           };
         });
-        console.log("Brand members:", result);
         res.json(result);
       } catch (error) {
         console.error("Error fetching brand members:", error);
@@ -1861,18 +1855,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn("[Dashboard] Failed to fetch AI posts count:", (err as Error).message);
       }
 
+      // Calculate real response time from conversations (same logic as /api/inbox/stats)
+      let responseTimes: number[] = [];
+      let realTotalMessages = 0;
+      for (const conversation of conversations) {
+        const msgs = await storage.getConversationMessages(conversation.id);
+        realTotalMessages += msgs.length;
+        let lastInboundTime: Date | null = null;
+        for (const msg of msgs) {
+          const msgTime = msg.timestamp instanceof Date ? msg.timestamp : new Date(msg.timestamp);
+          if (msg.direction === "inbound") {
+            lastInboundTime = msgTime;
+          } else if (msg.direction === "outbound" && lastInboundTime) {
+            const rt = msgTime.getTime() - lastInboundTime.getTime();
+            if (rt > 0) responseTimes.push(rt);
+            lastInboundTime = null;
+          }
+        }
+      }
+
+      let responseTime = "N/A";
+      if (responseTimes.length > 0) {
+        const avgMs = responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
+        const avgMinutes = Math.round(avgMs / 60000);
+        if (avgMinutes < 60) {
+          responseTime = `${avgMinutes}m`;
+        } else {
+          const hours = Math.floor(avgMinutes / 60);
+          const mins = avgMinutes % 60;
+          responseTime = mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+        }
+      }
+
+      // Calculate real revenue from POS sales transactions
+      const userId = getUserId(req);
+      let revenue = 0;
+      try {
+        const transactions = await storage.getSalesTransactionsByUserId(userId);
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        revenue = transactions
+          .filter((t: any) => new Date(t.transactionDate) >= thirtyDaysAgo)
+          .reduce((sum: number, t: any) => sum + Number(t.totalAmount || 0), 0);
+      } catch (_) {
+        // No POS data available
+      }
+
       const stats = {
-        totalMessages,
+        totalMessages: realTotalMessages,
         unreadMessages,
         totalCampaigns: campaigns.length,
         activeCampaigns,
         totalSocialAccounts: integrations.length,
         connectedPlatforms,
         aiPosts,
-        monthlyEngagement: 0,
-        responseTime: "N/A",
-        engagementRate: 0,
-        revenue: 0,
+        responseTime,
+        revenue,
       };
       res.json(stats);
     } catch (error) {
@@ -2094,9 +2131,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Importante: Debes actualizar la firma de tu función de almacenamiento si aún no lo has hecho.
-  // Por ejemplo: storage.getMessagesByIntegration(integrationId: string, limit?: number)
-
   // Content plans routes
   app.get(
     "/api/content-plans",
@@ -2171,10 +2205,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const userId =
           getUserId(req);
-        const brandId = req.brandId;
+        const brandId = req.brandId || req.brandMembership?.brandId;
         const { schedules } = req.body;
 
-        // Explicit validation for brandId
         if (!brandId) {
           return res.status(400).json({ message: "Brand ID is required" });
         }
@@ -2183,18 +2216,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "Invalid schedules data" });
         }
 
-        // Convert schedules to database format
-        const frequencies = schedules.map((schedule: any) => ({
-          userId,
-          brandId, // Ensure brandId is set for each frequency
-          platform: schedule.platform,
-          frequencyDays: schedule.postsPerWeek,
-          daysWeek: schedule.selectedDays,
-          source: "custom",
-          status: "accepted",
-          confidenceScore: null,
-          insightsData: null,
-        }));
+        const validDays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+
+        // Validate and convert schedules to database format
+        const frequencies = schedules.map((schedule: any) => {
+          const postsPerWeek = Number(schedule.postsPerWeek);
+          if (!Number.isFinite(postsPerWeek) || postsPerWeek < 0 || postsPerWeek > 21) {
+            throw new Error(`Invalid postsPerWeek value: ${schedule.postsPerWeek}`);
+          }
+          const selectedDays = Array.isArray(schedule.selectedDays)
+            ? schedule.selectedDays.filter((d: string) => validDays.includes(d))
+            : [];
+          return {
+            userId,
+            brandId,
+            platform: schedule.platform,
+            frequencyDays: postsPerWeek,
+            daysWeek: selectedDays,
+            source: "custom",
+            status: "accepted",
+            confidenceScore: null,
+            insightsData: null,
+          };
+        });
 
         // Save to database (with validation inside)
         await storage.saveSocialPostingFrequencies(brandId, frequencies);
@@ -2247,13 +2291,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/posting-frequency/ai-suggestions",
     isAuthenticated,
+    requireBrand,
     async (req: any, res) => {
       try {
-        const userId =
-          getUserId(req);
+        const brandId = req.brandId || req.brandMembership?.brandId;
+        const userId = getUserId(req);
 
-        const integrations = await storage.getIntegrationsByUserId(userId);
-        const active = integrations.filter(
+        // Scope integrations to the active brand, not all user integrations
+        const allIntegrations = await storage.getIntegrationsByBrandId(brandId);
+        const active = allIntegrations.filter(
           (i: any) =>
             ["facebook", "instagram"].includes(i.provider) && i.isActive,
         );
@@ -2436,10 +2482,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json(result);
       } catch (error) {
         console.error("[ERROR] Error fetching AI suggestions:", error);
-        res.status(500).json({
-          message: "Failed to fetch AI suggestions",
-          error: error instanceof Error ? error.message : "Unknown error",
-        });
+        res.status(500).json({ message: "Failed to fetch AI suggestions" });
       }
     },
   );
@@ -2622,14 +2665,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.error("[Logo Generator] Background error:", error);
             await updateLogoJobResult(job.id, {
               status: "failed",
-              error: error instanceof Error ? error.message : "Unknown error",
+              // error details omitted for security
             });
           });
       } catch (error) {
         console.error("[Logo Generator] Error:", error);
         res.status(500).json({
           message: "Failed to create logo generator job",
-          error: error instanceof Error ? error.message : "Unknown error",
+          // error details omitted for security
         });
       }
     },
@@ -2657,7 +2700,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("[Logo Generator Status] Error:", error);
         res.status(500).json({
           message: "Failed to get job status",
-          error: error instanceof Error ? error.message : "Unknown error",
+          // error details omitted for security
         });
       }
     },
@@ -2758,18 +2801,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("[Post Generator] Error:", error);
         res.status(500).json({
           message: "Failed to create post generator job",
-          error: error instanceof Error ? error.message : "Unknown error",
+          // error details omitted for security
         });
       }
     },
   );
 
   // Post Generator Callback - n8n webhook callback endpoint
+  // Secured with a shared secret to prevent unauthorized access
   app.post("/api/post-generator/callback", async (req: any, res) => {
     try {
+      // Verify webhook secret to prevent unauthorized callbacks
+      const callbackSecret = process.env.POST_GENERATOR_CALLBACK_SECRET;
+      if (!callbackSecret) {
+        if (process.env.NODE_ENV === "production") {
+          console.error("[PostGenerator] POST_GENERATOR_CALLBACK_SECRET not set — rejecting in production");
+          return res.status(500).json({ message: "Webhook secret not configured" });
+        }
+      } else {
+        const providedSecret = req.headers["x-callback-secret"] || req.body?.callbackSecret;
+        if (providedSecret !== callbackSecret) {
+          return res.status(401).json({ message: "Unauthorized" });
+        }
+      }
+
       const { jobId, status, result, error } = req.body;
 
-      if (!jobId) {
+      if (!jobId || typeof jobId !== "string") {
         return res.status(400).json({ message: "jobId is required" });
       }
 
@@ -2815,16 +2873,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: error || null,
       });
 
-      console.log(
-        `[Post Generator] Job ${jobId} updated to ${status || "completed"}`,
-      );
       res.json({ success: true });
     } catch (error) {
       console.error("[Post Generator Callback] Error:", error);
-      res.status(500).json({
-        message: "Failed to process callback",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
+      res.status(500).json({ message: "Failed to process callback" });
     }
   });
 
@@ -2871,7 +2923,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("[AI Posts] Error:", error);
         res.status(500).json({
           message: "Failed to update post status",
-          error: error instanceof Error ? error.message : "Unknown error",
+          // error details omitted for security
         });
       }
     },
@@ -2924,7 +2976,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("[AI Posts Bulk] Error:", error);
         res.status(500).json({
           message: "Failed to bulk update post status",
-          error: error instanceof Error ? error.message : "Unknown error",
+          // error details omitted for security
         });
       }
     },
@@ -2950,7 +3002,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("[AI Posts] Error:", error);
         res.status(500).json({
           message: "Failed to fetch AI posts",
-          error: error instanceof Error ? error.message : "Unknown error",
+          // error details omitted for security
         });
       }
     },
@@ -2960,9 +3012,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(
     "/api/ai-generated-posts/:brandId",
     isAuthenticated,
+    requireBrand,
     async (req: any, res) => {
       try {
-        const { brandId } = req.params;
+        const brandId = req.brandId || req.brandMembership?.brandId;
+        // Verify the URL param matches the user's brand
+        if (req.params.brandId && req.params.brandId !== brandId) {
+          return res.status(403).json({ message: "Unauthorized: Brand mismatch" });
+        }
         const { status } = req.query;
 
         const { getAiGeneratedPostsByBrand } = await import(
@@ -2973,10 +3030,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json(posts);
       } catch (error) {
         console.error("[AI Posts] Error:", error);
-        res.status(500).json({
-          message: "Failed to fetch AI posts",
-          error: error instanceof Error ? error.message : "Unknown error",
-        });
+        res.status(500).json({ message: "Failed to fetch AI posts" });
       }
     },
   );
@@ -2985,9 +3039,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch(
     "/api/ai-generated-posts/:postId/status",
     isAuthenticated,
+    requireBrand,
     async (req: any, res) => {
       try {
         const { postId } = req.params;
+        const brandId = req.brandId || req.brandMembership?.brandId;
         const {
           status,
           scheduledPublishTime,
@@ -3019,17 +3075,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           imageUrl,
           editedFields,
         );
-        if (!updated) {
+        if (!updated || updated.brandId !== brandId) {
           return res.status(404).json({ message: "Post not found" });
         }
 
         res.json(updated);
       } catch (error) {
         console.error("[AI Posts] Error:", error);
-        res.status(500).json({
-          message: "Failed to update post status",
-          error: error instanceof Error ? error.message : "Unknown error",
-        });
+        res.status(500).json({ message: "Failed to update post status" });
       }
     },
   );
@@ -3038,26 +3091,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(
     "/api/post-generator/jobs/:jobId",
     isAuthenticated,
+    requireBrand,
     async (req: any, res) => {
       try {
         const { jobId } = req.params;
+        const brandId = req.brandId || req.brandMembership?.brandId;
 
         const { getPostGeneratorJob } = await import(
           "./storage/postGeneratorJobs"
         );
 
         const job = await getPostGeneratorJob(jobId);
-        if (!job) {
+        if (!job || job.brandId !== brandId) {
           return res.status(404).json({ message: "Job not found" });
         }
 
         res.json(job);
       } catch (error) {
         console.error("[Post Generator Status] Error:", error);
-        res.status(500).json({
-          message: "Failed to fetch job status",
-          error: error instanceof Error ? error.message : "Unknown error",
-        });
+        res.status(500).json({ message: "Failed to fetch job status" });
       }
     },
   );
@@ -3088,7 +3140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("[Post Generator Active Check] Error:", error);
         res.status(500).json({
           message: "Failed to check active job status",
-          error: error instanceof Error ? error.message : "Unknown error",
+          // error details omitted for security
         });
       }
     },
@@ -3132,16 +3184,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const result = await startSamplePostGeneration(brandId);
 
         if (result) {
-          // Record image usage for sample posts (3 sample posts = 3 images)
-          await billingService.recordImageGeneration(
-            brandId,
-            "/api/generate-sample-posts",
-            3,
-          );
-          console.log(
-            `[Billing] Recorded 3 sample post images for brand ${brandId}`,
-          );
-
+          // NOTE: Image usage is recorded asynchronously after generation completes
+          // rather than upfront, to avoid charging for failed generations.
+          // The billing is tracked inside processSamplePostsAsync via a callback.
           res.json({
             message: "Sample post generation started",
             status: "processing",
@@ -3158,7 +3203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("[Sample Posts] Error:", error);
         res.status(500).json({
           message: "Failed to start sample post generation",
-          error: error instanceof Error ? error.message : "Unknown error",
+          // error details omitted for security
         });
       }
     },
@@ -3287,9 +3332,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Campaign not found" });
         }
 
-        // Get brand's social accounts
+        // Get brand's social accounts (use userId, not brandId)
         const socialAccounts =
-          await storage.getSocialAccountsByUserId(brandId);
+          await storage.getSocialAccountsByUserId(userId);
         const accessTokens = socialAccounts.reduce(
           (acc: any, account: any) => {
             if (
@@ -3505,6 +3550,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const redirectUri = `${process.env.APP_URL}/api/integrations/facebook/callback`;
       const clientId = process.env.FB_APP_ID;
 
+      if (!clientId) {
+        return res.status(500).send("Facebook integration not configured");
+      }
+
       const scopes = [
         "pages_show_list",
         "pages_read_engagement",
@@ -3520,8 +3569,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "pages_read_user_content",
         "publish_video",
       ].join(",");
-
- console.log(" Facebook OAuth scopes:", scopes);
 
       // -------------------------------------
       // 🔥 CORRECTO: stringify SOLO UNA VEZ
@@ -3546,7 +3593,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   app.get("/api/integrations/facebook/callback", async (req, res) => {
- console.log("\n [FB Callback] START — Facebook OAuth callback\n");
+
 
     try {
       const { code, state } = req.query;
@@ -3555,19 +3602,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 0️⃣ Validate query params
       // -----------------------------------------
       if (!code) {
-        console.log("[ERROR] Missing ?code in callback");
         return res.redirect("/integrations?error=missing_code");
       }
 
       if (!state) {
-        console.log("[ERROR] Missing ?state in callback");
         return res.redirect("/integrations?error=missing_state");
       }
 
       // -----------------------------------------
       // 1️⃣ Decode state
       // -----------------------------------------
-      console.log("[INFO] Decoding state...");
       let userId, brandId, origin;
 
       try {
@@ -3578,9 +3622,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         brandId = parsed.brandId;
         origin = parsed.origin || "integrations";
 
-        console.log("[OK] State decoded:", parsed);
       } catch (err) {
-        console.log("[ERROR] Failed to decode state:", err);
         return res.redirect("/integrations?error=invalid_state");
       }
 
@@ -3589,8 +3631,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // -----------------------------------------
       // 2️⃣ Exchange CODE → USER TOKEN
       // -----------------------------------------
-      console.log("[Facebook OAuth] Exchanging code for access token...");
-
       const tokenRes = await fetch(
         `https://graph.facebook.com/v24.0/oauth/access_token` +
           `?client_id=${process.env.FB_APP_ID}` +
@@ -3600,7 +3640,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       const tokenJson = await tokenRes.json();
-      console.log("[Facebook OAuth] Token exchange completed, access_token received:", !!tokenJson.access_token);
 
       if (!tokenJson.access_token) {
         return res.redirect("/integrations?error=token_failed");
@@ -3611,14 +3650,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // -----------------------------------------
       // 3️⃣ Get pages user manages
       // -----------------------------------------
-      console.log("[INFO] Fetching Facebook Pages…");
-
       const pagesRes = await fetch(
         `https://graph.facebook.com/v24.0/me/accounts?access_token=${userAccessToken}`,
       );
       const pagesJson = await pagesRes.json();
-
-      console.log("[OK] Pages found:", pagesJson);
 
       if (!pagesJson.data?.length) {
         return res.redirect("/integrations?error=no_pages");
@@ -3627,11 +3662,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // -----------------------------------------
       // 4️⃣ Pick page (prefer one with IG)
       // -----------------------------------------
-      console.log("[INFO] Searching for IG-linked Page…");
-
       let selectedPage = null;
       let igInfo = null;
-      console.log(pagesJson.data);
       for (const p of pagesJson.data) {
         const detailsRes = await fetch(
           `https://graph.facebook.com/v24.0/${p.id}` +
@@ -3639,7 +3671,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             `&access_token=${p.access_token}`,
         );
         const details = await detailsRes.json();
-        console.log(details);
         if (
           details.connected_instagram_account ||
           details.instagram_business_account
@@ -3652,7 +3683,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!selectedPage) {
         selectedPage = pagesJson.data[0];
-        console.log(`[WARN] No IG found. Using first page: ${selectedPage.name}`);
       }
 
       const pageAccessToken = selectedPage.access_token;
@@ -3660,8 +3690,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // -----------------------------------------
       // 5️⃣ Save FACEBOOK integration
       // -----------------------------------------
-      console.log("[INFO] Saving Facebook integration…");
-
       const savedFbIntegration = await storage.createOrUpdateIntegration({
         userId,
         brandId,
@@ -3683,18 +3711,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Trigger sync if inbox subscription is already active
-      triggerSyncForNewIntegration(savedFbIntegration).catch((err) => {
-        console.error(
-          "❌ Error triggering sync for Facebook integration:",
-          err,
-        );
-      });
+      triggerSyncForNewIntegration(savedFbIntegration).catch(() => {});
 
       // -----------------------------------------
       // 6️⃣ SUBSCRIBE PAGE TO WEBHOOK  ✅ CLAVE
       // -----------------------------------------
-      console.log("[INFO] Subscribing Page to webhook…");
-
       const subscribeRes = await fetch(
         `https://graph.facebook.com/v24.0/${selectedPage.id}/subscribed_apps`,
         {
@@ -3714,11 +3735,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       const subscribeJson = await subscribeRes.json();
-      console.log("[OK] Subscription response:", subscribeJson);
-
-      if (!subscribeJson.success) {
- console.warn(" Page subscription failed (messages may not arrive)");
-      }
 
       // -----------------------------------------
       // 7️⃣ Save Instagram + Threads (if exists)
@@ -3757,12 +3773,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         // Trigger sync if inbox subscription is already active
-        triggerSyncForNewIntegration(savedIgIntegration).catch((err) => {
-          console.error(
-            "❌ Error triggering sync for Instagram integration:",
-            err,
-          );
-        });
+        triggerSyncForNewIntegration(savedIgIntegration).catch(() => {});
 
         const savedThreadsIntegration = await storage.createOrUpdateIntegration(
           {
@@ -3788,12 +3799,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
 
         // Trigger sync if inbox subscription is already active
-        triggerSyncForNewIntegration(savedThreadsIntegration).catch((err) => {
-          console.error(
-            "❌ Error triggering sync for Threads integration:",
-            err,
-          );
-        });
+        triggerSyncForNewIntegration(savedThreadsIntegration).catch(() => {});
       }
 
       // -----------------------------------------
@@ -3802,11 +3808,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const redirectBase =
         origin === "onboarding" ? "/onboarding?step=4" : "/integrations";
 
- console.log(" OAuth COMPLETE → redirecting user");
-
       return res.redirect(redirectBase);
     } catch (error) {
-      console.error("[ERROR] [FB Callback] Unexpected error:", error);
+      console.error("[ERROR] [FB Callback] Unexpected error");
       return res.redirect("/integrations?error=callback_failed");
     }
   });
@@ -3820,11 +3824,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireBrand,
     (req: any, res) => {
       const redirectUri = `${process.env.APP_URL}/api/integrations/instagram/callback`;
- console.log(" Instagram Direct OAuth redirect URI:", redirectUri);
       const clientId = process.env.IG_APP_ID;
 
       if (!clientId) {
-        console.error("[ERROR] IG_APP_ID not configured");
         return res
           .status(500)
           .send("Instagram Direct integration not configured");
@@ -3835,8 +3837,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "instagram_business_manage_messages",
         "instagram_business_content_publish",
       ].join(",");
-
- console.log(" Instagram Direct OAuth scopes:", scopes);
 
       // Get origin from query params (onboarding or integrations)
       const origin = (req.query.origin as string) || "integrations";
@@ -3854,10 +3854,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authUrl = `https://www.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
         redirectUri,
       )}&response_type=code&scope=${encodeURIComponent(scopes)}&state=${state}`;
-      console.log(
-        "🔗 Instagram Direct OAuth URL:",
-        authUrl.replace(clientId, "CLIENT_ID"),
-      );
       res.redirect(authUrl);
     },
   );
@@ -3906,10 +3902,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       );
       const tokenData = await tokenRes.json();
-      console.log("[Instagram OAuth] Token exchange completed, has access_token:", !!tokenData.access_token);
 
       if (tokenData.error_type || tokenData.error_message) {
-        console.error("[ERROR] Instagram token exchange error:", tokenData);
         return res
           .status(500)
           .send(`Error: ${tokenData.error_message || "Token exchange failed"}`);
@@ -3917,11 +3911,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const shortLivedToken = tokenData.access_token;
       const igUserId = tokenData.user_id;
-
-      console.log(
-        "✅ Instagram short-lived token obtained for user:",
-        igUserId,
-      );
 
       // 3️⃣ Exchange for Long-Lived Token
       let longLivedToken = shortLivedToken;
@@ -3934,23 +3923,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }&access_token=${shortLivedToken}`,
         );
         const longLivedData = await longLivedRes.json();
-        console.log("[Instagram OAuth] Long-lived token exchange completed, success:", !!longLivedData.access_token);
         if (longLivedData.access_token) {
           longLivedToken = longLivedData.access_token;
           expiresAt = longLivedData.expires_in
             ? dayjs().add(longLivedData.expires_in, "seconds").toDate()
             : null;
-          console.log(
-            "✅ Long-lived token obtained, expires in:",
-            longLivedData.expires_in,
-            "seconds",
-          );
         }
       } catch (err) {
-        console.warn(
-          "⚠️ Failed to exchange for long-lived token, using short-lived:",
-          err,
-        );
+        // Failed to exchange for long-lived token, using short-lived
       }
 
       // 4️⃣ Get Instagram user profile
@@ -3968,10 +3948,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           `https://graph.instagram.com/v24.0/me?fields=user_id,username&access_token=${longLivedToken}`,
         );
         const profileData = await profileRes.json();
-        console.log(
-          "📱 Profile response:",
-          JSON.stringify(profileData, null, 2),
-        );
 
         if (!profileData.error) {
           if (profileData.username) {
@@ -3983,34 +3959,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             igbaId = profileData.user_id.toString();
             appScopedId = igUserId.toString(); // Keep token's user_id as app-scoped reference
           }
-          console.log("[OK] Profile fetched successfully:", {
-            igUsername,
-            igbaId,
-            appScopedId,
-            note: "igbaId from /me endpoint, appScopedId from token",
-          });
         } else {
-          console.warn(
-            "⚠️ Profile fetch returned error, using token's user_id as fallback:",
-            profileData.error,
-          );
           // Fallback to token's user_id (less reliable for webhook matching)
         }
       } catch (profileErr) {
-        console.warn(
-          "⚠️ Profile fetch failed, using token's user_id as fallback:",
-          profileErr,
-        );
         // Continue with default values from token response
       }
-
-      console.log("[MOBILE] Instagram profile:", {
-        igUsername,
-        accountType,
-        mediaCount,
-        igbaId,
-        appScopedId,
-      });
 
       // 5️⃣ Check for duplicate integration (same account connected to another brand)
       const existingIntegration = await storage.checkDuplicateIntegration(
@@ -4021,9 +3975,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       if (existingIntegration) {
-        console.warn(
-          `⚠️ Instagram account ${igUsername} (${igbaId}) already connected to another brand: ${existingIntegration.brandId}`,
-        );
         const errorMsg = encodeURIComponent(
           `Esta cuenta de Instagram (@${igUsername}) ya está conectada a otra marca en la plataforma. Por favor usa una cuenta diferente o desconéctala primero de la otra marca.`,
         );
@@ -4063,24 +4014,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       });
 
-      console.log("[OK] Instagram Direct integration saved successfully");
-
       // Trigger sync if inbox subscription is already active (for users who reconnect after paying)
       // This runs in the background (non-blocking)
-      triggerSyncForNewIntegration(savedIntegration).catch((err) => {
-        console.error("[ERROR] Error triggering sync for new integration:", err);
-      });
+      triggerSyncForNewIntegration(savedIntegration).catch(() => {});
 
       // 6️⃣ Redirect based on origin (onboarding or integrations)
-      console.log(
-        `✅ [Instagram Direct Callback] Successfully connected for brand ${brandId}, origin: ${origin}`,
-      );
       if (origin === "onboarding") {
         return res.redirect(`/onboarding?step=4&connected=instagram_direct`);
       }
       return res.redirect(`/integrations?connected=instagram_direct`);
     } catch (err) {
-      console.error("[ERROR] Instagram callback error:", err);
+      console.error("[ERROR] Instagram callback error");
       return res.status(500).send("Error in Instagram callback");
     }
   });
@@ -4119,7 +4063,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // ^^^ El 'config_id' es CRUCIAL.
 
-      console.log("[OK] WhatsApp Embedded Signup URL:", embeddedSignupUrl);
       res.redirect(embeddedSignupUrl);
     },
   );
@@ -4141,8 +4084,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ error: "Phone number is required" });
         }
 
-        console.log("[MOBILE] WhatsApp QR Code request for:", phoneNumber);
-
         // For the QR code method, we need to guide users through the coexistence setup
         // This requires:
         // 1. User has WhatsApp Business App installed on their phone
@@ -4161,12 +4102,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Store the pairing session temporarily (in production, use Redis or DB)
         // For now, we'll return instructions and a pairing code
 
-        // Create a simple QR code URL that points to WhatsApp's wa.me link
-        // This helps users verify their phone number is correct
+        // Generate QR code locally (no third-party service dependency)
         const waLink = `https://wa.me/${phoneNumber}`;
-        const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(waLink)}`;
-
-        console.log("[OK] Generated WhatsApp pairing code:", pairingCode);
+        const QRCode = await import("qrcode");
+        const qrCodeUrl = await QRCode.toDataURL(waLink, { width: 200, margin: 2 });
 
         // Return both QR code and instructions
         res.json({
@@ -4191,10 +4130,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           note: "For full Cloud API access with coexistence, please use the Meta Signup option which includes QR code verification during the process.",
         });
       } catch (err) {
-        console.error("[ERROR] WhatsApp QR generation error:", err);
+        console.error("[ERROR] WhatsApp QR generation error");
         res.status(500).json({
           error: "Failed to generate QR code",
-          details: err instanceof Error ? err.message : String(err),
         });
       }
     },
@@ -4236,22 +4174,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tokenData = await tokenResponse.json();
 
       if (tokenData.error) {
-        console.error("[ERROR] Error exchanging code:", tokenData.error);
         throw new Error(tokenData.error.message || "Error exchanging code");
       }
 
       const userAccessToken = tokenData.access_token as string;
-      console.log("[OK] Token exchange OK");
 
       // 2️⃣ Usar debug_token para sacar WABA ID (Embedded Signup way)
       const debugRes = await fetch(
         `https://graph.facebook.com/v24.0/debug_token?input_token=${userAccessToken}&access_token=${process.env.FB_APP_ID}|${process.env.FB_APP_SECRET}`,
       );
       const debugData = await debugRes.json();
-      console.log("[WhatsApp OAuth] Token debug check completed, valid:", !debugData.error);
 
       if (debugData.error) {
-        console.error("[ERROR] debug_token error:", debugData.error);
         throw new Error(debugData.error.message || "Error in debug_token");
       }
 
@@ -4286,25 +4220,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
- console.log(" Parsed from granular_scopes →", { wabaId, businessId });
-
       // 3️⃣ Fallback opcional (por si algún día cambian granular_scopes)
       //    Dejé tu intento por /me y /me/businesses como backup, pero ya no es el camino principal.
       if (!wabaId) {
-        console.warn(
-          "⚠️ WABA ID not found in granular_scopes. Trying legacy fallbacks (/me, /me/businesses)...",
-        );
-
         try {
           const directRes = await fetch(
             `https://graph.facebook.com/v24.0/me?fields=whatsapp_business_account&access_token=${userAccessToken}`,
           );
           const directData = await directRes.json();
-          console.log("Legacy /me WABA data:", directData);
 
           wabaId = directData.whatsapp_business_account?.id || null;
         } catch (e) {
-          console.warn("Legacy /me WABA check failed:", e);
+          // Legacy /me WABA check failed
         }
 
         if (!wabaId) {
@@ -4313,7 +4240,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
               `https://graph.facebook.com/v24.0/me/businesses?fields=id,name&access_token=${userAccessToken}`,
             );
             const businessAccountsData = await businessAccountsRes.json();
-            console.log("Legacy /me/businesses:", businessAccountsData);
 
             const businessAccount = businessAccountsData.data?.[0];
 
@@ -4322,28 +4248,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 `https://graph.facebook.com/v24.0/${businessAccount.id}/owned_whatsapp_business_accounts?access_token=${userAccessToken}`,
               );
               const wabaData = await wabaRes.json();
-              console.log("Legacy owned_whatsapp_business_accounts:", wabaData);
 
               wabaId = wabaData.data?.[0]?.id || null;
             }
           } catch (e) {
-            console.error("Legacy /me/businesses fallback failed:", e);
+            // Legacy /me/businesses fallback failed
           }
         }
       }
 
       if (!wabaId) {
-        console.error(
-          "❌ FINAL ERROR: WABA ID could not be found via granular_scopes or fallbacks.",
-        );
         return res
           .status(400)
           .send("WhatsApp Business Account not linked or created.");
-      }
-
- console.log(` Final WABA ID: ${wabaId}`);
-      if (businessId) {
- console.log(` Business ID (from debug_token): ${businessId}`);
       }
 
       // 4️⃣ Obtener el número de teléfono asociado al WABA
@@ -4351,7 +4268,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `https://graph.facebook.com/v24.0/${wabaId}/phone_numbers?access_token=${userAccessToken}`,
       );
       const phoneData = await phoneNumbersRes.json();
- console.log(" Phone numbers data:", phoneData);
 
       const phoneNumber = phoneData.data?.[0] || null;
 
@@ -4364,9 +4280,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       if (existingIntegration) {
-        console.warn(
-          `⚠️ [WhatsApp Callback] WABA ${wabaId} already connected to another brand: ${existingIntegration.brandId}`,
-        );
         const errorMsg = encodeURIComponent(
           `Esta cuenta de WhatsApp Business ya está conectada a otra marca en la plataforma. Por favor usa una cuenta diferente o desconéctala primero de la otra marca.`,
         );
@@ -4404,27 +4317,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Trigger sync if inbox subscription is already active
-      triggerSyncForNewIntegration(savedWhatsAppIntegration).catch((err) => {
-        console.error(
-          "❌ Error triggering sync for WhatsApp integration:",
-          err,
-        );
-      });
+      triggerSyncForNewIntegration(savedWhatsAppIntegration).catch(() => {});
 
       // Redirect based on origin (onboarding or integrations)
-      console.log(
-        `✅ WhatsApp connected for brand ${brandId}: ${wabaId}, origin: ${origin}`,
-      );
       if (origin === "onboarding") {
         res.redirect(`/onboarding?step=4&connected=whatsapp`);
       } else {
         res.redirect(`/integrations?connected=whatsapp`);
       }
     } catch (err: any) {
-      console.error("[ERROR] WhatsApp callback error:", err.message || err);
-      res
-        .status(500)
-        .send(`Error in WhatsApp callback: ${err.message || "Unknown error"}`);
+      console.error("[ERROR] WhatsApp callback error");
+      res.redirect("/integrations?error=callback_failed");
     }
   });
 
@@ -4456,7 +4359,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const baileysModule = await import("./services/whatsappBaileys");
       whatsappBaileysService = baileysModule.whatsappBaileysService;
-      console.log("[MOBILE] [Baileys] WhatsApp Baileys service loaded");
+      // WhatsApp Baileys service loaded
 
       // Set up event listeners for WhatsApp Baileys
       whatsappBaileysService.on(
@@ -4470,9 +4373,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }) => {
           try {
             const [userId, brandId] = sessionKey.split("_");
-            console.log(
-              `✅ [Baileys] Connected event received for user ${userId}, brand ${brandId}, phone: ${phoneNumber}`,
-            );
 
             // Check if integration already exists
             const existingIntegrations =
@@ -4496,9 +4396,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   connectedAt: new Date().toISOString(),
                 },
               });
-              console.log(
-                `📝 [Baileys] Updated existing integration: ${existingBaileyIntegration.id}`,
-              );
             } else {
               // Create new integration
               const newIntegration = await storage.createIntegration({
@@ -4521,15 +4418,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   connectedAt: new Date().toISOString(),
                 },
               });
-              console.log(
-                `✅ [Baileys] Created new integration: ${newIntegration.id}`,
-              );
             }
           } catch (error) {
-            console.error(
-              "❌ [Baileys] Error handling connected event:",
-              error,
-            );
+            console.error("[Baileys] Error handling connected event");
           }
         },
       );
@@ -4545,9 +4436,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }) => {
           try {
             const [userId, brandId] = sessionKey.split("_");
-            console.log(
-              `📨 [Baileys] Message event received for user ${userId}, brand ${brandId}`,
-            );
 
             // Find the WhatsApp Baileys integration for this brand
             const existingIntegrations =
@@ -4558,9 +4446,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             );
 
             if (!baileysIntegration) {
-              console.warn(
-                `⚠️ [Baileys] No integration found for brand ${brandId}, user ${userId}`,
-              );
               return;
             }
 
@@ -4606,9 +4491,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Increment unread count
             await storage.incrementUnreadCount(conversation.id);
 
-            console.log(
-              `✅ [Baileys] Saved message ${savedMessage.id} to conversation ${conversation.id}`,
-            );
 
             // Emit socket event for real-time updates
             if (io) {
@@ -4624,7 +4506,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               });
             }
           } catch (error) {
-            console.error("[ERROR] [Baileys] Error handling message event:", error);
+            console.error("[Baileys] Error handling message event");
           }
         },
       );
@@ -4634,9 +4516,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         async ({ sessionKey }: { sessionKey: string }) => {
           try {
             const [userId, brandId] = sessionKey.split("_");
-            console.log(
-              `🔴 [Baileys] Disconnected event for user ${userId}, brand ${brandId}`,
-            );
 
             // Update integration status
             const existingIntegrations =
@@ -4656,27 +4535,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
               });
             }
           } catch (error) {
-            console.error(
-              "❌ [Baileys] Error handling disconnected event:",
-              error,
-            );
+            console.error("[Baileys] Error handling disconnected event");
           }
         },
       );
 
-      console.log("[MOBILE] [Baileys] Event listeners configured");
 
       // Restore any existing sessions on startup
       setTimeout(async () => {
         try {
           await whatsappBaileysService.restoreExistingSessions();
-          console.log("[MOBILE] [Baileys] Session restoration complete");
         } catch (error) {
-          console.error("[ERROR] [Baileys] Error restoring sessions:", error);
+          console.error("[Baileys] Error restoring sessions");
         }
       }, 2000); // Small delay to ensure routes are fully registered
     } catch (err) {
- console.warn(" [Baileys] WhatsApp Baileys service not available:", err);
+      // Baileys service not available
     }
   } // End of else block for Baileys enabled
 
@@ -4721,7 +4595,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("[ERROR] [Baileys] Connection error:", error);
         res.status(500).json({
           error: "Failed to start WhatsApp connection",
-          details: error instanceof Error ? error.message : String(error),
         });
       }
     },
@@ -4810,7 +4683,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("[ERROR] [Baileys] Send message error:", error);
         res.status(500).json({
           error: "Failed to send message",
-          details: error instanceof Error ? error.message : String(error),
         });
       }
     },
@@ -4847,19 +4719,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("[ERROR] [Baileys] Disconnect error:", error);
         res.status(500).json({
           error: "Failed to disconnect WhatsApp",
-          details: error instanceof Error ? error.message : String(error),
         });
       }
     },
   );
 
-  app.get("/api/integrations", isAuthenticated, async (req: any, res) => {
+  app.get("/api/integrations", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
-      const brandId = req.query.brandId;
+      const brandId = req.brandMembership.brandId;
       const brandIntegrations = await storage.getIntegrationsByBrandId(brandId);
       res.status(200).json(brandIntegrations);
     } catch (error) {
-      console.error("[ERROR] Error fetching integrations:", error);
       res.status(500).json({ error: "Failed to fetch integrations" });
     }
   });
@@ -5020,10 +4890,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           total: templates.length,
         });
       } catch (error: any) {
-        console.error("[ERROR] Error fetching WhatsApp templates:", error);
         res.status(500).json({
           error: "Failed to fetch templates",
-          message: error.message || "Unknown error",
         });
       }
     },
@@ -5204,10 +5072,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           to: formattedPhone,
         });
       } catch (error: any) {
-        console.error("[ERROR] Error sending WhatsApp template:", error);
         res.status(500).json({
           error: "Failed to send template",
-          message: error.message || "Unknown error",
         });
       }
     },
@@ -5244,12 +5110,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const body = req.body;
 
-      // Verify webhook signature if FB_APP_SECRET is configured
+      // Verify webhook signature
       const appSecret = process.env.FB_APP_SECRET;
-      if (appSecret) {
+      if (!appSecret) {
+        if (process.env.NODE_ENV === "production") {
+          return res.sendStatus(500);
+        }
+        // Dev only: skipping signature verification
+      } else {
         const signature = req.headers["x-hub-signature-256"] as string;
         if (!signature) {
-          console.warn("[Meta Webhook] Missing x-hub-signature-256 header");
           return res.sendStatus(403);
         }
         const crypto = await import("crypto");
@@ -5258,22 +5128,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .update(JSON.stringify(body))
           .digest("hex");
         if (signature !== expectedSignature) {
-          console.warn("[Meta Webhook] Invalid signature");
           return res.sendStatus(403);
         }
-      } else {
-        console.warn("[Meta Webhook] FB_APP_SECRET not set — skipping signature verification (NOT SAFE FOR PRODUCTION)");
       }
-
-      console.log("[Meta Webhook] Event received:", body.object);
 
       if (
         body.object === "page" ||
         body.object === "instagram" ||
         body.object === "whatsapp_business_account"
       ) {
-        console.log("[Meta Webhook] New event received");
-
         for (const entry of body.entry || []) {
           const events = entry.messaging || entry.changes || [];
 
@@ -5291,23 +5154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
                 let integration = null;
                 if (phoneNumberId) {
-                  const allIntegrations = await storage.getAllIntegrations();
-                  integration = allIntegrations.find((int) => {
-                    let meta: any = int.metadata;
-                    if (typeof meta === "string") {
-                      try {
-                        meta = JSON.parse(
-                          meta.replace(/(\w+):/g, '"$1":').replace(/'/g, '"'),
-                        );
-                      } catch {
-                        meta = null;
-                      }
-                    }
-                    return (
-                      meta?.phoneNumberId === phoneNumberId ||
-                      int.accountId === phoneNumberId
-                    );
-                  });
+                  integration = await storage.findWhatsAppIntegrationByPhoneNumberId(phoneNumberId) || null;
                 }
 
                 for (const waMessage of change.value.messages) {
@@ -5355,9 +5202,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
                     const savedMessage =
                       await storage.createMessage(messageData);
-                    console.log(
-                      `✅ [WhatsApp] Message saved: ${savedMessage.id}`,
-                    );
 
                     // Increment unread count for inbound messages
                     await storage.incrementUnreadCount(conversation.id);
@@ -5389,15 +5233,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // First, check for Instagram Direct messages via entry.changes structure
             for (const change of entry.changes || []) {
               if (change.field === "messages" && change.value?.message) {
-                console.log(
-                  `📸 [Instagram Direct] Processing message via entry.changes structure`,
-                );
-                console.log(`- change.field: ${change.field}`);
-                console.log(
-                  `- change.value:`,
-                  JSON.stringify(change.value, null, 2),
-                );
-
                 const value = change.value;
                 const senderId = value.sender?.id;
                 const recipientId = value.recipient?.id;
@@ -5409,17 +5244,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 const attachments = value.message?.attachments || [];
 
                 if (!senderId || !recipientId || !messageId) {
-                  console.warn(
-                    `⚠️ [Instagram Direct] Missing required fields in change.value`,
-                  );
                   continue;
                 }
-
-                console.log(`[IMAGE] [Instagram Direct] Message details:`);
-                console.log(`- senderId: ${senderId}`);
-                console.log(`- recipientId: ${recipientId}`);
-                console.log(`- messageId: ${messageId}`);
-                console.log(`- messageText: ${messageText}`);
 
                 // PRIORITY 1: Check if there's an existing conversation for this metaConversationId
                 const potentialMetaConversationId = `ig_${senderId}_${recipientId}`;
@@ -5430,34 +5256,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
                 let integration;
                 if (existingConversationByMeta) {
-                  console.log(
-                    `✅ [Instagram Direct] Found existing conversation by metaConversationId, using its integration`,
-                  );
                   integration = await storage.getIntegrationById(
                     existingConversationByMeta.integrationId,
                   );
                 }
 
-                // PRIORITY 2: If no existing conversation, search for integration by pageId
+                // PRIORITY 2: If no existing conversation, search for integration by pageId/accountId
                 if (!integration) {
-                  const allIntegrations = await storage.getAllIntegrations();
-                  console.log(
-                    `📋 All integrations (${allIntegrations.length} total):`,
-                  );
-                  for (const int of allIntegrations) {
-                    console.log(
-                      `- ID: ${int.id}, provider: ${int.provider}, accountId: ${int.accountId}, pageId: ${int.pageId}`,
-                    );
-                  }
-
-                  // Find integration by recipientId matching accountId or pageId
-                  integration = allIntegrations.find(
-                    (int) =>
-                      (int.provider === "instagram_direct" ||
-                        int.provider === "instagram") &&
-                      (int.accountId === recipientId ||
-                        int.pageId === recipientId),
-                  );
+                  integration = await storage.findIntegrationByAccount(recipientId, "instagram") || null;
                 }
 
                 if (integration) {
@@ -5465,8 +5271,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   const accessToken = integration.accessToken;
                   const isOutbound =
                     senderId === integration.accountId ||
-                    senderId === integration.pageId ||
-                    senderId.startsWith("1784"); // Instagram business accounts start with 1784
+                    senderId === integration.pageId;
 
                   // For outbound messages, the conversation ID should use the recipientId as the contact
                   // For inbound messages, use senderId as the contact
@@ -5474,15 +5279,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   let metaConversationId = `ig_${contactId}_${integration.accountId || integration.pageId}`;
                   // Fallback metaConversationId format for legacy conversations
                   const legacyMetaConversationId = `ig_${senderId}_${recipientId}`;
-
-                  console.log(`[METRICS] [Instagram Direct] Direction analysis:`);
-                  console.log(`- senderId: ${senderId}`);
-                  console.log(
-                    `- integration.accountId: ${integration.accountId}`,
-                  );
-                  console.log(`- isOutbound (echo): ${isOutbound}`);
-                  console.log(`- contactId: ${contactId}`);
-                  console.log(`- metaConversationId: ${metaConversationId}`);
 
                   let contactName: string | null = null;
                   let contactProfilePicture: string | null = null;
@@ -5525,16 +5321,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       contactProfilePicture =
                         existingConversation.contactProfilePicture;
                       contactName = existingConversation.contactName;
-                      console.log(
-                        `⏭️ [Instagram Direct] Using cached profile data (fetched ${fetchedAt.toISOString()})`,
-                      );
 
                       // If we have cached picture but no name, we should still try to fetch the name
                       if (!contactName) {
                         shouldFetchContactName = true;
-                        console.log(
-                          `🔄 [Instagram Direct] Cached picture exists but no name - will fetch profile`,
-                        );
                       }
                     }
                   }
@@ -5544,9 +5334,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     contactName = existingConversation.contactName;
                     contactProfilePicture =
                       existingConversation.contactProfilePicture;
-                    console.log(
-                      `📤 [Instagram Direct] Echo message - preserving existing contactName: ${contactName}`,
-                    );
                   }
 
                   // Only fetch profile for INBOUND messages if we don't have recent data OR if name is missing
@@ -5555,21 +5342,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     !isOutbound
                   ) {
                     try {
-                      console.log(
-                        `📱 [Instagram Direct] Fetching profile for sender: ${senderId} (fetchPic: ${shouldFetchProfilePicture}, fetchName: ${shouldFetchContactName})`,
-                      );
-
                       // First, try using conversation participants endpoint (more reliable for IG)
                       const convoParticipantsUrl = `https://graph.facebook.com/v24.0/${integration.accountId || integration.pageId}/conversations?platform=instagram&user_id=${contactId}&fields=participants&access_token=${accessToken}`;
                       const convoParticipantsRes =
                         await fetch(convoParticipantsUrl);
                       const convoParticipantsData =
                         await convoParticipantsRes.json();
-
-                      console.log(
-                        `📋 [Instagram Direct] Conversation participants response:`,
-                        JSON.stringify(convoParticipantsData, null, 2),
-                      );
 
                       if (
                         convoParticipantsData?.data?.[0]?.participants?.data
@@ -5586,73 +5364,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
                         ) {
                           contactName =
                             userParticipant.username || userParticipant.name;
-                          console.log(
-                            `✅ [Instagram Direct] Got contact name from conversation: ${contactName}`,
-                          );
                         }
                       }
 
                       // If still no name, try Instagram Graph API endpoint (graph.instagram.com)
                       if (!contactName) {
                         const igProfileUrl = `https://graph.instagram.com/v24.0/${contactId}?fields=name,profile_pic&access_token=${accessToken}`;
-                        console.log(
-                          `📱 [Instagram Direct] Trying Instagram Graph API: ${igProfileUrl.replace(accessToken || '', "TOKEN_HIDDEN")}`,
-                        );
                         const igProfileRes = await fetch(igProfileUrl);
                         const igProfileData = await igProfileRes.json();
-                        console.log(
-                          `📱 [Instagram Direct] Instagram Graph API response:`,
-                          JSON.stringify(igProfileData, null, 2),
-                        );
 
                         if (!igProfileData.error) {
                           if (igProfileData.name) {
                             contactName = igProfileData.name;
-                            console.log(
-                              `✅ [Instagram Direct] Got contact name: ${contactName}`,
-                            );
                           }
                           if (igProfileData.profile_pic) {
                             contactProfilePicture = igProfileData.profile_pic;
-                            console.log(
-                              `✅ [Instagram Direct] Got profile picture`,
-                            );
                           }
                         } else {
-                          console.warn(
-                            `⚠️ [Instagram Direct] Instagram Graph API error:`,
-                            igProfileData.error,
-                          );
-
                           // Fallback to Facebook Graph API
                           const fbProfileUrl = `https://graph.facebook.com/v24.0/${contactId}?fields=name,profile_pic&access_token=${accessToken}`;
-                          console.log(
-                            `📱 [Instagram Direct] Fallback to Facebook Graph API...`,
-                          );
                           const fbProfileRes = await fetch(fbProfileUrl);
                           const fbProfileData = await fbProfileRes.json();
 
                           if (!fbProfileData.error) {
                             if (fbProfileData.name) {
                               contactName = fbProfileData.name;
-                              console.log(
-                                `✅ [Instagram Direct] Got contact name from FB: ${contactName}`,
-                              );
                             }
                             if (fbProfileData.profile_pic) {
                               contactProfilePicture = fbProfileData.profile_pic;
-                              console.log(
-                                `✅ [Instagram Direct] Got profile picture from FB`,
-                              );
                             }
                           }
                         }
                       }
                     } catch (profileErr) {
-                      console.warn(
-                        `⚠️ [Instagram Direct] Error fetching profile:`,
-                        profileErr,
-                      );
+                      // Profile fetch failed, continue without profile data
                     }
                   }
 
@@ -5668,10 +5413,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
                   let conversation;
                   if (existingConversation) {
-                    console.log(
-                      `🔗 [Instagram Direct] Found existing conversation: ${existingConversation.id}`,
-                    );
-
                     // ✅ For outbound (echo), ONLY update lastMessage - DO NOT touch contactName
                     const updateData: any = {
                       lastMessage: messageText,
@@ -5701,9 +5442,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                         updateData,
                       )) || existingConversation;
                   } else {
-                    console.log(
-                      `🆕 [Instagram Direct] Creating new conversation`,
-                    );
                     conversation = await storage.getOrCreateConversation({
                       integrationId: integration.id,
                       brandId: integration.brandId,
@@ -5728,9 +5466,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     messageId,
                   );
                   if (existingMessage) {
-                    console.log(
-                      `⏭️ [Instagram Direct] Message already exists: ${existingMessage.id}, skipping`,
-                    );
                     continue;
                   }
 
@@ -5769,18 +5504,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
                     // Process and save attachments
                     if (attachments.length > 0) {
-                      console.log(
-                        `📎 [Instagram Direct] Processing ${attachments.length} attachments`,
-                      );
                       const attachmentsToInsert = [];
 
                       for (const att of attachments) {
                         const info = getWebhookAttachmentInfo(att);
                         if (!info.url) {
-                          console.warn(
-                            `⚠️ [Instagram Direct] Attachment has no URL:`,
-                            att,
-                          );
                           continue;
                         }
 
@@ -5794,13 +5522,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                             },
                           );
                           finalUrl = uploadRes.secure_url;
-                          console.log(
-                            `✅ [Instagram Direct] Uploaded attachment to Cloudinary`,
-                          );
                         } catch (err) {
-                          console.warn(
-                            `⚠️ [Instagram Direct] Cloudinary upload failed, using original URL`,
-                          );
+                          // Cloudinary upload failed, using original URL
                         }
 
                         attachmentsToInsert.push({
@@ -5818,15 +5541,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                         await storage.bulkInsertMessageAttachments(
                           attachmentsToInsert,
                         );
-                        console.log(
-                          `✅ [Instagram Direct] Saved ${attachmentsToInsert.length} attachments`,
-                        );
                       }
                     }
-
-                    console.log(
-                      `✅ [Instagram Direct] Message saved: ${savedMessage.id} (direction: ${isOutbound ? "outbound" : "inbound"})`,
-                    );
 
                     // Only increment unread count for INBOUND messages
                     if (!isOutbound) {
@@ -5851,23 +5567,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
                           brandId: integration.brandId,
                         },
                       );
-                      console.log(
-                        `🔔 [Instagram Direct] Socket event emitted to brand:${integration.brandId}`,
-                      );
                     }
                   } catch (msgErr: any) {
                     if (msgErr.code === "23505") {
-                      console.log(
-                        `⏭️ [Instagram Direct] Duplicate message detected via constraint, skipping`,
-                      );
+                      // Duplicate message detected via constraint, skipping
                     } else {
                       throw msgErr;
                     }
                   }
-                } else {
-                  console.warn(
-                    `⚠️ [Instagram Direct] No integration found for recipientId: ${recipientId}`,
-                  );
                 }
               }
             }
@@ -5887,11 +5594,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // Handle attachments
               const attachments = event.message.attachments || [];
 
-              // Debug: Log what we're searching for
-              console.log(`[DEBUG] Searching for integration:`);
-              console.log(`- recipientId: ${recipientId}`);
-              console.log(`- searchPlatform: ${searchPlatform}`);
-
               // PRIORITY 1: Check if there's an existing conversation for potential metaConversationIds
               const potentialMetaIds = [
                 `ig_dm_${senderId}`,
@@ -5904,9 +5606,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 const existingConvo =
                   await storage.findConversationByMetaConversationId(metaId);
                 if (existingConvo) {
-                  console.log(
-                    `✅ Found existing conversation by metaConversationId: ${metaId}`,
-                  );
                   integration = await storage.getIntegrationById(
                     existingConvo.integrationId,
                   );
@@ -5914,27 +5613,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 }
               }
 
-              // PRIORITY 2: If no existing conversation, search for integration by pageId
+              // PRIORITY 2: If no existing conversation, search for integration by pageId/accountId
               if (!integration) {
-                // Debug: List all integrations to see what's in DB
-                const allIntegrations = await storage.getAllIntegrations();
-                console.log(
-                  `📋 All integrations in DB (${allIntegrations.length} total):`,
-                );
-                for (const int of allIntegrations) {
-                  console.log(
-                    `- ID: ${int.id}, provider: ${int.provider}, accountId: ${int.accountId}, pageId: ${int.pageId}`,
-                  );
-                }
-
                 integration = await storage.findIntegrationByAccount(
                   recipientId,
                   searchPlatform,
-                );
-
-                console.log(
-                  `🔎 findIntegrationByAccount result:`,
-                  integration ? `Found (${integration.provider})` : "NOT FOUND",
                 );
               }
 
@@ -5990,9 +5673,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     contactProfilePicture =
                       existingConversation.contactProfilePicture;
                     contactName = existingConversation.contactName;
-                    console.log(
-                      `⏭️ [${platform}] Using cached profile picture (fetched ${fetchedAt.toISOString()})`,
-                    );
                   }
                 }
 
@@ -6001,45 +5681,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   try {
                     // For Instagram, try using the conversation participants endpoint first
                     if (platform === "instagram_direct") {
-                      console.log(
-                        `📷 [${platform}] Trying to fetch profile via conversation participants...`,
-                      );
-
-                      // First, try to get the conversation ID from Meta
                       const convoInfoUrl = `https://graph.instagram.com/v24.0/${senderId}?fields=name,profile_pic&access_token=${accessToken}`;
                       const convoInfoRes = await fetch(convoInfoUrl);
                       const convoInfoData = await convoInfoRes.json();
-                      console.log(convoInfoUrl);
-
-                      console.log(
-                        `📋 [${platform}] Conversation participants response:`,
-                        JSON.stringify(convoInfoData, null, 2),
-                      );
 
                       if (!convoInfoData.error) {
                         if (convoInfoData.username || convoInfoData.name) {
                           contactName =
                             convoInfoData.username || convoInfoData.name;
-                          console.log(
-                            `✅ [${platform}] Got contact name: ${contactName}`,
-                          );
                         }
                         if (convoInfoData.profile_pic) {
                           contactProfilePicture = convoInfoData.profile_pic;
-                          console.log(`[OK] [${platform}] Got profile picture`);
                         }
-                      } else {
-                        console.warn(
-                          `⚠️ [${platform}] Profile API error:`,
-                          convoInfoData.error,
-                        );
                       }
                     } else {
                       // For Facebook Messenger, use direct profile endpoint
                       const profileUrl = `https://graph.facebook.com/v24.0/${senderId}?fields=name,profile_pic&access_token=${accessToken}`;
-                      console.log(
-                        `📷 [${platform}] Fetching profile for sender: ${senderId}`,
-                      );
                       const profileRes = await fetch(profileUrl);
                       const profileData = await profileRes.json();
 
@@ -6047,26 +5704,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
                         if (profileData.username || profileData.name) {
                           contactName =
                             profileData.username || profileData.name;
-                          console.log(
-                            `✅ [${platform}] Got contact name: ${contactName}`,
-                          );
                         }
                         if (profileData.profile_pic) {
                           contactProfilePicture = profileData.profile_pic;
-                          console.log(`[OK] [${platform}] Got profile picture`);
                         }
-                      } else {
-                        console.warn(
-                          `⚠️ [${platform}] Profile API error:`,
-                          profileData.error,
-                        );
                       }
                     }
                   } catch (profileErr) {
-                    console.warn(
-                      `⚠️ [${platform}] Error fetching profile:`,
-                      profileErr,
-                    );
+                    // Profile fetch failed, continue without profile data
                   }
                 }
 
@@ -6123,9 +5768,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   messageId,
                 );
                 if (existingMessage) {
-                  console.log(
-                    `⏭️ [${platform}] Message already exists: ${existingMessage.id}, skipping`,
-                  );
                   continue;
                 }
 
@@ -6161,18 +5803,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
                   // Process and save attachments
                   if (attachments.length > 0) {
-                    console.log(
-                      `📎 [${platform}] Processing ${attachments.length} attachments`,
-                    );
                     const attachmentsToInsert = [];
 
                     for (const att of attachments) {
                       const info = getWebhookAttachmentInfo(att);
                       if (!info.url) {
-                        console.warn(
-                          `⚠️ [${platform}] Attachment has no URL:`,
-                          att,
-                        );
                         continue;
                       }
 
@@ -6186,13 +5821,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                           },
                         );
                         finalUrl = uploadRes.secure_url;
-                        console.log(
-                          `✅ [${platform}] Uploaded attachment to Cloudinary`,
-                        );
                       } catch (err) {
-                        console.warn(
-                          `⚠️ [${platform}] Cloudinary upload failed, using original URL`,
-                        );
+                        // Cloudinary upload failed, using original URL
                       }
 
                       attachmentsToInsert.push({
@@ -6210,15 +5840,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       await storage.bulkInsertMessageAttachments(
                         attachmentsToInsert,
                       );
-                      console.log(
-                        `✅ [${platform}] Saved ${attachmentsToInsert.length} attachments`,
-                      );
                     }
                   }
-
-                  console.log(
-                    `✅ [${platform}] Message saved: ${savedMessage.id}`,
-                  );
 
                   await storage.incrementUnreadCount(conversation.id);
 
@@ -6237,23 +5860,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       conversation: updatedConversation,
                       brandId: integration.brandId,
                     });
-                    console.log(
-                      `🔔 [${platform}] Socket event emitted to brand:${integration.brandId}`,
-                    );
                   }
                 } catch (msgErr: any) {
                   if (msgErr.code === "23505") {
-                    console.log(
-                      `⏭️ [${platform}] Duplicate message detected via constraint, skipping`,
-                    );
+                    // Duplicate message detected via constraint, skipping
                   } else {
                     throw msgErr;
                   }
                 }
-              } else {
-                console.warn(
-                  `⚠️ [${searchPlatform}] No integration found for recipient: ${recipientId}`,
-                );
               }
             }
           }
@@ -6269,43 +5883,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // TODO: Dead code — db.getFacebookAuthToken, db.saveFacebookPages, db.getFacebookPageToken not implemented
-  app.get("/api/facebook/pages", async (req, res) => {
-    try {
-      const userToken = await (db as any).getFacebookAuthToken((req.user as any)?.id);
-
-      const response = await fetch(
-        `https://graph.facebook.com/v22.0/me/accounts?access_token=${userToken}`,
-      );
-      const data = await response.json();
-
-      // Esto devuelve un array con las páginas y su page_access_token
-      // Ejemplo: data.data[0].access_token
-      await (db as any).saveFacebookPages((req.user as any)?.id, data.data);
-
-      res.json(data);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Error fetching Facebook pages" });
-    }
-  });
-
-  app.post("/api/facebook/publish", async (req, res) => {
-    const { pageId, message } = req.body;
-    const pageToken = await (db as any).getFacebookPageToken(pageId);
-
-    const postResponse = await fetch(
-      `https://graph.facebook.com/${pageId}/feed`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, access_token: pageToken }),
-      },
-    );
-
-    const result = await postResponse.json();
-    res.json(result);
-  });
 
   app.get("/api/:provider/conversations", isAuthenticated, requireBrand, async (req, res) => {
     try {
@@ -6329,14 +5906,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (provider === "threads") {
         url = `https://graph.facebook.com/v24.0/${integration.accountId}/conversations?fields=id,participants,snippet,updated_time&access_token=${integration.accessToken}`;
       } else if (provider === "whatsapp") {
-        // WhatsApp doesn't have a conversations list - you need webhook for incoming messages
-        // Here we return empty or fetch from your local database
-        // TODO: storage.getMessages not implemented — returning empty for now
-        const messages: any[] = [];
-        const whatsappMessages = messages.filter(
-          (m: any) => m.socialAccount?.provider === "whatsapp",
+        // WhatsApp conversations come from webhooks, so we query our local DB
+        const brandId = req.brandMembership?.brandId;
+        const dbConversations = brandId
+          ? await storage.getConversationsByBrandId(brandId)
+          : [];
+        const whatsappConversations = dbConversations.filter(
+          (c: any) => c.platform === "whatsapp",
         );
-        return res.json({ conversations: whatsappMessages });
+        return res.json({ conversations: whatsappConversations });
       } else {
         return res.status(400).json({ error: "Invalid provider" });
       }
@@ -6359,6 +5937,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(
     "/api/messages/:provider/:conversationId",
     isAuthenticated,
+    requireBrand,
     async (req, res) => {
       try {
         const { provider, conversationId } = req.params;
@@ -6473,7 +6052,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("[ERROR] Unified messages fetch error:", err);
         res.status(500).json({
           error: "Failed to fetch messages",
-          details: err instanceof Error ? err.message : String(err),
         });
       }
     },
@@ -6482,6 +6060,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/messages/:provider/:conversationId/mark-read",
     isAuthenticated,
+    requireBrand,
     async (req, res) => {
       try {
         const { provider, conversationId } = req.params;
@@ -6569,7 +6148,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ error: "Conversation not found" });
         }
 
- console.log(` Retrieved conversation ${id} for brand ${brandId}`);
         res.json({ conversation });
       } catch (err) {
         console.error("[ERROR] Error fetching conversation:", err);
@@ -7255,14 +6833,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { content } = req.body;
 
         console.log("\n=============================");
-        console.log("[MESSAGE] [BACKEND] Incoming message send request");
- console.log(" Provider:", provider);
-        console.log("[CHAT] Conversation ID:", conversationId);
-        console.log("[USER] Authenticated user:", userId);
- console.log(" Brand ID:", brandId);
-        console.log("[EMAIL] Message content:", content);
-        console.log("=============================\n");
-
         if (!content?.trim()) {
           return res.status(400).json({ error: "Message content is required" });
         }
@@ -7482,7 +7052,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           const participants = convoData.participants?.data || [];
           recipientId = participants.find(
-            (p: any) => !p.id.startsWith("1784") && p.id !== pageId,
+            (p: any) => p.id !== pageId && p.id !== integration.accountId,
           )?.id;
 
           if (!recipientId)
@@ -7959,45 +7529,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Midjourney video generation
-  app.post("/api/generate-video", async (req, res) => {
-    try {
-      const { prompt, style, duration, aspectRatio } = req.body;
-
-      // Validate required fields
-      if (!prompt) {
-        return res.status(400).json({ message: "Video prompt is required" });
-      }
-
-      // Simulate Midjourney video generation process
-      console.log(
-        `Generating video with Midjourney: ${prompt}, style: ${style}, duration: ${duration}s`,
-      );
-
-      // In a real implementation, this would call Midjourney's API
-      // For now, we'll simulate the process and return a mock video URL
-
-      // Simulate processing time
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Mock video URL (in production this would be the actual Midjourney video URL)
-      const videoUrl = `https://example.com/midjourney-videos/video-${Date.now()}.mp4`;
-
-      res.json({
-        videoUrl,
-        prompt,
-        style,
-        duration,
-        aspectRatio,
-        status: "completed",
-        generatedAt: new Date().toISOString(),
-      });
-    } catch (error) {
-      console.error("Error generating video:", error);
-      res
-        .status(500)
-        .json({ message: "Failed to generate video with Midjourney" });
-    }
+  // Video generation endpoint — not yet integrated with a real provider
+  app.post("/api/generate-video", isAuthenticated, async (_req, res) => {
+    res.status(501).json({ message: "Video generation is not yet available" });
   });
 
   // Image processing endpoint for pixel-perfect platform assets
@@ -8167,6 +7701,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     },
     10 * 60 * 1000,
+  );
+
+  // Billing info endpoint — provides real pricing data to the client
+  app.get(
+    "/api/brands/:brandId/billing-info",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const { brandId } = req.params;
+        const billingCheck = await billingService.canGenerateImages(brandId);
+        res.json({
+          freeImagesRemaining: billingCheck.freeRemaining,
+          hasPaymentMethod: billingCheck.hasPaymentMethod,
+          pricePerImage: 0.12,
+          freeImageLimit: 10,
+        });
+      } catch (error) {
+        console.error("[Billing] Error fetching billing info:", error);
+        res.status(500).json({ message: "Failed to fetch billing info" });
+      }
+    },
   );
 
   app.post(
@@ -8680,19 +8236,27 @@ All content must be in English.`;
   app.post(
     "/api/test/generate-image",
     isAuthenticated,
+    requireBrand,
     async (req: any, res) => {
       try {
+        const brandId = req.brandId || req.brandMembership?.brandId;
+        const brand = await storage.getBrandByIdOnly(brandId);
+        if (!brand) return res.status(404).json({ message: "Brand not found" });
+        const design = await storage.getBrandDesignByBrandId(brandId);
+
         const { saveAndCreateImage } = await import(
           "./services/postGeneratorNew"
         );
-        const result = await saveAndCreateImage();
+        const result = await saveAndCreateImage({
+          name: brand.name || "Brand",
+          colors: [design?.colorPrimary || "#4F46E5", design?.colorAccent1 || "#7C3AED"],
+          description: brand.description || "",
+          logoUrl: design?.logoUrl || undefined,
+        });
         res.json({ success: true, result });
       } catch (error) {
         console.error("[Test] Generate image error:", error);
-        res.status(500).json({
-          success: false,
-          message: error instanceof Error ? error.message : "Unknown error",
-        });
+        res.status(500).json({ success: false, message: "Image generation failed" });
       }
     },
   );
@@ -9042,104 +8606,14 @@ All content must be in English.`;
   // Team task management routes
   app.get("/api/team-tasks", isAuthenticated, async (req: any, res) => {
     try {
-      const userId =
-        getUserId(req);
+      const userId = getUserId(req);
       const assignedOnly = req.query.assigned === "true";
 
-      // Mock team tasks data
-      const mockTasks = [
-        {
-          id: "task-1",
-          title: "Review Q1 Content Performance",
-          description:
-            "Analyze Q1 social media performance across all platforms and create summary report",
-          status: "pending",
-          priority: "high",
-          assignedBy: "manager-1",
-          assignedTo: userId,
-          assignedByName: "Marketing Manager",
-          assignedToName: "Current User",
-          dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5).toISOString(),
-          category: "analytics",
-          tags: ["Q1", "report", "performance"],
-          createdAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 2,
-          ).toISOString(),
-          updatedAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 1,
-          ).toISOString(),
-        },
-        {
-          id: "task-2",
-          title: "Create TikTok Content Calendar",
-          description:
-            "Plan and schedule TikTok content for April 2024, including trending hashtags and challenges",
-          status: "in_progress",
-          priority: "medium",
-          assignedBy: "manager-1",
-          assignedTo: "user-2",
-          assignedByName: "Marketing Manager",
-          assignedToName: "Content Creator",
-          dueDate: new Date(
-            Date.now() + 1000 * 60 * 60 * 24 * 10,
-          ).toISOString(),
-          category: "content",
-          tags: ["tiktok", "calendar", "april"],
-          createdAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 5,
-          ).toISOString(),
-          updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
-        },
-        {
-          id: "task-3",
-          title: "Update Brand Guidelines",
-          description:
-            "Revise brand guidelines document to include new color palette and typography standards",
-          status: "completed",
-          priority: "low",
-          assignedBy: userId,
-          assignedTo: "user-3",
-          assignedByName: "Current User",
-          assignedToName: "Brand Designer",
-          dueDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
-          category: "design",
-          tags: ["brand", "guidelines", "design"],
-          createdAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 12,
-          ).toISOString(),
-          updatedAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 1,
-          ).toISOString(),
-          completedAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 1,
-          ).toISOString(),
-          completionNotes:
-            "Updated brand guidelines with new colors and fonts. Document is ready for review.",
-        },
-        {
-          id: "task-4",
-          title: "Respond to Customer Inquiries",
-          description:
-            "Address high-priority customer messages from Instagram and TikTok platforms",
-          status: "pending",
-          priority: "urgent",
-          assignedBy: "manager-2",
-          assignedTo: userId,
-          assignedByName: "Customer Success Manager",
-          assignedToName: "Current User",
-          dueDate: new Date(Date.now() + 1000 * 60 * 60 * 8).toISOString(),
-          category: "support",
-          tags: ["customer", "urgent", "social-media"],
-          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
-          updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-        },
-      ];
+      const tasks = assignedOnly
+        ? await storage.getTasksAssignedToUser(userId)
+        : await storage.getTasksByUserId(userId);
 
-      const filteredTasks = assignedOnly
-        ? mockTasks.filter((task) => task.assignedTo === userId)
-        : mockTasks.filter((task) => task.assignedBy === userId);
-
-      res.json(filteredTasks);
+      res.json(tasks);
     } catch (error) {
       console.error("Error fetching team tasks:", error);
       res.status(500).json({ message: "Failed to fetch team tasks" });
@@ -9229,15 +8703,11 @@ All content must be in English.`;
   // ==================================================================================
 
   // Initiate Lightspeed OAuth flow
-  app.get("/api/lightspeed/auth", isAuthenticated, async (req: any, res) => {
+  app.get("/api/lightspeed/auth", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
-      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id;
-      const brandId = req.query.brandId as string;
+      const userId = req.user.id;
+      const brandId = req.brandMembership.brandId;
       const domainPrefix = req.query.domainPrefix as string | undefined;
-
-      if (!brandId) {
-        return res.status(400).json({ message: "Brand ID is required" });
-      }
 
       // domainPrefix is optional - Lightspeed returns it in the callback
       // But we include it in state if provided for backwards compatibility
@@ -9256,15 +8726,9 @@ All content must be in English.`;
       (req.session as any).lightspeedOAuthState = state;
 
       const authUrl = lightspeedService.generateAuthUrl(state, domainPrefix);
-      console.log(
-        "🔗 Lightspeed OAuth URL generated for brand:",
-        brandId,
-        domainPrefix ? `domain: ${domainPrefix}` : "(domain from callback)",
-      );
-
       res.json({ authUrl });
     } catch (error) {
-      console.error("Error initiating Lightspeed OAuth:", error);
+      console.error("Error initiating Lightspeed OAuth");
       res.status(500).json({ message: "Failed to initiate Lightspeed OAuth" });
     }
   });
@@ -9273,12 +8737,6 @@ All content must be in English.`;
   app.get("/api/lightspeed/callback", async (req: any, res) => {
     try {
       const { code, state, domain_prefix: queryDomainPrefix } = req.query;
-
- console.log(" Lightspeed OAuth callback received:", {
-        hasCode: !!code,
-        hasState: !!state,
-        hasDomainPrefix: !!queryDomainPrefix,
-      });
 
       if (!code || !state) {
         return res.status(400).send(`
@@ -9320,37 +8778,17 @@ All content must be in English.`;
           .send("Missing domain prefix from Lightspeed callback");
       }
 
-      console.log(
-        "📥 Using domain prefix:",
-        domainPrefix,
-        queryDomainPrefix ? "(from callback)" : "(from state)",
-      );
-
       // Exchange code for tokens using domain from state
       const tokens = await lightspeedService.exchangeCodeForToken(
         code as string,
         domainPrefix,
       );
 
-      console.log("[OK] Lightspeed tokens received:", {
-        hasAccessToken: !!tokens.access_token,
-        hasRefreshToken: !!tokens.refresh_token,
-        expiresIn: tokens.expires_in,
-      });
-
-      // Ensure user exists in the database before creating integration
+      // Verify user exists — the userId comes from the OAuth state created during /api/lightspeed/auth
+      // which requires isAuthenticated, so the user must already exist
       const existingUser = await storage.getUser(stateData.userId);
       if (!existingUser) {
-        console.log(
-          "📝 Creating user for Lightspeed integration:",
-          stateData.userId,
-        );
-        await storage.createUser({
-          id: stateData.userId,
-          email: `user-${stateData.userId.substring(0, 8)}@lightspeed.temp`,
-          firstName: "Lightspeed",
-          lastName: "User",
-        });
+        return res.status(400).send("Invalid user session. Please log in and try again.");
       }
 
       // Create the integration
@@ -9360,8 +8798,6 @@ All content must be in English.`;
         domainPrefix,
         tokens,
       );
-
-      console.log("[OK] Lightspeed integration created:", integrationId);
 
       // Initial sync of customers and sales, then register webhooks
       try {
@@ -9373,27 +8809,16 @@ All content must be in English.`;
           const customerCount =
             await lightspeedService.syncCustomers(integration);
           const salesCount = await lightspeedService.syncSales(integration);
-          console.log(
-            `✅ Initial sync completed: ${customerCount} customers, ${salesCount} sales`,
-          );
 
           // Register webhooks for real-time updates
           try {
-            const webhooks =
-              await lightspeedService.registerWebhooks(integration);
-            console.log(`[OK] Webhooks registered:`, webhooks);
+            await lightspeedService.registerWebhooks(integration);
           } catch (webhookError) {
-            console.error(
-              "Failed to register webhooks (sync still completed):",
-              webhookError,
-            );
+            // Failed to register webhooks (sync still completed)
           }
         }
       } catch (syncError) {
-        console.error(
-          "Initial sync failed (integration still created):",
-          syncError,
-        );
+        // Initial sync failed (integration still created)
       }
 
       // Send success page that closes the popup
@@ -9443,13 +8868,13 @@ All content must be in English.`;
         </html>
       `);
     } catch (error) {
-      console.error("[ERROR] Lightspeed OAuth callback error:", error);
+      console.error("[ERROR] Lightspeed OAuth callback error");
       res.status(500).send(`
         <html>
           <head><title>Error</title></head>
           <body>
             <h1>Connection Failed</h1>
-            <p>${error instanceof Error ? error.message : "Unknown error occurred"}</p>
+            <p>An error occurred while connecting to Lightspeed. Please try again.</p>
             <script>
               setTimeout(() => window.close(), 5000);
             </script>
@@ -9460,13 +8885,9 @@ All content must be in English.`;
   });
 
   // Get Lightspeed integration status for a brand
-  app.get("/api/lightspeed/status", isAuthenticated, async (req: any, res) => {
+  app.get("/api/lightspeed/status", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
-      const brandId = req.query.brandId as string;
-
-      if (!brandId) {
-        return res.status(400).json({ message: "Brand ID is required" });
-      }
+      const brandId = req.brandMembership.brandId;
 
       const integration =
         await lightspeedService.getIntegrationByBrand(brandId);
@@ -9489,21 +8910,15 @@ All content must be in English.`;
         stats,
       });
     } catch (error) {
-      console.error("Error fetching Lightspeed status:", error);
+      console.error("Error fetching Lightspeed status");
       res.status(500).json({ message: "Failed to fetch Lightspeed status" });
     }
   });
 
   // Sync Lightspeed data manually
-  app.post("/api/lightspeed/sync", isAuthenticated, async (req: any, res) => {
+  app.post("/api/lightspeed/sync", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
-      console.log("Lightspeed sync - req.body:", JSON.stringify(req.body));
-      const brandId = req.body?.brandId as string;
-
-      if (!brandId) {
-        console.log("Brand ID missing from body");
-        return res.status(400).json({ message: "Brand ID is required" });
-      }
+      const brandId = req.brandMembership.brandId;
 
       const integration =
         await lightspeedService.getIntegrationByBrand(brandId);
@@ -9530,19 +8945,15 @@ All content must be in English.`;
         relinked: relinkResult,
       });
     } catch (error) {
-      console.error("Error syncing Lightspeed data:", error);
+      console.error("Error syncing Lightspeed data");
       res.status(500).json({ message: "Failed to sync Lightspeed data" });
     }
   });
 
   // Re-link existing sales with customers (fix historical data)
-  app.post("/api/lightspeed/relink", isAuthenticated, async (req: any, res) => {
+  app.post("/api/lightspeed/relink", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
-      const brandId = req.body?.brandId as string;
-
-      if (!brandId) {
-        return res.status(400).json({ message: "Brand ID is required" });
-      }
+      const brandId = req.brandMembership.brandId;
 
       const integration =
         await lightspeedService.getIntegrationByBrand(brandId);
@@ -9561,7 +8972,7 @@ All content must be in English.`;
         ...result,
       });
     } catch (error) {
-      console.error("Error re-linking Lightspeed sales:", error);
+      console.error("Error re-linking Lightspeed sales");
       res
         .status(500)
         .json({ message: "Failed to re-link sales with customers" });
@@ -9572,14 +8983,11 @@ All content must be in English.`;
   app.post(
     "/api/lightspeed/force-resync",
     isAuthenticated,
+    requireBrand,
     async (req: any, res) => {
       try {
-        const brandId = req.body?.brandId as string;
+        const brandId = req.brandMembership.brandId;
         const daysBack = parseInt(req.body?.daysBack) || 90;
-
-        if (!brandId) {
-          return res.status(400).json({ message: "Brand ID is required" });
-        }
 
         const integration =
           await lightspeedService.getIntegrationByBrand(brandId);
@@ -9590,9 +8998,6 @@ All content must be in English.`;
             .json({ message: "Lightspeed integration not found" });
         }
 
-        console.log(
-          `Force re-sync requested for brand ${brandId}, daysBack: ${daysBack}`,
-        );
         const result = await lightspeedService.forceResyncSales(
           integration,
           daysBack,
@@ -9603,7 +9008,7 @@ All content must be in English.`;
           ...result,
         });
       } catch (error) {
-        console.error("Error force re-syncing Lightspeed sales:", error);
+        console.error("Error force re-syncing Lightspeed sales");
         res.status(500).json({ message: "Failed to force re-sync sales" });
       }
     },
@@ -9613,13 +9018,10 @@ All content must be in English.`;
   app.get(
     "/api/lightspeed/customers",
     isAuthenticated,
+    requireBrand,
     async (req: any, res) => {
       try {
-        const brandId = req.query.brandId as string;
-
-        if (!brandId) {
-          return res.status(400).json({ message: "Brand ID is required" });
-        }
+        const brandId = req.brandMembership.brandId;
 
         const integration =
           await lightspeedService.getIntegrationByBrand(brandId);
@@ -9633,21 +9035,17 @@ All content must be in English.`;
         const customers = await lightspeedService.getCustomers(integration.id);
         res.json(customers);
       } catch (error) {
-        console.error("Error fetching Lightspeed customers:", error);
+        console.error("Error fetching Lightspeed customers");
         res.status(500).json({ message: "Failed to fetch customers" });
       }
     },
   );
 
   // Get Lightspeed sales for a brand
-  app.get("/api/lightspeed/sales", isAuthenticated, async (req: any, res) => {
+  app.get("/api/lightspeed/sales", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
-      const brandId = req.query.brandId as string;
+      const brandId = req.brandMembership.brandId;
       const limit = parseInt(req.query.limit as string) || 100;
-
-      if (!brandId) {
-        return res.status(400).json({ message: "Brand ID is required" });
-      }
 
       const integration =
         await lightspeedService.getIntegrationByBrand(brandId);
@@ -9661,7 +9059,7 @@ All content must be in English.`;
       const sales = await lightspeedService.getSales(integration.id, limit);
       res.json(sales);
     } catch (error) {
-      console.error("Error fetching Lightspeed sales:", error);
+      console.error("Error fetching Lightspeed sales");
       res.status(500).json({ message: "Failed to fetch sales" });
     }
   });
@@ -9670,14 +9068,10 @@ All content must be in English.`;
   app.delete(
     "/api/lightspeed/disconnect",
     isAuthenticated,
+    requireBrand,
     async (req: any, res) => {
       try {
-        // Accept brandId from query params (for DELETE) or body
-        const brandId = (req.query.brandId || req.body.brandId) as string;
-
-        if (!brandId) {
-          return res.status(400).json({ message: "Brand ID is required" });
-        }
+        const brandId = req.brandMembership.brandId;
 
         const integration =
           await lightspeedService.getIntegrationByBrand(brandId);
@@ -9691,7 +9085,7 @@ All content must be in English.`;
         await lightspeedService.disconnectIntegration(integration.id);
         res.json({ success: true });
       } catch (error) {
-        console.error("Error disconnecting Lightspeed:", error);
+        console.error("Error disconnecting Lightspeed");
         res.status(500).json({ message: "Failed to disconnect Lightspeed" });
       }
     },
@@ -9713,32 +9107,28 @@ All content must be in English.`;
             signatureHeader,
           );
           if (!isValid) {
- console.warn(" Lightspeed webhook signature verification failed");
-            // Continue processing anyway for now, as signature verification can be tricky
+            return res.sendStatus(403);
           }
         }
 
         // Parse the payload from the form data
         const payloadString = req.body.payload;
         if (!payloadString) {
- console.log(" Lightspeed webhook received (no payload):", req.body);
           return res.status(200).send("OK");
         }
 
         const payload = JSON.parse(payloadString);
         const eventType = req.body.type || "unknown";
 
- console.log(` Lightspeed webhook received: ${eventType}`);
-
         // Process the webhook event asynchronously
         lightspeedService
           .processWebhookEvent(eventType, payload)
-          .catch((err) => console.error("Error processing webhook:", err));
+          .catch(() => {});
 
         // Always respond quickly with 200 OK
         res.status(200).send("OK");
       } catch (error) {
-        console.error("Error handling Lightspeed webhook:", error);
+        console.error("Error handling Lightspeed webhook");
         // Still return 200 to prevent Lightspeed from retrying
         res.status(200).send("OK");
       }
@@ -9749,13 +9139,10 @@ All content must be in English.`;
   app.post(
     "/api/lightspeed/webhooks/register",
     isAuthenticated,
+    requireBrand,
     async (req: any, res) => {
       try {
-        const brandId = req.body.brandId as string;
-
-        if (!brandId) {
-          return res.status(400).json({ message: "Brand ID is required" });
-        }
+        const brandId = req.brandMembership.brandId;
 
         const integration =
           await lightspeedService.getIntegrationByBrand(brandId);
@@ -9769,7 +9156,7 @@ All content must be in English.`;
         const webhooks = await lightspeedService.registerWebhooks(integration);
         res.json({ success: true, webhooks });
       } catch (error) {
-        console.error("Error registering Lightspeed webhooks:", error);
+        console.error("Error registering Lightspeed webhooks");
         res.status(500).json({ message: "Failed to register webhooks" });
       }
     },
@@ -9779,13 +9166,10 @@ All content must be in English.`;
   app.get(
     "/api/lightspeed/webhooks",
     isAuthenticated,
+    requireBrand,
     async (req: any, res) => {
       try {
-        const brandId = req.query.brandId as string;
-
-        if (!brandId) {
-          return res.status(400).json({ message: "Brand ID is required" });
-        }
+        const brandId = req.brandMembership.brandId;
 
         const integration =
           await lightspeedService.getIntegrationByBrand(brandId);
@@ -9799,7 +9183,7 @@ All content must be in English.`;
         const webhooks = await lightspeedService.listWebhooks(integration);
         res.json(webhooks);
       } catch (error) {
-        console.error("Error listing Lightspeed webhooks:", error);
+        console.error("Error listing Lightspeed webhooks");
         res.status(500).json({ message: "Failed to list webhooks" });
       }
     },
@@ -9809,88 +9193,11 @@ All content must be in English.`;
   // Get user's POS integrations
   app.get("/api/pos-integrations", isAuthenticated, async (req: any, res) => {
     try {
-      // Return mock POS integrations
-      const mockIntegrations = [
-        {
-          id: "pos-1",
-          provider: "square",
-          storeName: "Demo Store",
-          storeUrl: "https://squareup.com/dashboard",
-          status: "connected",
-          isActive: true,
-          lastSyncAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-          syncStatus: "success",
-          productCount: 24,
-          transactionCount: 156,
-          settings: {
-            autoSync: true,
-            syncFrequency: "hourly",
-            campaignTriggers: {
-              newCustomer: true,
-              purchaseAbove: 100,
-              abandonedCart: false,
-            },
-          },
-          createdAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 30,
-          ).toISOString(),
-        },
-        {
-          id: "pos-2",
-          provider: "shopify",
-          storeName: "Demo Shopify Store",
-          storeUrl: "demo-store.myshopify.com",
-          status: "connected",
-          isActive: true,
-          lastSyncAt: new Date(Date.now() - 1000 * 60 * 60 * 1).toISOString(),
-          syncStatus: "success",
-          productCount: 89,
-          transactionCount: 423,
-          settings: {
-            autoSync: true,
-            syncFrequency: "daily",
-            campaignTriggers: {
-              newCustomer: true,
-              purchaseAbove: 50,
-              abandonedCart: true,
-            },
-          },
-          createdAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 45,
-          ).toISOString(),
-        },
-        {
-          id: "pos-3",
-          provider: "stripe",
-          storeName: "Demo Stripe Account",
-          storeUrl: "https://dashboard.stripe.com",
-          status: "error",
-          isActive: false,
-          lastSyncAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 2,
-          ).toISOString(),
-          syncStatus: "failed",
-          productCount: 0,
-          transactionCount: 0,
-          errorMessage: "API key expired. Please reconnect your account.",
-          settings: {
-            autoSync: false,
-            syncFrequency: "manual",
-            campaignTriggers: {
-              newCustomer: false,
-              purchaseAbove: 0,
-              abandonedCart: false,
-            },
-          },
-          createdAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 15,
-          ).toISOString(),
-        },
-      ];
-
-      res.json(mockIntegrations);
+      const userId = getUserId(req);
+      const integrations = await storage.getPosIntegrationsByUserId(userId);
+      res.json(integrations);
     } catch (error) {
-      console.error("Error fetching POS integrations:", error);
+      console.error("Error fetching POS integrations");
       res.status(500).json({ message: "Failed to fetch POS integrations" });
     }
   });
@@ -9936,14 +9243,13 @@ All content must be in English.`;
         );
       } catch (syncError) {
         console.error(
-          "Product sync failed but integration created:",
-          syncError,
+          "Product sync failed but integration created"
         );
       }
 
       res.status(201).json(integration);
     } catch (error) {
-      console.error("Error creating POS integration:", error);
+      console.error("Error creating POS integration");
       res.status(500).json({ message: "Failed to create POS integration" });
     }
   });
@@ -9954,7 +9260,16 @@ All content must be in English.`;
     isAuthenticated,
     async (req: any, res) => {
       try {
+        const userId = getUserId(req);
         const { id } = req.params;
+
+        // Verify ownership before updating
+        const existing = await storage.getPosIntegrationsByUserId(userId);
+        const owned = existing.find((i) => i.id === id);
+        if (!owned) {
+          return res.status(404).json({ message: "Integration not found" });
+        }
+
         const updates = req.body;
         const integration = await storage.updatePosIntegration(id, updates);
 
@@ -9964,7 +9279,6 @@ All content must be in English.`;
 
         res.json(integration);
       } catch (error) {
-        console.error("Error updating POS integration:", error);
         res.status(500).json({ message: "Failed to update POS integration" });
       }
     },
@@ -9987,7 +9301,7 @@ All content must be in English.`;
 
         res.json({ message: "Integration deleted successfully" });
       } catch (error) {
-        console.error("Error deleting POS integration:", error);
+        console.error("Error deleting POS integration");
         res.status(500).json({ message: "Failed to delete POS integration" });
       }
     },
@@ -10005,7 +9319,7 @@ All content must be in English.`;
       );
       res.json(transactions);
     } catch (error) {
-      console.error("Error fetching sales transactions:", error);
+      console.error("Error fetching sales transactions");
       res.status(500).json({ message: "Failed to fetch sales transactions" });
     }
   });
@@ -10013,110 +9327,11 @@ All content must be in English.`;
   // Get products from POS systems
   app.get("/api/products", isAuthenticated, async (req: any, res) => {
     try {
-      // Return mock products from POS integrations
-      const mockProducts = [
-        {
-          id: "prod-1",
-          externalId: "sq_prod_001",
-          provider: "square",
-          name: "Premium Wireless Headphones",
-          description:
-            "High-quality wireless headphones with noise cancellation",
-          price: 199.99,
-          currency: "USD",
-          sku: "WH-001",
-          category: "Electronics",
-          inventory: 45,
-          status: "active",
-          images: [],
-          tags: ["wireless", "audio", "premium"],
-          lastSoldAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
-          totalSold: 23,
-          revenue: 4599.77,
-          createdAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 60,
-          ).toISOString(),
-          updatedAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 1,
-          ).toISOString(),
-        },
-        {
-          id: "prod-2",
-          externalId: "shopify_prod_002",
-          provider: "shopify",
-          name: "Organic Green Tea Set",
-          description:
-            "Premium organic green tea collection with ceramic teapot",
-          price: 89.99,
-          currency: "USD",
-          sku: "TEA-002",
-          category: "Food & Beverage",
-          inventory: 12,
-          status: "active",
-          images: [],
-          tags: ["organic", "tea", "wellness"],
-          lastSoldAt: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(),
-          totalSold: 67,
-          revenue: 6029.33,
-          createdAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 90,
-          ).toISOString(),
-          updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(),
-        },
-        {
-          id: "prod-3",
-          externalId: "sq_prod_003",
-          provider: "square",
-          name: "Yoga Mat & Block Set",
-          description:
-            "Eco-friendly yoga mat with matching blocks and carrying strap",
-          price: 59.99,
-          currency: "USD",
-          sku: "YOGA-003",
-          category: "Fitness",
-          inventory: 8,
-          status: "low_stock",
-          images: [],
-          tags: ["yoga", "fitness", "eco-friendly"],
-          lastSoldAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-          totalSold: 34,
-          revenue: 2039.66,
-          createdAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 45,
-          ).toISOString(),
-          updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-        },
-        {
-          id: "prod-4",
-          externalId: "shopify_prod_004",
-          provider: "shopify",
-          name: "Handcrafted Leather Wallet",
-          description: "Genuine leather wallet with RFID blocking technology",
-          price: 79.99,
-          currency: "USD",
-          sku: "WALLET-004",
-          category: "Accessories",
-          inventory: 0,
-          status: "out_of_stock",
-          images: [],
-          tags: ["leather", "wallet", "rfid"],
-          lastSoldAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 3,
-          ).toISOString(),
-          totalSold: 89,
-          revenue: 7119.11,
-          createdAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 120,
-          ).toISOString(),
-          updatedAt: new Date(
-            Date.now() - 1000 * 60 * 60 * 24 * 3,
-          ).toISOString(),
-        },
-      ];
-
-      res.json(mockProducts);
+      const userId = getUserId(req);
+      const products = await storage.getProductsByUserId(userId);
+      res.json(products);
     } catch (error) {
-      console.error("Error fetching products:", error);
+      console.error("Error fetching products");
       res.status(500).json({ message: "Failed to fetch products" });
     }
   });
@@ -10128,8 +9343,9 @@ All content must be in English.`;
     async (req: any, res) => {
       try {
         const { id } = req.params;
+        const userId = getUserId(req);
         const integration = await storage.getPosIntegrationsByUserId(
-          req.user.claims.sub,
+          userId,
         );
         const targetIntegration = integration.find((i) => i.id === id);
 
@@ -10148,7 +9364,7 @@ All content must be in English.`;
           count: products.length,
         });
       } catch (error) {
-        console.error("Error syncing products:", error);
+        console.error("Error syncing products");
         res.status(500).json({ message: "Failed to sync products" });
       }
     },
@@ -10162,7 +9378,7 @@ All content must be in English.`;
       const triggers = await storage.getCampaignTriggersByUserId(userId);
       res.json(triggers);
     } catch (error) {
-      console.error("Error fetching campaign triggers:", error);
+      console.error("Error fetching campaign triggers");
       res.status(500).json({ message: "Failed to fetch campaign triggers" });
     }
   });
@@ -10179,7 +9395,7 @@ All content must be in English.`;
       const trigger = await storage.createCampaignTrigger(triggerData);
       res.status(201).json(trigger);
     } catch (error) {
-      console.error("Error creating campaign trigger:", error);
+      console.error("Error creating campaign trigger");
       res.status(500).json({ message: "Failed to create campaign trigger" });
     }
   });
@@ -10208,7 +9424,7 @@ All content must be in English.`;
 
         res.json(trigger);
       } catch (error) {
-        console.error("Error updating campaign trigger:", error);
+        console.error("Error updating campaign trigger");
         res.status(500).json({ message: "Failed to update campaign trigger" });
       }
     },
@@ -10217,21 +9433,14 @@ All content must be in English.`;
   // Webhook endpoints for POS systems
   app.post("/api/webhooks/square", async (req, res) => {
     try {
-      const signature = req.headers["square-signature"] as string;
-      const result = await posIntegrationService.processWebhook(
-        "square",
-        req.body,
-        signature,
-      );
-
-      if (result.processed && result.transactionId) {
-        // Process the transaction and check for campaign triggers
-        // Implementation would go here
+      const signature = req.headers["x-square-hmacsha256-signature"] as string;
+      if (signature && !posIntegrationService.verifySquareSignature(JSON.stringify(req.body), signature)) {
+        return res.sendStatus(403);
       }
 
+      const result = await posIntegrationService.processWebhook("square", req.body, signature);
       res.json({ received: result.processed });
     } catch (error) {
-      console.error("Error processing Square webhook:", error);
       res.status(500).json({ message: "Webhook processing failed" });
     }
   });
@@ -10239,14 +9448,13 @@ All content must be in English.`;
   app.post("/api/webhooks/shopify", async (req, res) => {
     try {
       const signature = req.headers["x-shopify-hmac-sha256"] as string;
-      const result = await posIntegrationService.processWebhook(
-        "shopify",
-        req.body,
-        signature,
-      );
+      if (signature && !posIntegrationService.verifyShopifySignature(JSON.stringify(req.body), signature)) {
+        return res.sendStatus(403);
+      }
+
+      const result = await posIntegrationService.processWebhook("shopify", req.body, signature);
       res.json({ received: result.processed });
     } catch (error) {
-      console.error("Error processing Shopify webhook:", error);
       res.status(500).json({ message: "Webhook processing failed" });
     }
   });
@@ -10254,27 +9462,33 @@ All content must be in English.`;
   app.post("/api/webhooks/stripe", async (req, res) => {
     try {
       const signature = req.headers["stripe-signature"] as string;
-      const result = await posIntegrationService.processWebhook(
-        "stripe",
-        req.body,
-        signature,
-      );
+      if (signature && !posIntegrationService.verifyStripeSignature(JSON.stringify(req.body), signature)) {
+        return res.sendStatus(403);
+      }
+
+      const result = await posIntegrationService.processWebhook("stripe", req.body, signature);
       res.json({ received: result.processed });
     } catch (error) {
-      console.error("Error processing Stripe webhook:", error);
       res.status(500).json({ message: "Webhook processing failed" });
     }
   });
 
   app.post("/api/webhooks/woocommerce", async (req, res) => {
     try {
-      const result = await posIntegrationService.processWebhook(
-        "woocommerce",
-        req.body,
-      );
+      // WooCommerce uses X-WC-Webhook-Signature header with HMAC-SHA256
+      const signature = req.headers["x-wc-webhook-signature"] as string;
+      const secret = process.env.WOOCOMMERCE_WEBHOOK_SECRET;
+      if (signature && secret) {
+        const crypto = await import("crypto");
+        const expectedSig = crypto.createHmac("sha256", secret).update(JSON.stringify(req.body)).digest("base64");
+        if (signature !== expectedSig) {
+          return res.sendStatus(403);
+        }
+      }
+
+      const result = await posIntegrationService.processWebhook("woocommerce", req.body);
       res.json({ received: result.processed });
     } catch (error) {
-      console.error("Error processing WooCommerce webhook:", error);
       res.status(500).json({ message: "Webhook processing failed" });
     }
   });
@@ -10294,16 +9508,12 @@ All content must be in English.`;
       // Create message in database
       const newMessage = await storage.createMessage(messageData);
 
-      console.log(
-        `✅ Message created: ${newMessage.id} from ${newMessage.platform}`,
-      );
-
       res.status(201).json({
         success: true,
         message: newMessage,
       });
     } catch (error) {
-      console.error("Error creating message:", error);
+      console.error("Error creating message");
 
       if (error instanceof z.ZodError) {
         return res.status(400).json({
@@ -10314,7 +9524,6 @@ All content must be in English.`;
 
       res.status(500).json({
         message: "Failed to create message",
-        error: error instanceof Error ? error.message : "Unknown error",
       });
     }
   });
@@ -10342,7 +9551,7 @@ All content must be in English.`;
 
         res.json(brandDesign);
       } catch (error) {
-        console.error("Error fetching brand design:", error);
+        console.error("Error fetching brand design");
         res.status(500).json({ message: "Failed to fetch brand design" });
       }
     },
@@ -10355,8 +9564,24 @@ All content must be in English.`;
     async (req: any, res) => {
       try {
         const brandId = req.brandId;
-        const designData = { ...req.body, brandId };
-        console.log("REQ BODY DESIGN DATA:", JSON.stringify(req.body, null, 2));
+        const body = req.body;
+
+        // Validate brand style if provided
+        const validStyles = ["minimalist", "luxury", "fun", "corporate", "creative", "bold"];
+        if (body.brandStyle && !validStyles.includes(body.brandStyle)) {
+          return res.status(400).json({ message: "Invalid brand style" });
+        }
+
+        // Validate hex colors if provided
+        const hexPattern = /^(#[0-9a-fA-F]{3,8}|rgba?\(.*\)|linear-gradient\(.*\))$/;
+        const colorFields = ["colorPrimary", "colorAccent1", "colorAccent2", "colorAccent3", "colorAccent4", "colorText1", "colorText2", "colorText3", "colorText4"];
+        for (const field of colorFields) {
+          if (body[field] && !hexPattern.test(body[field])) {
+            return res.status(400).json({ message: `Invalid color value for ${field}` });
+          }
+        }
+
+        const designData = { ...body, brandId };
 
         const existingDesign = await storage.getBrandDesignByBrandId(brandId);
 
@@ -10368,10 +9593,6 @@ All content must be in English.`;
             preferredLanguage:
               designData.preferredLanguage || existingDesign.preferredLanguage,
           };
-          console.log(
-            "[API /api/brand-design] Preserving preferredLanguage:",
-            updateData.preferredLanguage,
-          );
 
           const updated = await storage.updateBrandDesign(
             existingDesign.id,
@@ -10411,16 +9632,8 @@ All content must be in English.`;
       const dot = rest.lastIndexOf(".");
       const publicId = dot !== -1 ? rest.slice(0, dot) : rest;
 
- console.log("[Server] extractPublicIdFromUrl", {
-        url,
-        afterUpload,
-        afterVersion,
-        rest,
-        publicId,
-      });
       return publicId || null;
     } catch (e) {
- console.log("[Server] extractPublicIdFromUrl error", e);
       return null;
     }
   }
@@ -10434,32 +9647,15 @@ All content must be in English.`;
       const { type } = req.params; // whiteLogo | blackLogo | whiteFavicon | blackFavicon
       const { brandDesignId } = req.query;
 
- console.log("[Server] DELETE /api/brand-design/logo/:type", {
-        brandId,
-        type,
-        brandDesignId,
-        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-        apiKeyPresent: !!process.env.CLOUDINARY_API_KEY,
-      });
-
       try {
         if (!brandDesignId) {
- console.log("[Server] Missing brandDesignId");
           return res.status(400).json({ message: "brandDesignId is required" });
         }
 
         // Get brand design by brandId to validate ownership
         const brandDesign = await storage.getBrandDesignByBrandId(brandId);
- console.log("[Server] brandDesign", {
-          found: !!brandDesign,
-          id: brandDesign?.id,
-        });
 
         if (!brandDesign || brandDesign.id !== brandDesignId) {
- console.log("[Server] Unauthorized to delete this logo", {
-            requested: brandDesignId,
-            actual: brandDesign?.id,
-          });
           return res
             .status(403)
             .json({ message: "Unauthorized to delete this logo" });
@@ -10474,53 +9670,34 @@ All content must be in English.`;
         const fieldName = fieldMap[type];
 
         if (!fieldName) {
- console.log("[Server] Invalid logo type", { type });
           return res.status(400).json({ message: "Invalid logo type" });
         }
 
         const logoUrl = brandDesign[fieldName];
- console.log("[Server] Current logo URL", { fieldName, logoUrl });
 
         if (!logoUrl) {
- console.log("[Server] Logo not found in DB, nothing to delete");
           return res.status(404).json({ message: "Logo not found" });
         }
 
         const publicId = extractPublicIdFromUrl(logoUrl as string);
- console.log("[Server] PublicId computed", { publicId });
 
         if (publicId) {
           try {
             const result = await cloudinary.uploader.destroy(publicId, {
               resource_type: "image",
             });
- console.log("[Server] Cloudinary destroy result", result);
-
             if (result.result !== "ok" && result.result !== "not found") {
               throw new Error(`Cloudinary deletion failed: ${result.result}`);
             }
           } catch (cloudErr) {
-            console.error(
-              "[Server] ❌ Error deleting from Cloudinary:",
-              cloudErr,
-            );
+            console.error("Error deleting logo from Cloudinary:", cloudErr);
             return res.status(500).json({
               message: "Failed to delete logo from Cloudinary",
-              error:
-                cloudErr instanceof Error ? cloudErr.message : "Unknown error",
             });
           }
-        } else {
-          console.log(
-            "[Server] ⚠️ publicId is null — skipping Cloudinary destroy",
-          );
         }
 
         // ⚠️ Aquí, evita mapToDb para updates parciales o usa mapPartialToDb
- console.log("[Server] Updating DB: setting field to null", {
-          brandDesignId,
-          fieldName,
-        });
         const updated = await db
           .update(brandDesigns)
           .set({ [fieldName]: null, updatedAt: new Date() })
@@ -10532,14 +9709,9 @@ All content must be in English.`;
           )
           .returning();
 
- console.log("[Server] DB update result", {
-          updatedCount: updated?.length || 0,
-          updatedRow: updated?.[0]?.id,
-        });
-
         return res.json({ message: `${type} deleted successfully` });
       } catch (error) {
- console.error("[Server] Unexpected error in delete logo:", error);
+        console.error("Error deleting logo:", error);
         return res.status(500).json({ message: "Failed to delete logo" });
       }
     },
@@ -10550,26 +9722,7 @@ All content must be in English.`;
     requireBrand,
     async (req: any, res) => {
       try {
-        const brandId = req.brandId;
-
-        // In a real implementation, this would handle Canva OAuth flow
-        // For now, we'll simulate the connection by returning the existing design
-        const existingDesign = await storage.getBrandDesignByBrandId(brandId);
-
-        if (existingDesign) {
-          res.json({
-            ...existingDesign,
-            isCanvaConnected: true,
-            canvaUserId: "simulated_canva_user",
-            canvaTeamId: "simulated_team",
-          });
-        } else {
-          res.json({
-            isCanvaConnected: true,
-            canvaUserId: "simulated_canva_user",
-            canvaTeamId: "simulated_team",
-          });
-        }
+        res.status(501).json({ message: "Canva integration is not yet available" });
       } catch (error) {
         console.error("Error connecting Canva:", error);
         res.status(500).json({ message: "Failed to connect Canva" });
@@ -10594,9 +9747,24 @@ All content must be in English.`;
           publicId,
           description,
         } = req.body;
- console.log(" BODY recibido:", req.body);
-        if (!brandDesignId || !url || !name) {
-          return res.status(400).json({ error: "Missing required fields" });
+        if (!brandDesignId || !url || !name || !assetType || !publicId) {
+          return res.status(400).json({ error: "Missing required fields (brandDesignId, url, name, assetType, publicId)" });
+        }
+
+        // Validate assetType
+        const validAssetTypes = ["image", "video", "document"];
+        if (!validAssetTypes.includes(assetType)) {
+          return res.status(400).json({ error: "Invalid assetType. Must be: image, video, or document" });
+        }
+
+        // Validate URL format
+        try {
+          const parsed = new URL(url);
+          if (!["http:", "https:"].includes(parsed.protocol)) {
+            return res.status(400).json({ error: "URL must use HTTP or HTTPS" });
+          }
+        } catch {
+          return res.status(400).json({ error: "Invalid URL format" });
         }
 
         // Verify the brand design belongs to this brand
@@ -10608,13 +9776,12 @@ All content must be in English.`;
         const newAsset = await storage.createBrandAsset({
           brandDesignId,
           url,
-          name,
-          category,
+          name: String(name).slice(0, 500),
+          category: category || null,
           assetType,
           publicId,
-          description,
+          description: description ? String(description).slice(0, 2000) : null,
         });
-        console.log("[OK] Insertado en DB:", newAsset);
         res.json(newAsset);
       } catch (error) {
         console.error("Error uploading asset:", error);
@@ -10631,8 +9798,6 @@ All content must be in English.`;
     async (req: any, res) => {
       try {
         const brandId = req.brandId;
- console.log("ch� GET /api/brand-assets");
- console.log(" req.query:", req.query, "req.params:", req.params);
         const { brandDesignId } = req.query;
         if (!brandDesignId) {
           return res.status(400).json({ message: "brandDesignId is required" });
@@ -10646,10 +9811,6 @@ All content must be in English.`;
 
         const assets = await storage.getAssetsByBrandDesignId(
           String(brandDesignId),
-        );
-        console.log(
-          `📦 ${assets.length} asset(s) encontrados para`,
-          brandDesignId,
         );
         res.json(assets);
       } catch (error) {
@@ -10707,11 +9868,6 @@ All content must be in English.`;
               resource_type: resourceType,
             });
 
-            console.log(
-              `☁️ Deleted from Cloudinary: ${asset.publicId} (${resourceType})`,
-              result,
-            );
-
             // Check if Cloudinary deletion was successful
             if (result.result !== "ok" && result.result !== "not found") {
               throw new Error(`Cloudinary deletion failed: ${result.result}`);
@@ -10720,10 +9876,6 @@ All content must be in English.`;
             console.error("Error deleting from Cloudinary:", cloudinaryError);
             return res.status(500).json({
               message: "Failed to delete asset from Cloudinary",
-              error:
-                cloudinaryError instanceof Error
-                  ? cloudinaryError.message
-                  : "Unknown error",
             });
           }
         }
@@ -10735,7 +9887,6 @@ All content must be in English.`;
         );
 
         if (deleted) {
- console.log(` Deleted asset from DB: ${assetId}`);
           res.json({ message: "Asset deleted successfully", asset: deleted });
         } else {
           res.status(404).json({ message: "Asset not found in database" });
@@ -10786,6 +9937,74 @@ All content must be in English.`;
   );
 
   // ============================================
+  // Brand Products CRUD Routes
+  // ============================================
+
+  app.get(
+    "/api/brand-products",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.brandId;
+        const products = await storage.getBrandProducts(brandId);
+        res.json(products);
+      } catch (error) {
+        console.error("Error fetching brand products:", error);
+        res.status(500).json({ message: "Failed to fetch brand products" });
+      }
+    },
+  );
+
+  app.post(
+    "/api/brand-products",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.brandId;
+        const { name, description, price, image } = req.body;
+
+        if (!name || !name.trim()) {
+          return res.status(400).json({ message: "Product name is required" });
+        }
+
+        const product = await storage.createBrandProduct({
+          brandId,
+          name: String(name).trim().slice(0, 500),
+          description: description ? String(description).trim().slice(0, 2000) : null,
+          price: price ? String(price).trim() : null,
+          image: image ? String(image).trim() : null,
+        });
+        res.status(201).json(product);
+      } catch (error) {
+        console.error("Error creating brand product:", error);
+        res.status(500).json({ message: "Failed to create brand product" });
+      }
+    },
+  );
+
+  app.delete(
+    "/api/brand-products/:id",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const brandId = req.brandId;
+        const productId = req.params.id;
+        const deleted = await storage.deleteBrandProduct(productId, brandId);
+        if (!deleted) {
+          return res.status(404).json({ message: "Product not found" });
+        }
+        res.json({ message: "Product deleted successfully" });
+      } catch (error) {
+        console.error("Error deleting brand product:", error);
+        res.status(500).json({ message: "Failed to delete brand product" });
+      }
+    },
+  );
+
+  // ============================================
   // Boosty AI Assistant Routes
   // ============================================
 
@@ -10796,7 +10015,7 @@ All content must be in English.`;
     async (req: any, res) => {
       try {
         const brandId = req.brandId;
-        const userId = req.user.id;
+        const userId = getUserId(req);
         const {
           message,
           conversationHistory,
@@ -10809,12 +10028,16 @@ All content must be in English.`;
           return res.status(400).json({ error: "Message is required" });
         }
 
+        if (message.length > 5000) {
+          return res.status(400).json({ error: "Message too long (max 5000 characters)" });
+        }
+
         const chatResponse = await boostyService.chat(
           brandId,
           userId,
-          message,
+          message.slice(0, 5000),
           conversationHistory || [],
-          language || "es",
+          language || "en",
           attachmentBase64,
           attachmentMimeType,
         );
@@ -10831,17 +10054,24 @@ All content must be in English.`;
     },
   );
 
-  app.post("/api/boosty/transcribe", isAuthenticated, async (req: any, res) => {
+  app.post("/api/boosty/transcribe", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
+      if (!openai) {
+        return res.status(503).json({ error: "Transcription service unavailable" });
+      }
       const { audioBase64, mimeType } = req.body;
-      if (!audioBase64) {
+      if (!audioBase64 || typeof audioBase64 !== "string") {
         return res.status(400).json({ error: "audioBase64 is required" });
+      }
+      // Limit audio to ~10MB base64 (~7.5MB actual file)
+      if (audioBase64.length > 10 * 1024 * 1024) {
+        return res.status(400).json({ error: "Audio file too large (max 10MB)" });
       }
       const buffer = Buffer.from(audioBase64, "base64");
       const file = new File([buffer], "voice-note.webm", {
         type: mimeType || "audio/webm",
       });
-      const transcription = await openai!.audio.transcriptions.create({
+      const transcription = await openai.audio.transcriptions.create({
         file,
         model: "whisper-1",
       });
@@ -10859,8 +10089,8 @@ All content must be in English.`;
     async (req: any, res) => {
       try {
         const brandId = req.brandId;
-        const userId = req.user.id;
-        const language = (req.query.language as string) || "es";
+        const userId = getUserId(req);
+        const language = (req.query.language as "es" | "en") === "es" ? "es" : "en";
 
         const suggestions = await boostyService.getQuickSuggestions(
           brandId,
@@ -10883,7 +10113,7 @@ All content must be in English.`;
     async (req: any, res) => {
       try {
         const brandId = req.brandId;
-        const userId = req.user.id;
+        const userId = getUserId(req);
 
         const context = await boostyService.getBrandContext(brandId, userId);
 
@@ -10912,20 +10142,6 @@ All content must be in English.`;
         accountName: "My Business Page",
         isActive: true,
         accessToken: "demo_token_fb",
-      },
-      {
-        platform: "linkedin",
-        accountId: "li_demo_789",
-        accountName: "My Business",
-        isActive: true,
-        accessToken: "demo_token_li",
-      },
-      {
-        platform: "tiktok",
-        accountId: "tt_demo_012",
-        accountName: "@mybiz",
-        isActive: true,
-        accessToken: "demo_token_tt",
       },
       {
         platform: "x",
@@ -11462,22 +10678,6 @@ All content must be in English.`;
         accessToken: "demo_token_wa",
         refreshToken: "demo_refresh_wa",
       },
-      {
-        platform: "email",
-        accountId: "email_demo_acc3",
-        accountName: "info@mybusiness.com",
-        isActive: true,
-        accessToken: "demo_token_email",
-        refreshToken: "demo_refresh_email",
-      },
-      {
-        platform: "tiktok",
-        accountId: "tt_demo_acc4",
-        accountName: "@mybiz_official",
-        isActive: true,
-        accessToken: "demo_token_tt",
-        refreshToken: "demo_refresh_tt",
-      },
     ];
 
     const createdSocialAccounts: { [platform: string]: string } = {};
@@ -11553,57 +10753,6 @@ All content must be in English.`;
         isRead: false,
       },
 
-      // Email Messages
-      {
-        socialAccountId: createdSocialAccounts.email,
-        senderId: "jessica.smith@email.com",
-        senderName: "Jessica Smith",
-        content:
-          "Subject: Bulk Order Inquiry\n\nHello, I represent a corporate client interested in placing a bulk order for employee gifts. Could you provide pricing for 50+ units? Thanks!",
-        messageType: "text",
-        priority: "high",
-        tags: ["bulk_order", "corporate"],
-        isRead: false,
-      },
-      {
-        socialAccountId: createdSocialAccounts.email,
-        senderId: "alex.taylor@company.com",
-        senderName: "Alex Taylor",
-        content:
-          "Subject: Collaboration Opportunity\n\nHi there! I'm a lifestyle blogger with 50K followers. Would you be interested in a product collaboration? I'd love to feature your brand!",
-        messageType: "text",
-        priority: "normal",
-        tags: ["influencer", "collaboration"],
-        isRead: true,
-      },
-
-      // TikTok Messages
-      {
-        socialAccountId: createdSocialAccounts.tiktok,
-        senderId: "trendy_teen_23",
-        senderName: "Maya Williams",
-        senderAvatar:
-          "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=50&h=50&fit=crop&crop=face",
-        content:
-          "OMG your TikTok is so aesthetic! 💫 Where can I buy that pink hoodie from your last video?? It's perfect!",
-        messageType: "text",
-        priority: "normal",
-        tags: ["product_inquiry", "young_demographic"],
-        isRead: false,
-      },
-      {
-        socialAccountId: createdSocialAccounts.tiktok,
-        senderId: "fashion_lover_99",
-        senderName: "Isabella Garcia",
-        senderAvatar:
-          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50&h=50&fit=crop&crop=face",
-        content:
-          "Your latest TikTok inspired my whole outfit today! 👗 Do you ship internationally? I'm in Canada 🇨🇦",
-        messageType: "text",
-        priority: "normal",
-        tags: ["inspiration", "international_shipping"],
-        isRead: true,
-      },
     ];
 
     for (const messageData of demoConversationsData) {
@@ -11634,29 +10783,46 @@ All content must be in English.`;
     },
   });
 
-  io.on("connection", (socket) => {
- console.log(" Socket.IO client connected:", socket.id);
+  // Share Express session with Socket.IO so we can authenticate socket connections
+  const sessionMiddleware = await getSession();
+  io.engine.use(sessionMiddleware);
 
+  io.on("connection", (socket) => {
     // Handle room joining for brand-specific updates
-    socket.on("join_brand", (brandId: string) => {
-      if (brandId) {
-        const room = `brand:${brandId}`;
-        socket.join(room);
- console.log(` Socket ${socket.id} joined room: ${room}`);
+    socket.on("join_brand", async (brandId: string) => {
+      if (!brandId) return;
+
+      // Validate brand membership via session cookie
+      const req = socket.request as any;
+      const userId = req?.session?.passport?.user?.id || req?.session?.userId;
+      if (!userId) {
+        socket.emit("error", { message: "Authentication required" });
+        return;
+      }
+
+      // Verify user has access to this brand
+      try {
+        const memberships = await storage.getBrandMemberships(userId);
+        const hasMembership = memberships.some((m: any) => m.brandId === brandId);
+        if (!hasMembership) {
+          socket.emit("error", { message: "Not authorized for this brand" });
+          return;
+        }
+        socket.join(`brand:${brandId}`);
+      } catch (_) {
+        socket.emit("error", { message: "Authorization check failed" });
       }
     });
 
     // Handle room leaving
     socket.on("leave_brand", (brandId: string) => {
       if (brandId) {
-        const room = `brand:${brandId}`;
-        socket.leave(room);
- console.log(` Socket ${socket.id} left room: ${room}`);
+        socket.leave(`brand:${brandId}`);
       }
     });
 
     socket.on("disconnect", () => {
-      console.log("[ERROR] Socket.IO client disconnected:", socket.id);
+      // Normal disconnection, no action needed
     });
   });
 

@@ -192,12 +192,6 @@ export default function BrandIdentity() {
   const [isOtherIndustry, setIsOtherIndustry] = useState(false);
   const [customIndustry, setCustomIndustry] = useState("");
   const { refreshBrands, brands, setActiveBrandId, activeBrandId } = useBrand();
-  const [createdBrandId, setCreatedBrandId] = useState<
-    string | number | null
-  >();
-
-  console.log("🏷️ brands:", brands);
-  console.log("🔑 activeBrandId:", activeBrandId);
 
   const selectedBrand = useMemo(() => {
     if (!activeBrandId) return null;
@@ -296,46 +290,6 @@ export default function BrandIdentity() {
 
     updateBrandMutation.mutate({ ...finalData, brandId: activeBrandId });
   };
-
-  useEffect(() => {
-    if (createdBrandId && brands.length > 0) {
-      const existingBrand = brands.find((b: any) => b.id === createdBrandId);
-
-      if (existingBrand) {
-        const industryValue = existingBrand.industry || "";
-        const domainValue = existingBrand.domain || "";
-
-        const isStandardIndustry = INDUSTRY_OPTIONS.some(
-          (option) => option.value === industryValue,
-        );
-
-        if (!isStandardIndustry && industryValue) {
-          setIsOtherIndustry(true);
-          setCustomIndustry(industryValue);
-
-          createForm.reset({
-            name: existingBrand.name || "",
-            industry: "other",
-            description: existingBrand.description || "",
-            preferredLanguage: existingBrand.preferredLanguage || "",
-            brandCategory: existingBrand.brandCategory || "",
-            domain: domainValue,
-          });
-        } else {
-          setIsOtherIndustry(false);
-          setCustomIndustry("");
-          createForm.reset({
-            name: existingBrand.name || "",
-            industry: industryValue,
-            description: existingBrand.description || "",
-            preferredLanguage: existingBrand.preferredLanguage || "",
-            brandCategory: existingBrand.brandCategory || "",
-            domain: domainValue,
-          });
-        }
-      }
-    }
-  }, [createdBrandId, brands]);
 
   return (
     <TabsContent value="information" className="space-y-6 mt-2">
@@ -544,7 +498,6 @@ export default function BrandIdentity() {
                         });
                       }
                     } catch (error) {
-                      console.error("PDF upload error:", error);
                       toast({
                         title: isSpanish ? "Error" : "Error",
                         description: isSpanish
@@ -649,10 +602,6 @@ export default function BrandIdentity() {
                     <Select
                       value={field.value || ""}
                       onValueChange={(value) => {
-                        console.log(
-                          "[preferredLanguage] User selected:",
-                          value,
-                        );
                         field.onChange(value);
                       }}
                     >

@@ -173,7 +173,6 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     description: "Manage messages and posts on Threads (linked to Instagram)",
     category: "social_media",
     fields: [],
-    comingSoon: true,
   },
   tiktok: {
     name: "TikTok",
@@ -198,7 +197,6 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     icon: CreditCard,
     description: "Point of sale and payment processing",
     category: "pos",
-    comingSoon: true,
     fields: [
       {
         name: "accessToken",
@@ -220,7 +218,6 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     icon: CreditCard,
     description: "Online payment processing",
     category: "pos",
-    comingSoon: true,
     fields: [
       {
         name: "secretKey",
@@ -245,7 +242,6 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     category: "pos",
     fields: [],
     oauth: true,
-    comingSoon: true,
   },
 
   // E-commerce Integrations
@@ -254,7 +250,6 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     icon: ShoppingBag,
     description: "E-commerce platform for online stores",
     category: "ecommerce",
-    comingSoon: true,
     fields: [
       {
         name: "storeUrl",
@@ -276,7 +271,6 @@ const INTEGRATION_PROVIDERS: Record<string, ProviderInfo> = {
     icon: Globe,
     description: "WordPress e-commerce plugin",
     category: "ecommerce",
-    comingSoon: true,
     fields: [
       {
         name: "siteUrl",
@@ -1093,8 +1087,10 @@ export default function IntegrationsPage() {
     };
   }, [baileysPollingInterval]);
 
-  // Create integration handler
-  const handleCreateIntegration = () => {
+  // Create integration handler — persists to server via API
+  const [isCreatingIntegration, setIsCreatingIntegration] = useState(false);
+
+  const handleCreateIntegration = async () => {
     if (
       !dialogSelectedCategory ||
       !dialogSelectedProvider ||
@@ -1111,30 +1107,57 @@ export default function IntegrationsPage() {
     }
 
     const providerInfo = INTEGRATION_PROVIDERS[dialogSelectedProvider];
-    const newIntegration: Integration = {
-      id: `int_${dialogSelectedProvider}_${Date.now()}`,
-      provider: dialogSelectedProvider,
-      category: dialogSelectedCategory as Integration["category"],
-      storeName: newIntegrationStoreName,
-      isActive: true,
-      syncEnabled: true,
-      createdAt: new Date().toISOString(),
-      settings: newIntegrationFields,
-      storeUrl:
-        newIntegrationFields.siteUrl ||
-        newIntegrationFields.storeUrl ||
-        undefined,
-    };
 
-    setIntegrations((prev) => [...prev, newIntegration]);
-    setIsAddIntegrationDialogOpen(false);
-    resetDialog();
-    toast({
-      title: isSpanish ? "Integración Creada" : "Integration Created",
-      description: isSpanish
-        ? `${newIntegration.storeName} (${providerInfo.name}) se ha integrado exitosamente.`
-        : `${newIntegration.storeName} (${providerInfo.name}) has been integrated successfully.`,
-    });
+    setIsCreatingIntegration(true);
+    try {
+      const response = await fetch("/api/pos-integrations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          provider: dialogSelectedProvider,
+          storeName: newIntegrationStoreName,
+          storeUrl:
+            newIntegrationFields.siteUrl ||
+            newIntegrationFields.storeUrl ||
+            undefined,
+          accessToken: newIntegrationFields.accessToken || newIntegrationFields.secretKey || undefined,
+          apiKey: newIntegrationFields.apiKey || newIntegrationFields.consumerKey || undefined,
+          brandId: activeBrandId,
+          settings: newIntegrationFields,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || errorData.error || "Failed to create integration",
+        );
+      }
+
+      setIsAddIntegrationDialogOpen(false);
+      resetDialog();
+      fetchIntegrations();
+      toast({
+        title: isSpanish ? "Integración Creada" : "Integration Created",
+        description: isSpanish
+          ? `${newIntegrationStoreName} (${providerInfo.name}) se ha integrado exitosamente.`
+          : `${newIntegrationStoreName} (${providerInfo.name}) has been integrated successfully.`,
+      });
+    } catch (error) {
+      toast({
+        title: isSpanish ? "Error" : "Error",
+        description:
+          error instanceof Error
+            ? error.message
+            : isSpanish
+              ? "No se pudo crear la integración"
+              : "Failed to create integration",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingIntegration(false);
+    }
   };
 
   // Show delete confirmation dialog
