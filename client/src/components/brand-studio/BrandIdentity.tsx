@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Accordion,
   AccordionItem,
@@ -16,7 +17,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Palette, Type, Image, Sparkles, Upload, Trash2 } from "lucide-react";
+import { Palette, Type, Image, Sparkles, Upload, Trash2, MessageSquare, Loader2 } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { ZoomIn } from "lucide-react";
 import ColorPreviewWithPicker from "./ColorPreviewWithPicker";
 import FontPickerDrawer from "./FontSelector";
@@ -787,6 +789,248 @@ export default function BrandIdentity(props: Record<string, any>) {
               : "Save Design"}
         </Button>
       </div>
+
+      {/* Tone of Voice / Brand Essence */}
+      {activeBrandId && <ToneOfVoiceSection brandId={activeBrandId} />}
     </TabsContent>
+  );
+}
+
+const TONE_OPTIONS = [
+  "Professional",
+  "Friendly",
+  "Funny",
+  "Inspirational",
+  "Luxury",
+  "Urgent",
+  "Educational",
+  "Casual",
+  "Chic",
+  "Bold",
+  "Warm",
+  "Sophisticated",
+];
+
+function ToneOfVoiceSection({ brandId }: { brandId: string }) {
+  const { isSpanish } = useLanguage();
+  const queryClient = useQueryClient();
+  const [toneOfVoice, setToneOfVoice] = useState("");
+  const [personality, setPersonality] = useState("");
+  const [emotionalFeel, setEmotionalFeel] = useState("");
+  const [visualKeywords, setVisualKeywords] = useState("");
+  const [brandPromise, setBrandPromise] = useState("");
+  const [initialized, setInitialized] = useState(false);
+
+  const essenceQuery = useQuery({
+    queryKey: [`/api/brands/${brandId}/essence`],
+    queryFn: async () => {
+      const res = await fetch(`/api/brands/${brandId}/essence`, {
+        credentials: "include",
+      });
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!brandId,
+  });
+
+  // Populate state when data loads
+  if (essenceQuery.data && !initialized) {
+    setToneOfVoice(essenceQuery.data.toneOfVoice || "");
+    setPersonality(essenceQuery.data.personality || "");
+    setEmotionalFeel(essenceQuery.data.emotionalFeel || "");
+    setVisualKeywords(essenceQuery.data.visualKeywords || "");
+    setBrandPromise(essenceQuery.data.brandPromise || "");
+    setInitialized(true);
+  }
+
+  // Reset when brand changes
+  const [prevBrandId, setPrevBrandId] = useState(brandId);
+  if (brandId !== prevBrandId) {
+    setPrevBrandId(brandId);
+    setInitialized(false);
+  }
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/brands/${brandId}/essence`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          toneOfVoice,
+          personality,
+          emotionalFeel,
+          visualKeywords,
+          brandPromise,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to save");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [`/api/brands/${brandId}/essence`],
+      });
+      toast({
+        title: isSpanish ? "Guardado" : "Saved",
+        description: isSpanish
+          ? "La voz de tu marca ha sido actualizada."
+          : "Your brand voice has been updated.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: isSpanish
+          ? "No se pudo guardar."
+          : "Failed to save.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const selectedTones = toneOfVoice
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+
+  const toggleTone = (tone: string) => {
+    if (selectedTones.includes(tone)) {
+      setToneOfVoice(selectedTones.filter((t) => t !== tone).join(", "));
+    } else {
+      setToneOfVoice([...selectedTones, tone].join(", "));
+    }
+  };
+
+  return (
+    <Card className="mt-6">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <MessageSquare className="w-5 h-5 text-purple-500" />
+          {isSpanish ? "Voz de la Marca" : "Brand Voice"}
+        </CardTitle>
+        <p className="text-sm text-gray-500">
+          {isSpanish
+            ? "Define el tono y personalidad que se usará al generar contenido con IA."
+            : "Define the tone and personality used when generating AI content."}
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        {/* Tone of Voice */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">
+            {isSpanish ? "Tono de voz" : "Tone of Voice"}
+          </Label>
+          <div className="flex flex-wrap gap-2">
+            {TONE_OPTIONS.map((tone) => (
+              <button
+                key={tone}
+                type="button"
+                onClick={() => toggleTone(tone)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                  selectedTones.includes(tone)
+                    ? "bg-purple-600 text-white border-purple-600"
+                    : "bg-white text-gray-600 border-gray-300 hover:border-purple-400"
+                }`}
+              >
+                {tone}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Personality */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">
+            {isSpanish ? "Personalidad" : "Personality"}
+          </Label>
+          <input
+            type="text"
+            value={personality}
+            onChange={(e) => setPersonality(e.target.value)}
+            placeholder={
+              isSpanish
+                ? "Ej: Moderna, accesible, confiable"
+                : "E.g. Modern, approachable, trustworthy"
+            }
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none"
+          />
+        </div>
+
+        {/* Emotional Feel */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">
+            {isSpanish ? "Sensación emocional" : "Emotional Feel"}
+          </Label>
+          <input
+            type="text"
+            value={emotionalFeel}
+            onChange={(e) => setEmotionalFeel(e.target.value)}
+            placeholder={
+              isSpanish
+                ? "Ej: Inspirador, empoderador, cálido"
+                : "E.g. Inspiring, empowering, warm"
+            }
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none"
+          />
+        </div>
+
+        {/* Visual Keywords */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">
+            {isSpanish ? "Palabras clave visuales" : "Visual Keywords"}
+          </Label>
+          <input
+            type="text"
+            value={visualKeywords}
+            onChange={(e) => setVisualKeywords(e.target.value)}
+            placeholder={
+              isSpanish
+                ? "Ej: Limpio, elegante, vibrante"
+                : "E.g. Clean, elegant, vibrant"
+            }
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none"
+          />
+        </div>
+
+        {/* Brand Promise */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">
+            {isSpanish ? "Promesa de marca" : "Brand Promise"}
+          </Label>
+          <input
+            type="text"
+            value={brandPromise}
+            onChange={(e) => setBrandPromise(e.target.value)}
+            placeholder={
+              isSpanish
+                ? "Ej: Calidad y resultados garantizados"
+                : "E.g. Quality and guaranteed results"
+            }
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none"
+          />
+        </div>
+
+        {/* Save */}
+        <div className="flex justify-end">
+          <Button
+            onClick={() => saveMutation.mutate()}
+            disabled={!toneOfVoice.trim() || saveMutation.isPending}
+            className="bg-purple-600 hover:bg-purple-700 text-white"
+          >
+            {saveMutation.isPending ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                {isSpanish ? "Guardando..." : "Saving..."}
+              </>
+            ) : isSpanish ? (
+              "Guardar Voz de Marca"
+            ) : (
+              "Save Brand Voice"
+            )}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

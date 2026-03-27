@@ -210,37 +210,37 @@ export default function AdsDashboard() {
           </div>
         </div>
 
-        {/* Stats preview row */}
+        {/* Stats preview row — feature not yet available */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             {
               label: isSpanish ? "Plataformas" : "Platforms",
-              value: "4",
-              sub: isSpanish ? "conectadas" : "connected",
+              value: "—",
+              sub: isSpanish ? "no disponible aún" : "not available yet",
               icon: Globe,
               color: "text-blue-500",
               bg: "bg-blue-50",
             },
             {
               label: isSpanish ? "Inversión total" : "Total Spend",
-              value: "$—",
-              sub: isSpanish ? "este mes" : "this month",
+              value: "—",
+              sub: isSpanish ? "no disponible aún" : "not available yet",
               icon: BarChart3,
               color: "text-violet-500",
               bg: "bg-violet-50",
             },
             {
               label: "ROAS",
-              value: "—×",
-              sub: isSpanish ? "promedio" : "average",
+              value: "—",
+              sub: isSpanish ? "no disponible aún" : "not available yet",
               icon: TrendingUp,
               color: "text-emerald-500",
               bg: "bg-emerald-50",
             },
             {
               label: isSpanish ? "Campañas" : "Campaigns",
-              value: "0",
-              sub: isSpanish ? "activas" : "active",
+              value: "—",
+              sub: isSpanish ? "no disponible aún" : "not available yet",
               icon: Megaphone,
               color: "text-amber-500",
               bg: "bg-amber-50",
@@ -256,7 +256,7 @@ export default function AdsDashboard() {
                 <stat.icon className={`w-4 h-4 ${stat.color}`} />
               </div>
               <div>
-                <p className="text-xl font-bold text-gray-900 leading-none">
+                <p className="text-xl font-bold text-gray-400 leading-none">
                   {stat.value}
                 </p>
                 <p className="text-xs text-gray-500 mt-0.5">{stat.label}</p>

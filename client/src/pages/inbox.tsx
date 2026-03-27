@@ -213,7 +213,7 @@ export default function Inbox() {
   const { data: inboxStats, isLoading: statsLoading, error: statsError } = useQuery<InboxStats>({
     queryKey: ["/api/inbox/stats", activeBrandId],
     queryFn: async () => {
-      const res = await fetch(`/api/inbox/stats?brandId=${activeBrandId}`);
+      const res = await fetch(`/api/inbox/stats?brandId=${activeBrandId}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch inbox stats");
       return res.json();
     },
@@ -241,7 +241,8 @@ export default function Inbox() {
 
   async function loadIntegrations() {
     try {
-      const res = await fetch(`/api/integrations?brandId=${activeBrandId}`);
+      const res = await fetch(`/api/integrations?brandId=${activeBrandId}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch integrations");
       const data = await res.json();
       // Filter only messaging integrations
       const messagingIntegrations = data.filter((i: any) =>

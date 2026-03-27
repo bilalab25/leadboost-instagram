@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useLocation, useSearch } from "wouter";
+import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -46,6 +46,16 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { cn } from "@/lib/utils";
 const boosty_face = "/images/boosty_face.png";
 import AdsDashboard from "./ads-dashboard";
+
+function isSafeUrl(url: string | null | undefined): boolean {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url, window.location.origin);
+    return ["https:", "http:", "data:"].includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+}
 
 interface AIGeneratedPost {
   id: string;
@@ -96,7 +106,6 @@ export default function Waterfall() {
   const { activeBrandId } = useBrand();
   const { language } = useLanguage();
   const [, setLocation] = useLocation();
-  const searchString = useSearch();
   const isSpanish = language === "es";
 
   // Welcome carousel modal state
@@ -119,8 +128,12 @@ export default function Waterfall() {
       : "Welcome! I'm Boosty, your AI-powered marketing strategist 🚀. I'm here to help you design strategies, create content, and launch posts that grow your brand. How can I help you today?";
   };
 
+  const msgIdCounter = useRef(0);
+  const nextMsgId = () => String(++msgIdCounter.current);
+
   const [messages, setMessages] = useState<
     {
+      id: string;
       role: "user" | "assistant";
       content: string;
       image?: string;
@@ -129,6 +142,7 @@ export default function Waterfall() {
     }[]
   >([
     {
+      id: "welcome",
       role: "assistant",
       content: getWelcomeMessage(),
     },
@@ -144,12 +158,12 @@ export default function Waterfall() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Query for AI generated posts (for welcome modal)
+  // Query for AI generated posts (for welcome modal) — uses brand-scoped endpoint
   const { data: aiGeneratedPosts } = useQuery<AIGeneratedPost[]>({
-    queryKey: ["/api/ai-generated-posts", activeBrandId],
+    queryKey: ["/api/ai-posts", activeBrandId],
     queryFn: async () => {
       if (!activeBrandId) return [];
-      const response = await fetch(`/api/ai-generated-posts/${activeBrandId}`, {
+      const response = await fetch(`/api/ai-posts`, {
         credentials: "include",
       });
       if (!response.ok) return [];
@@ -194,6 +208,7 @@ export default function Waterfall() {
     queryFn: async () => {
       const response = await fetch(
         `/api/boosty/context?brandId=${activeBrandId}`,
+        { credentials: "include" },
       );
       if (!response.ok) throw new Error("Failed to fetch context");
       return response.json();
@@ -206,6 +221,7 @@ export default function Waterfall() {
     queryFn: async () => {
       const response = await fetch(
         `/api/boosty/suggestions?brandId=${activeBrandId}&language=${language}`,
+        { credentials: "include" },
       );
       if (!response.ok) throw new Error("Failed to fetch suggestions");
       return response.json();
@@ -240,17 +256,18 @@ export default function Waterfall() {
       setMessages((prev) => [
         ...prev,
         {
+          id: nextMsgId(),
           role: "assistant",
           content: data.response,
           image: data.image,
         },
       ]);
     },
-    onError: (error) => {
-      console.error("Chat error:", error);
+    onError: () => {
       setMessages((prev) => [
         ...prev,
         {
+          id: nextMsgId(),
           role: "assistant",
           content:
             language === "es"
@@ -305,7 +322,10 @@ export default function Waterfall() {
     if (attachedFile && attachedFile.type.startsWith("image/")) {
       attachmentBase64 = await toBase64(attachedFile);
       attachmentMimeType = attachedFile.type;
-      attachmentPreviewUrl = URL.createObjectURL(attachedFile);
+      const objectUrl = URL.createObjectURL(attachedFile);
+      attachmentPreviewUrl = objectUrl;
+      // Revoke the object URL after the browser has loaded it (prevent memory leak)
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
       if (!userText)
         userText =
           language === "es" ? "Analiza esta imagen." : "Analyze this image.";
@@ -319,6 +339,7 @@ export default function Waterfall() {
     setMessages((prev) => [
       ...prev,
       {
+        id: nextMsgId(),
         role: "user",
         content: userText,
         attachmentPreview: attachmentPreviewUrl,
@@ -403,8 +424,11 @@ export default function Waterfall() {
   }, []);
 
   useEffect(() => {
+    // Radix ScrollArea: need to find the actual scrollable viewport child
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      const viewport = scrollRef.current.querySelector("[data-radix-scroll-area-viewport]") as HTMLElement | null;
+      const target = viewport || scrollRef.current;
+      target.scrollTop = target.scrollHeight;
     }
   }, [messages, chatMutation.isPending]);
 
@@ -492,9 +516,9 @@ export default function Waterfall() {
                 {/* IMAGE PREVIEW */}
                 <div className="relative">
                   <div className="relative aspect-square rounded-2xl overflow-hidden shadow-2xl bg-gray-100">
-                    {pendingPosts[carouselIndex]?.imageUrl ? (
+                    {isSafeUrl(pendingPosts[carouselIndex]?.imageUrl) ? (
                       <img
-                        src={pendingPosts[carouselIndex].imageUrl}
+                        src={pendingPosts[carouselIndex].imageUrl!}
                         alt={pendingPosts[carouselIndex].titulo}
                         className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                       />
@@ -648,7 +672,7 @@ export default function Waterfall() {
                 <TabsTrigger
                   value="ads"
                   className="flex items-center gap-2 rounded-lg"
-                  data-testid="tab-planner"
+                  data-testid="tab-ads"
                 >
                   <Calendar className="h-4 w-4" />
                   {isSpanish ? "Anuncios" : "Ads"}
@@ -750,9 +774,9 @@ export default function Waterfall() {
                     <ScrollArea ref={scrollRef} className="flex-1 p-6">
                       <div className="space-y-4 max-w-3xl mx-auto">
                         <AnimatePresence>
-                          {messages.map((msg, i) => (
+                          {messages.map((msg) => (
                             <motion.div
-                              key={i}
+                              key={msg.id}
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               className={`flex items-start gap-3 ${
@@ -760,7 +784,7 @@ export default function Waterfall() {
                                   ? "justify-end"
                                   : "justify-start"
                               }`}
-                              data-testid={`message-${msg.role}-${i}`}
+                              data-testid={`message-${msg.role}-${msg.id}`}
                             >
                               {msg.role === "assistant" && (
                                 <img
@@ -791,9 +815,17 @@ export default function Waterfall() {
                                             className="w-full max-w-md rounded-xl shadow-lg object-cover cursor-pointer hover:shadow-xl transition-shadow"
                                             style={{ maxHeight: "400px" }}
                                             data-testid="generated-image"
-                                            onClick={() =>
-                                              window.open(msg.image, "_blank")
-                                            }
+                                            onClick={() => {
+                                              if (msg.image?.startsWith("data:")) {
+                                                // Data URLs can't reliably be opened in new tabs
+                                                const link = document.createElement("a");
+                                                link.href = msg.image;
+                                                link.download = "generated-image.png";
+                                                link.click();
+                                              } else if (isSafeUrl(msg.image)) {
+                                                window.open(msg.image, "_blank");
+                                              }
+                                            }}
                                           />
                                           <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <Badge className="bg-gradient-to-r from-brand-600 to-cyan-500 text-white text-xs">
@@ -859,15 +891,16 @@ export default function Waterfall() {
                                             {...props}
                                           />
                                         ),
-                                        img: ({ src, alt }) => (
-                                          <img
-                                            src={src}
-                                            alt={alt || "Preview"}
-                                            className="w-full max-w-md rounded-lg shadow-md my-3 object-cover"
-                                            style={{ maxHeight: "400px" }}
-                                            data-testid="image-preview"
-                                          />
-                                        ),
+                                        img: ({ src, alt }) =>
+                                          isSafeUrl(src) ? (
+                                            <img
+                                              src={src}
+                                              alt={alt || "Preview"}
+                                              className="w-full max-w-md rounded-lg shadow-md my-3 object-cover"
+                                              style={{ maxHeight: "400px" }}
+                                              data-testid="image-preview"
+                                            />
+                                          ) : null,
                                       }}
                                     >
                                       {msg.content}

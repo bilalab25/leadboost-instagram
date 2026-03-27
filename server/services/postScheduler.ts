@@ -84,6 +84,10 @@ class PostSchedulerService {
       );
 
       for (const post of postsToPublish) {
+        // Safety log: record what date the post was scheduled for vs when we're publishing
+        console.log(
+          `[PostScheduler] Publishing post ${post.id} | platform=${post.platform} | type=${post.type || "image"} | scheduledFor=${post.scheduledPublishTime?.toISOString()} | now=${now.toISOString()}`,
+        );
         const brand = await db
           .select()
           .from(brands)
@@ -221,7 +225,7 @@ class PostSchedulerService {
         published = true;
       }
 
-      // Publish to Instagram
+      // Publish to Instagram (image, carousel, story, reel)
       if (post.platform === "instagram") {
         const isDirect = integration.provider === "instagram_direct";
         const baseUrl = isDirect
@@ -233,24 +237,110 @@ class PostSchedulerService {
           : "";
 
         const finalCaption = (post.content ?? "") + hashtagsString;
+        const postType = post.type || "image";
 
-        const containerParams = new URLSearchParams({
-          image_url: post.imageUrl!,
-          caption: finalCaption,
-          access_token: accessToken,
-        });
+        let containerId: string;
 
-        const containerResponse = await fetch(
-          `${baseUrl}/v24.0/${integration.accountId}/media`,
-          { method: "POST", body: containerParams },
-        );
+        if (postType === "carousel") {
+          // Carousel: imageUrl contains comma-separated URLs
+          const imageUrls = (post.imageUrl || "").split(",").map((u) => u.trim()).filter(Boolean);
+          if (imageUrls.length < 2) {
+            throw new Error("Carousel requires at least 2 images");
+          }
 
-        const containerData = await containerResponse.json();
+          // Step 1: Create individual item containers
+          const childIds: string[] = [];
+          for (const imgUrl of imageUrls) {
+            const itemParams = new URLSearchParams({
+              image_url: imgUrl,
+              is_carousel_item: "true",
+              access_token: accessToken,
+            });
+            const itemRes = await fetch(
+              `${baseUrl}/v24.0/${integration.accountId}/media`,
+              { method: "POST", body: itemParams },
+            );
+            const itemData = await itemRes.json();
+            if (!itemRes.ok || itemData.error) {
+              throw new Error(itemData.error?.message || "Carousel item container failed");
+            }
+            childIds.push(itemData.id);
+          }
 
-        if (!containerResponse.ok || containerData.error) {
-          throw new Error(
-            containerData.error?.message || "Instagram container failed",
+          // Step 2: Create carousel container
+          const carouselParams = new URLSearchParams({
+            media_type: "CAROUSEL",
+            caption: finalCaption,
+            children: childIds.join(","),
+            access_token: accessToken,
+          });
+          const carouselRes = await fetch(
+            `${baseUrl}/v24.0/${integration.accountId}/media`,
+            { method: "POST", body: carouselParams },
           );
+          const carouselData = await carouselRes.json();
+          if (!carouselRes.ok || carouselData.error) {
+            throw new Error(carouselData.error?.message || "Carousel container failed");
+          }
+          containerId = carouselData.id;
+
+        } else if (postType === "story") {
+          // Story: single image or video
+          const isVideo = post.imageUrl?.match(/\.(mp4|mov|avi)(\?|$)/i);
+          const storyParams = new URLSearchParams({
+            media_type: "STORIES",
+            ...(isVideo
+              ? { video_url: post.imageUrl! }
+              : { image_url: post.imageUrl! }),
+            access_token: accessToken,
+          });
+          const storyRes = await fetch(
+            `${baseUrl}/v24.0/${integration.accountId}/media`,
+            { method: "POST", body: storyParams },
+          );
+          const storyData = await storyRes.json();
+          if (!storyRes.ok || storyData.error) {
+            throw new Error(storyData.error?.message || "Story container failed");
+          }
+          containerId = storyData.id;
+
+        } else if (postType === "reel") {
+          // Reel: video only
+          if (!post.imageUrl) {
+            throw new Error("Reel requires a video URL");
+          }
+          const reelParams = new URLSearchParams({
+            media_type: "REELS",
+            video_url: post.imageUrl,
+            caption: finalCaption,
+            access_token: accessToken,
+          });
+          const reelRes = await fetch(
+            `${baseUrl}/v24.0/${integration.accountId}/media`,
+            { method: "POST", body: reelParams },
+          );
+          const reelData = await reelRes.json();
+          if (!reelRes.ok || reelData.error) {
+            throw new Error(reelData.error?.message || "Reel container failed");
+          }
+          containerId = reelData.id;
+
+        } else {
+          // Default: single image post
+          const containerParams = new URLSearchParams({
+            image_url: post.imageUrl!,
+            caption: finalCaption,
+            access_token: accessToken,
+          });
+          const containerResponse = await fetch(
+            `${baseUrl}/v24.0/${integration.accountId}/media`,
+            { method: "POST", body: containerParams },
+          );
+          const containerData = await containerResponse.json();
+          if (!containerResponse.ok || containerData.error) {
+            throw new Error(containerData.error?.message || "Instagram container failed");
+          }
+          containerId = containerData.id;
         }
 
         // Poll for container readiness (10 attempts, 3s interval = 30s max)
@@ -263,7 +353,7 @@ class PostSchedulerService {
               access_token: accessToken,
             });
             const statusRes = await fetch(
-              `${baseUrl}/v24.0/${containerData.id}`,
+              `${baseUrl}/v24.0/${containerId}`,
               { method: "POST", body: statusParams },
             );
             const statusData = await statusRes.json();
@@ -272,20 +362,21 @@ class PostSchedulerService {
               break;
             }
             if (statusData.status_code === "ERROR") {
-              throw new Error("Instagram container processing failed");
+              throw new Error(`Instagram ${postType} container processing failed`);
             }
-          } catch {
-            // Continue polling
+          } catch (pollErr: any) {
+            if (pollErr?.message?.includes("processing failed")) throw pollErr;
+            // Continue polling on network errors
           }
         }
 
         if (!containerReady) {
-          // Fallback: try publishing anyway after polling timeout
-          console.log("[PostScheduler] Container polling timed out, attempting publish");
+          console.log(`[PostScheduler] ${postType} container polling timed out, attempting publish`);
         }
 
+        // Publish the container
         const publishParams = new URLSearchParams({
-          creation_id: containerData.id,
+          creation_id: containerId,
           access_token: accessToken,
         });
 
@@ -298,7 +389,7 @@ class PostSchedulerService {
 
         if (!publishResponse.ok || publishData.error) {
           throw new Error(
-            publishData.error?.message || "Instagram publish failed",
+            publishData.error?.message || `Instagram ${postType} publish failed`,
           );
         }
         published = true;

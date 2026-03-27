@@ -40,6 +40,14 @@ import {
   Sticker,
   Settings2,
   Move,
+  Bold,
+  Italic,
+  Underline,
+  Strikethrough,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Copy,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
@@ -114,6 +122,12 @@ interface EditorElement {
   text?: string;
   fontSize?: number;
   fontFamily?: string;
+  fontStyle?: string; // 'normal' | 'bold' | 'italic' | 'italic bold'
+  textDecoration?: string; // '' | 'underline' | 'line-through'
+  align?: string; // 'left' | 'center' | 'right'
+  letterSpacing?: number;
+  lineHeight?: number;
+  opacity?: number;
   fill?: string;
   stroke?: string;
   strokeWidth?: number;
@@ -139,7 +153,7 @@ const loadGoogleFont = (fontFamily: string) => {
   const link = document.createElement("link");
   link.id = linkId;
   link.rel = "stylesheet";
-  link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@400;700&display=swap`;
+  link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:ital,wght@0,400;0,700;1,400;1,700&display=swap`;
   document.head.appendChild(link);
 };
 
@@ -301,6 +315,12 @@ export default function ImageEditor({
   const [currentStrokeWidth, setCurrentStrokeWidth] = useState(2);
   const [currentFontSize, setCurrentFontSize] = useState(32);
   const [currentFont, setCurrentFont] = useState("Arial");
+  const [currentFontStyle, setCurrentFontStyle] = useState("normal"); // 'normal'|'bold'|'italic'|'italic bold'
+  const [currentTextDecoration, setCurrentTextDecoration] = useState(""); // ''|'underline'|'line-through'
+  const [currentAlign, setCurrentAlign] = useState("left");
+  const [currentLetterSpacing, setCurrentLetterSpacing] = useState(0);
+  const [currentLineHeight, setCurrentLineHeight] = useState(1.2);
+  const [currentOpacity, setCurrentOpacity] = useState(1);
   const [newText, setNewText] = useState("Text");
 
   // Filters
@@ -310,6 +330,182 @@ export default function ImageEditor({
 
   // All available fonts
   const allFonts = [...SYSTEM_FONTS, ...GOOGLE_FONTS];
+
+  // Helper to toggle bold/italic in fontStyle string
+  const toggleFontStyleFlag = (
+    current: string,
+    flag: "bold" | "italic",
+  ): string => {
+    const parts = current.split(" ").filter(Boolean);
+    const hasFlag = parts.includes(flag);
+    const newParts = hasFlag
+      ? parts.filter((p) => p !== flag)
+      : [...parts, flag];
+    return newParts.length === 0 ? "normal" : newParts.join(" ");
+  };
+
+  // Reusable text formatting controls component
+  const TextFormattingControls = ({
+    fontStyle,
+    textDecoration,
+    align,
+    letterSpacing,
+    lineHeight,
+    opacity,
+    onUpdate,
+  }: {
+    fontStyle: string;
+    textDecoration: string;
+    align: string;
+    letterSpacing: number;
+    lineHeight: number;
+    opacity: number;
+    onUpdate: (updates: Partial<EditorElement>) => void;
+  }) => {
+    const isBold = fontStyle.includes("bold");
+    const isItalic = fontStyle.includes("italic");
+    const isUnderline = textDecoration === "underline";
+    const isStrikethrough = textDecoration === "line-through";
+
+    return (
+      <>
+        {/* Bold / Italic / Underline / Strikethrough */}
+        <div className="space-y-1">
+          <Label className="text-xs">Style</Label>
+          <div className="flex gap-1">
+            <Button
+              variant={isBold ? "default" : "outline"}
+              size="sm"
+              className="w-9 h-9 p-0"
+              onClick={() =>
+                onUpdate({
+                  fontStyle: toggleFontStyleFlag(fontStyle, "bold"),
+                })
+              }
+              title="Bold"
+            >
+              <Bold className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={isItalic ? "default" : "outline"}
+              size="sm"
+              className="w-9 h-9 p-0"
+              onClick={() =>
+                onUpdate({
+                  fontStyle: toggleFontStyleFlag(fontStyle, "italic"),
+                })
+              }
+              title="Italic"
+            >
+              <Italic className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={isUnderline ? "default" : "outline"}
+              size="sm"
+              className="w-9 h-9 p-0"
+              onClick={() =>
+                onUpdate({
+                  textDecoration: isUnderline ? "" : "underline",
+                })
+              }
+              title="Underline"
+            >
+              <Underline className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={isStrikethrough ? "default" : "outline"}
+              size="sm"
+              className="w-9 h-9 p-0"
+              onClick={() =>
+                onUpdate({
+                  textDecoration: isStrikethrough ? "" : "line-through",
+                })
+              }
+              title="Strikethrough"
+            >
+              <Strikethrough className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Text Alignment */}
+        <div className="space-y-1">
+          <Label className="text-xs">Alignment</Label>
+          <div className="flex gap-1">
+            <Button
+              variant={align === "left" ? "default" : "outline"}
+              size="sm"
+              className="w-9 h-9 p-0"
+              onClick={() => onUpdate({ align: "left" })}
+              title="Align Left"
+            >
+              <AlignLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={align === "center" ? "default" : "outline"}
+              size="sm"
+              className="w-9 h-9 p-0"
+              onClick={() => onUpdate({ align: "center" })}
+              title="Align Center"
+            >
+              <AlignCenter className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={align === "right" ? "default" : "outline"}
+              size="sm"
+              className="w-9 h-9 p-0"
+              onClick={() => onUpdate({ align: "right" })}
+              title="Align Right"
+            >
+              <AlignRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Letter Spacing */}
+        <div className="flex gap-2 items-center">
+          <Label className="text-xs w-20">Spacing</Label>
+          <Slider
+            value={[letterSpacing]}
+            onValueChange={([v]) => onUpdate({ letterSpacing: v })}
+            min={-5}
+            max={20}
+            step={0.5}
+            className="flex-1"
+          />
+          <span className="text-xs w-8">{letterSpacing}</span>
+        </div>
+
+        {/* Line Height */}
+        <div className="flex gap-2 items-center">
+          <Label className="text-xs w-20">Line Height</Label>
+          <Slider
+            value={[lineHeight]}
+            onValueChange={([v]) => onUpdate({ lineHeight: v })}
+            min={0.5}
+            max={3}
+            step={0.1}
+            className="flex-1"
+          />
+          <span className="text-xs w-8">{lineHeight.toFixed(1)}</span>
+        </div>
+
+        {/* Opacity */}
+        <div className="flex gap-2 items-center">
+          <Label className="text-xs w-20">Opacity</Label>
+          <Slider
+            value={[Math.round(opacity * 100)]}
+            onValueChange={([v]) => onUpdate({ opacity: v / 100 })}
+            min={0}
+            max={100}
+            step={5}
+            className="flex-1"
+          />
+          <span className="text-xs w-8">{Math.round(opacity * 100)}%</span>
+        </div>
+      </>
+    );
+  };
 
   // Load font when selected
   const handleFontChange = (font: string) => {
@@ -407,6 +603,12 @@ export default function ImageEditor({
           text: newText,
           fontSize: currentFontSize,
           fontFamily: currentFont,
+          fontStyle: currentFontStyle,
+          textDecoration: currentTextDecoration,
+          align: currentAlign,
+          letterSpacing: currentLetterSpacing,
+          lineHeight: currentLineHeight,
+          opacity: currentOpacity,
           fill: currentColor,
           draggable: true,
         };
@@ -676,13 +878,20 @@ export default function ImageEditor({
         fontSize: 16,
         fontFamily: "Arial",
         color: "#ffffff",
+        fontWeight: "normal" as string,
+        fontStyle: "normal" as string,
+        textDecoration: "none" as string,
       };
+    const style = el.fontStyle || "normal";
     return {
       left: el.x * renderScale,
       top: el.y * renderScale,
       fontSize: (el.fontSize || 32) * renderScale,
       fontFamily: el.fontFamily || "Arial",
       color: el.fill || "#ffffff",
+      fontWeight: style.includes("bold") ? "bold" : "normal",
+      fontStyle: style.includes("italic") ? "italic" : "normal",
+      textDecoration: el.textDecoration || "none",
     };
   };
 
@@ -860,6 +1069,12 @@ export default function ImageEditor({
                         text={el.text}
                         fontSize={(el.fontSize || 32) * renderScale}
                         fontFamily={el.fontFamily || "Arial"}
+                        fontStyle={el.fontStyle || "normal"}
+                        textDecoration={el.textDecoration || ""}
+                        align={el.align || "left"}
+                        letterSpacing={el.letterSpacing || 0}
+                        lineHeight={el.lineHeight || 1.2}
+                        opacity={el.opacity ?? 1}
                         fill={el.fill || "#ffffff"}
                         draggable={el.draggable}
                         onClick={() => setSelectedId(el.id)}
@@ -986,6 +1201,9 @@ export default function ImageEditor({
                   fontSize: editPos.fontSize,
                   fontFamily: editPos.fontFamily,
                   color: editPos.color,
+                  fontWeight: editPos.fontWeight,
+                  fontStyle: editPos.fontStyle,
+                  textDecoration: editPos.textDecoration,
                   minWidth: 100,
                   minHeight: editPos.fontSize * 1.5,
                 }}
@@ -1062,6 +1280,28 @@ export default function ImageEditor({
                     currentColor={currentColor}
                     onChange={setCurrentColor}
                     label="Color"
+                  />
+                  <TextFormattingControls
+                    fontStyle={currentFontStyle}
+                    textDecoration={currentTextDecoration}
+                    align={currentAlign}
+                    letterSpacing={currentLetterSpacing}
+                    lineHeight={currentLineHeight}
+                    opacity={currentOpacity}
+                    onUpdate={(updates) => {
+                      if (updates.fontStyle !== undefined)
+                        setCurrentFontStyle(updates.fontStyle);
+                      if (updates.textDecoration !== undefined)
+                        setCurrentTextDecoration(updates.textDecoration);
+                      if (updates.align !== undefined)
+                        setCurrentAlign(updates.align);
+                      if (updates.letterSpacing !== undefined)
+                        setCurrentLetterSpacing(updates.letterSpacing);
+                      if (updates.lineHeight !== undefined)
+                        setCurrentLineHeight(updates.lineHeight);
+                      if (updates.opacity !== undefined)
+                        setCurrentOpacity(updates.opacity);
+                    }}
                   />
                   <p className="text-xs text-muted-foreground">
                     Click canvas to add text
@@ -1229,6 +1469,9 @@ export default function ImageEditor({
                           step={2}
                           className="flex-1"
                         />
+                        <span className="text-xs w-8">
+                          {selectedElement.fontSize || 32}
+                        </span>
                       </div>
                       <ColorPalette
                         brandColors={brandColors}
@@ -1238,6 +1481,34 @@ export default function ImageEditor({
                         }
                         label="Color"
                       />
+                      <TextFormattingControls
+                        fontStyle={selectedElement.fontStyle || "normal"}
+                        textDecoration={selectedElement.textDecoration || ""}
+                        align={selectedElement.align || "left"}
+                        letterSpacing={selectedElement.letterSpacing || 0}
+                        lineHeight={selectedElement.lineHeight || 1.2}
+                        opacity={selectedElement.opacity ?? 1}
+                        onUpdate={(updates) =>
+                          updateElement(selectedId!, updates)
+                        }
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full gap-2"
+                        onClick={() => {
+                          const clone: EditorElement = {
+                            ...selectedElement,
+                            id: generateId(),
+                            x: selectedElement.x + 20,
+                            y: selectedElement.y + 20,
+                          };
+                          pushToHistory([...elements, clone]);
+                          setSelectedId(clone.id);
+                        }}
+                      >
+                        <Copy className="h-3 w-3" /> Duplicate
+                      </Button>
                     </>
                   )}
 

@@ -156,6 +156,7 @@ export default function ConversationPanel({
     queryFn: async () => {
       const res = await fetch(
         `/api/customers/by-conversation/${conversationId}?brandId=${activeBrandId}`,
+        { credentials: "include" },
       );
       if (!res.ok) {
         if (res.status === 404) return null;
@@ -185,6 +186,7 @@ export default function ConversationPanel({
         // Fetch conversation details first to get the flag
         const conversationRes = await fetch(
           `/api/conversations/${conversationId}?brandId=${activeBrandId}`,
+          { credentials: "include" },
         );
         if (aborted) return;
         const conversationData = await conversationRes.json();
@@ -200,6 +202,7 @@ export default function ConversationPanel({
 
         const res = await fetch(
           `/api/conversations/${conversationId}/messages?brandId=${activeBrandId}`,
+          { credentials: "include" },
         );
         if (aborted) return;
         const data = await res.json();
@@ -350,6 +353,7 @@ export default function ConversationPanel({
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({ flag }),
         },
       );
@@ -389,6 +393,7 @@ export default function ConversationPanel({
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({
             content: data.content,
             conversationId: conversationId,
@@ -900,28 +905,6 @@ export default function ConversationPanel({
               className="hidden"
               disabled={isMetaConversation && !canSendFacebookMessage}
             />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => fileInputRef.current?.click()}
-              disabled
-              title="Attachments are not supported yet"
-              className="rounded-full flex-shrink-0 opacity-50"
-            >
-              <Paperclip className="h-4 w-4" />
-            </Button>
-
-            {/* Voice recording button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={isRecording ? stopRecording : startRecording}
-              disabled
-              title="Voice notes are not supported yet"
-              className="rounded-full flex-shrink-0 opacity-50"
-            >
-              <Mic className={cn("h-4 w-4", isRecording && "text-red-600")} />
-            </Button>
 
             <div className="flex-1 bg-gray-100 rounded-2xl px-4 py-2">
               <textarea

@@ -34,7 +34,8 @@ import FlowsDashboard from "@/pages/flows-dashboard";
 import Onboarding from "@/pages/onboarding";
 import WhatsAppTemplates from "@/pages/whatsapp-templates";
 import Sales from "@/pages/sales";
-import Boosty from "@/pages/boosty";
+// Boosty chat is now part of the Waterfall/CampAIgner page (campaigns tab)
+// Redirect /boosty to /waterfall for backwards compatibility
 import WaitList from "./pages/waitlist";
 
 function Router() {
@@ -70,7 +71,7 @@ function Router() {
       <PrivateRoute path="/flow-builder/:id" component={FlowBuilder} />
       <PrivateRoute path="/whatsapp-templates" component={WhatsAppTemplates} />
       <PrivateRoute path="/sales" component={Sales} />
-      <PrivateRoute path="/boosty" component={Boosty} />
+      <PrivateRoute path="/boosty" component={CampAIgner} />
 
       {/* 404 */}
       <Route component={NotFound} />

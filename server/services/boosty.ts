@@ -14,9 +14,16 @@ import {
 } from "@shared/schema";
 import { eq, desc, and, gte } from "drizzle-orm";
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY!,
-});
+let _ai: GoogleGenAI | null = null;
+function getAI(): GoogleGenAI {
+  if (!_ai) {
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error("GEMINI_API_KEY environment variable is required");
+    }
+    _ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  }
+  return _ai;
+}
 
 // ========================================
 // EDITORIAL MODE - Types and Interfaces
@@ -711,11 +718,13 @@ ${capabilities}`;
     url: string,
   ): Promise<{ data: string; mimeType: string } | null> {
     try {
-      const response = await fetch(url);
+      // Bug 34: Add 15-second timeout to prevent hanging on slow URLs
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      const response = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeout);
+
       if (!response.ok) {
-        console.log(
-          `[Boosty] Failed to fetch image from ${url}: ${response.status}`,
-        );
         return null;
       }
       const arrayBuffer = await response.arrayBuffer();
@@ -727,7 +736,7 @@ ${capabilities}`;
 
       return { data: base64, mimeType };
     } catch (error) {
-      console.error(`[Boosty] Error fetching image from ${url}:`, error);
+      console.error(`[Boosty] Error fetching image:`, error instanceof Error ? error.message : "Unknown");
       return null;
     }
   }
@@ -801,10 +810,6 @@ ${capabilities}`;
       // In EDITORIAL MODE: Do NOT attach logo (degrades aesthetics)
       // Only attach 0-2 reference images for lighting/color/texture inspiration
       if (editorialMode) {
-        console.log(
-          "[Boosty] EDITORIAL MODE: Skipping logo, limiting reference images to 2",
-        );
-
         // Select limited reference images (0-2) for inspiration only
         if (context.imageAssets && context.imageAssets.length > 0) {
           const assetsToUse = this.pickVisualReferenceAssets(
@@ -812,11 +817,6 @@ ${capabilities}`;
             2,
             true,
           );
-          console.log(
-            `[Boosty Editorial] Using ${assetsToUse.length} reference images for inspiration:`,
-            assetsToUse.map((a) => a.name),
-          );
-
           for (const asset of assetsToUse) {
             const imageData = await this.fetchImageAsBase64(asset.url);
             if (imageData) {
@@ -837,7 +837,6 @@ ${capabilities}`;
           context.design?.logoUrl;
 
         if (logoUrl) {
-          console.log("[Boosty] Adding brand logo as reference:", logoUrl);
           const logoImage = await this.fetchImageAsBase64(logoUrl);
           if (logoImage) {
             contentParts.push({
@@ -920,15 +919,8 @@ Create a professional marketing image suitable for social media.
 
       contentParts.push({ text: enhancedPrompt });
 
-      console.log("[Boosty] Generating image with Gemini...");
-      console.log("[Boosty] Editorial mode:", editorialMode);
-      console.log(
-        "[Boosty] Reference images attached:",
-        contentParts.length - 1,
-      );
-
       // Call Gemini with multimodal content
-      const response = await ai.models.generateContent({
+      const response = await getAI().models.generateContent({
         model: "gemini-3-pro-image-preview",
         contents: contentParts,
         config: {
@@ -943,13 +935,11 @@ Create a professional marketing image suitable for social media.
             const base64Image = part.inlineData.data;
             const mimeType = part.inlineData.mimeType || "image/png";
             const dataUrl = `data:${mimeType};base64,${base64Image}`;
-            console.log("[Boosty] Editorial image generated successfully!");
             return dataUrl;
           }
         }
       }
 
-      console.log("[Boosty] No image in response");
       return null;
     } catch (error) {
       console.error("[Boosty] Error generating image:", error);
@@ -1028,9 +1018,6 @@ Create a professional marketing image suitable for social media.
       context.design?.brandStyle || "",
     );
     const preset = getEditorialPreset(context, allContext);
-
-    console.log("[Boosty] Editorial mode:", editorialMode);
-    console.log("[Boosty] Preset:", preset);
 
     // Extract promotion details
     const promoMatch = allContext.match(/(\d+x\d+|2x1|3x2)/gi);
@@ -1130,13 +1117,8 @@ Generate a JSON with:
 
 Respond ONLY with valid JSON.`;
 
-    console.log(
-      "[Boosty] Generating image prompt, editorialMode:",
-      editorialMode,
-    );
-
     try {
-      const response = await ai.models.generateContent({
+      const response = await getAI().models.generateContent({
         model: "gemini-2.5-flash",
         contents: prompt,
         config: {
@@ -1146,8 +1128,6 @@ Respond ONLY with valid JSON.`;
       });
 
       const text = response.text || "";
-      console.log("[Boosty] Gemini response:", text.substring(0, 500));
-
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
@@ -1168,12 +1148,6 @@ Respond ONLY with valid JSON.`;
               theme: "light",
             },
           );
-
-          console.log(
-            "[Boosty] Editorial basePhotoPrompt:",
-            basePhotoPrompt.substring(0, 200),
-          );
-          console.log("[Boosty] layoutPlan:", JSON.stringify(layoutPlan));
 
           return {
             basePhotoPrompt,
@@ -1208,10 +1182,8 @@ Respond ONLY with valid JSON.`;
 
     // Fallback based on mode
     if (editorialMode) {
-      console.log("[Boosty] Using editorial fallback");
       return this.buildEditorialFallback(userMessage, context, preset);
     } else {
-      console.log("[Boosty] Using non-editorial fallback");
       return {
         basePhotoPrompt: `Professional marketing image for ${context.brand.name}. ${userMessage}. Style: ${context.design?.brandStyle || "modern"}. Colors: ${colorPalette}.`,
         layoutPlan: {
@@ -1234,7 +1206,7 @@ Respond ONLY with valid JSON.`;
     userId: string,
     message: string,
     conversationHistory: ChatMessage[] = [],
-    language: "es" | "en" = "es",
+    language: "es" | "en" = "en",
     attachmentBase64?: string,
     attachmentMimeType?: string,
   ): Promise<ChatResponse> {
@@ -1243,10 +1215,6 @@ Respond ONLY with valid JSON.`;
     const wantsImage = this.isImageRequest(message, language);
 
     if (wantsImage) {
-      console.log(
-        "[Boosty] Image request detected, generating editorial image...",
-      );
-
       const promptResult = await this.generateImagePrompt(
         message,
         context,
@@ -1256,9 +1224,6 @@ Respond ONLY with valid JSON.`;
 
       const { basePhotoPrompt, layoutPlan, caption, hashtags, editorialMode } =
         promptResult;
-
-      console.log("[Boosty] Editorial mode:", editorialMode);
-      console.log("[Boosty] Layout plan:", JSON.stringify(layoutPlan));
 
       const generatedImage = await this.generateImage(
         basePhotoPrompt,
@@ -1294,22 +1259,11 @@ Respond ONLY with valid JSON.`;
       }
     }
 
-    const messages = [
-      { role: "user" as const, parts: [{ text: systemPrompt }] },
-      {
-        role: "model" as const,
-        parts: [
-          {
-            text:
-              language === "es"
-                ? "¡Hola! Soy Boosty, tu asistente de marketing. 🚀 Conozco todo sobre tu marca y estoy listo para ayudarte. ¿En qué puedo asistirte hoy?"
-                : "Hello! I'm Boosty, your marketing assistant. 🚀 I know everything about your brand and I'm ready to help. How can I assist you today?",
-          },
-        ],
-      },
-    ];
+    // Build conversation history (limit to last 20 messages to avoid context overflow — Bug 30)
+    const trimmedHistory = conversationHistory.slice(-20);
+    const messages: any[] = [];
 
-    for (const msg of conversationHistory) {
+    for (const msg of trimmedHistory) {
       messages.push({
         role: msg.role === "user" ? ("user" as const) : ("model" as const),
         parts: [{ text: msg.content }],
@@ -1331,10 +1285,12 @@ Respond ONLY with valid JSON.`;
     });
 
     try {
-      const response = await ai.models.generateContent({
+      const response = await getAI().models.generateContent({
         model: "gemini-2.5-flash",
         contents: messages,
         config: {
+          // Bug 19: Use systemInstruction instead of injecting as user message
+          systemInstruction: systemPrompt,
           temperature: 0.8,
           maxOutputTokens: 2048,
         },
@@ -1356,7 +1312,7 @@ Respond ONLY with valid JSON.`;
   async getQuickSuggestions(
     brandId: string,
     userId: string,
-    language: "es" | "en" = "es",
+    language: "es" | "en" = "en",
   ): Promise<string[]> {
     const context = await this.getBrandContext(brandId, userId);
 

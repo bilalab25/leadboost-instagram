@@ -8159,6 +8159,7 @@ All content must be in English.`;
           content,
           hashtags,
           scheduledPublishTime,
+          type,
         } = req.body;
 
         if (!imageUrl) {
@@ -8200,6 +8201,8 @@ All content must be in English.`;
           hashtags: hashtags || "",
           status: "accepted",
           isSample: false,
+          type: type || "image",
+          scheduledPublishTime: scheduledPublishTime || null,
         });
 
         const { updateAiGeneratedPostStatus } = await import(
@@ -10827,6 +10830,39 @@ All content must be in English.`;
   });
 
   // ─── Brand Products ─────────────────────────────────────────────────────────
+
+  // Brand Essence (Tone of Voice, Personality, etc.)
+  app.get("/api/brands/:brandId/essence", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const brandId = req.params.brandId;
+      const essence = await storage.getBrandEssence(brandId);
+      res.json(essence || null);
+    } catch (err) {
+      console.error("GET /api/brands/:brandId/essence error:", err);
+      res.status(500).json({ error: "Failed to fetch brand essence" });
+    }
+  });
+
+  app.put("/api/brands/:brandId/essence", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const brandId = req.params.brandId;
+      const { toneOfVoice, personality, emotionalFeel, visualKeywords, brandPromise } = req.body;
+      if (!toneOfVoice?.trim()) {
+        return res.status(400).json({ error: "Tone of voice is required" });
+      }
+      const essence = await storage.createOrUpdateBrandEssence(brandId, {
+        toneOfVoice: toneOfVoice.trim(),
+        personality: personality?.trim() || "",
+        emotionalFeel: emotionalFeel?.trim() || "",
+        visualKeywords: visualKeywords?.trim() || "",
+        brandPromise: brandPromise?.trim() || "",
+      });
+      res.json(essence);
+    } catch (err) {
+      console.error("PUT /api/brands/:brandId/essence error:", err);
+      res.status(500).json({ error: "Failed to save brand essence" });
+    }
+  });
 
   app.get("/api/brands/:brandId/products", isAuthenticated, requireBrand, async (req, res) => {
     try {

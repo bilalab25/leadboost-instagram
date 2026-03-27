@@ -25,17 +25,20 @@ function enforceLanguage(
 ): GeneratedPost[] {
   if (lang === "en") return posts;
 
-  const forbiddenEnglish =
-    /\b(the|and|with|for|your|you|new|best|now|shop|sale)\b/i;
+  // Only filter posts where the majority of content words are common English.
+  // Check titulo + content only — hashtags often contain English loan words.
+  const commonEnglishWords = /\b(the|and|with|for|your|you|from|this|that|have|are|was|were|will|been|about|would|could|should|their|which|there|these|those|other|into|some|than|them|each|make|like|just|over|such|take|also|back|after|only|come|made|find|here|know|want|give|most|very)\b/gi;
 
   const filtered = posts.filter((p) => {
-    const combined = `${p.titulo} ${p.content} ${p.hashtags}`.toLowerCase();
-    return !forbiddenEnglish.test(combined);
+    const text = `${p.titulo} ${p.content}`.toLowerCase();
+    const words = text.split(/\s+/).filter((w) => w.length > 2);
+    if (words.length === 0) return true;
+    const matches = text.match(commonEnglishWords) || [];
+    return matches.length / words.length < 0.4;
   });
+
   if (filtered.length === 0) {
-    console.warn(
-      `[PostGenerator] Language enforcement removed all posts. Returning original posts.`,
-    );
+    console.warn("[PostGenerator] Language enforcement removed all posts. Returning originals.");
     return posts;
   }
 
@@ -75,10 +78,16 @@ const openai = process.env.OPENAI_API_KEY
   ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   : null;
 
-// Using your own Gemini API key from Google AI Studio
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY!,
-});
+let _ai: GoogleGenAI | null = null;
+function getAI(): GoogleGenAI {
+  if (!_ai) {
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error("GEMINI_API_KEY environment variable is required");
+    }
+    _ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  }
+  return _ai;
+}
 
 export interface MetaInsights {
   reach?: number;
@@ -282,7 +291,6 @@ async function fetchMetaInsights(
     const accountId = integration.accountId;
 
     if (!accessToken || !accountId) {
-      console.log("[PostGenerator] No access token or account ID for insights");
       return null;
     }
 
@@ -309,7 +317,7 @@ async function fetchMetaInsights(
           });
         }
       } catch (err) {
-        console.log("[PostGenerator] Could not fetch Instagram metrics:", err);
+        // Could not fetch Instagram metrics
       }
 
       try {
@@ -318,7 +326,7 @@ async function fetchMetaInsights(
         const followersData = await followersRes.json();
 
         if (followersData?.data?.[0]?.values?.[0]?.value) {
-          insights.onlineFollowers = followersData.data[0].values[0].value;
+          insights.onlineFollowers = followersData?.data?.[0]?.values?.[0]?.value;
 
           const hourlyData = insights.onlineFollowers;
           if (hourlyData) {
@@ -333,7 +341,7 @@ async function fetchMetaInsights(
           }
         }
       } catch (err) {
-        console.log("[PostGenerator] Could not fetch online_followers:", err);
+        // Could not fetch online_followers
       }
     }
 
@@ -356,7 +364,7 @@ async function fetchMetaInsights(
           });
         }
       } catch (err) {
-        console.log("[PostGenerator] Could not fetch Facebook insights:", err);
+        // Could not fetch Facebook insights
       }
     }
 
@@ -928,13 +936,11 @@ Return ONLY valid JSON:
 
 // Helper function to clean and parse JSON from LLM response
 function cleanAndParseJson(text: string): any {
-  console.log("[PostGenerator] Raw response length:", text?.length || 0);
-
   // Try direct parse first
   try {
     return JSON.parse(text);
   } catch (e) {
-    console.log("[PostGenerator] Direct parse failed, attempting cleanup");
+    // Direct parse failed, attempting cleanup
   }
 
   // Remove markdown code blocks
@@ -960,12 +966,6 @@ function cleanAndParseJson(text: string): any {
   try {
     return JSON.parse(cleaned);
   } catch (e) {
-    console.log("[PostGenerator] JSON cleanup failed, trying array extraction");
-    console.log(
-      "[PostGenerator] Cleaned text sample:",
-      cleaned.substring(0, 500),
-    );
-
     // Try to extract just the posts array with greedy matching
     const arrayMatch = cleaned.match(/"posts"\s*:\s*\[([\s\S]*)\]/);
     if (arrayMatch) {
@@ -975,9 +975,7 @@ function cleanAndParseJson(text: string): any {
         const posts = JSON.parse(`[${arrayContent}]`);
         return { posts };
       } catch (e2) {
-        console.log(
-          "[PostGenerator] Array extraction failed, trying individual posts",
-        );
+        // Array extraction failed, trying individual posts
       }
     }
 
@@ -1000,9 +998,6 @@ function cleanAndParseJson(text: string): any {
     }
 
     if (posts.length > 0) {
-      console.log(
-        `[PostGenerator] Recovered ${posts.length} posts from fragmented response`,
-      );
       return { posts };
     }
 
@@ -1027,9 +1022,6 @@ function cleanAndParseJson(text: string): any {
       }
 
       if (posts.length > 0) {
-        console.log(
-          `[PostGenerator] Recovered ${posts.length} posts from split response`,
-        );
         return { posts };
       }
     }
@@ -1080,10 +1072,6 @@ function findMatchingBrace(str: string, start: number): number {
 export async function generatePostsWithGemini(
   context: PostGenerationContext,
 ): Promise<any> {
-  console.log(
-    `[PostGenerator] Gemini generation mode: ${context.generationMode ?? "full"}`,
-  );
-
   const preferredLanguage =
     context.preferredLanguage || context.brandDesign.preferredLanguage || "en";
 
@@ -1098,7 +1086,7 @@ export async function generatePostsWithGemini(
     if (generationMode === "full") {
       const prompt = buildTextPrompt(context);
 
-      const response = await ai.models.generateContent({
+      const response = await getAI().models.generateContent({
         model: "gemini-2.5-flash",
         contents: prompt,
         config: {
@@ -1119,7 +1107,7 @@ export async function generatePostsWithGemini(
     if (generationMode === "skeleton") {
       const prompt = buildPostsSkeletonPrompt(context);
 
-      const response = await ai.models.generateContent({
+      const response = await getAI().models.generateContent({
         model: "gemini-2.5-flash",
         contents: prompt,
         config: {
@@ -1144,7 +1132,10 @@ export async function generatePostsWithGemini(
 
       const prompt = buildTextFromImageVisionPrompt(context);
 
-      const response = await ai.models.generateContent({
+      // Detect mimeType from data URL prefix or default to image/png
+      const visionMimeType = context.imageDataUrl.match(/^data:([^;]+);base64,/)?.[1] || "image/png";
+
+      const response = await getAI().models.generateContent({
         model: "gemini-2.5-flash",
         contents: [
           {
@@ -1152,7 +1143,7 @@ export async function generatePostsWithGemini(
             parts: [
               {
                 inlineData: {
-                  mimeType: "image/png",
+                  mimeType: visionMimeType,
                   data: context.imageDataUrl,
                 },
               },
@@ -1198,9 +1189,6 @@ async function fetchImageAsBase64(
   try {
     const response = await fetch(url);
     if (!response.ok) {
-      console.log(
-        `[PostGenerator] Failed to fetch image from ${url}: ${response.status}`,
-      );
       return null;
     }
     const arrayBuffer = await response.arrayBuffer();
@@ -1254,16 +1242,8 @@ function pickAssetsForMode(
     categoryUsageCache.set(cacheKey, {});
   }
 
-  const usageTracker = assetUsageCache.get(cacheKey)!;
-  const categoryTracker = categoryUsageCache.get(cacheKey)!;
-
-  console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-  console.log(`[PostGenerator] 🎯 ASSET SELECTION for mode: ${mode}`);
-  console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-  console.log(`📦 Available pool:`);
-  console.log(`   - Products: ${allProducts.length}`);
-  console.log(`   - Templates: ${allTemplates.length}`);
-  console.log(`   - Locations: ${allLocations.length}`);
+  const usageTracker = assetUsageCache.get(cacheKey) || {};
+  const categoryTracker = categoryUsageCache.get(cacheKey) || {};
 
   // ✅ NUEVA ESTRATEGIA: 90% individual usage, 10% category usage
   const selectLeastUsedWithPriority = <T extends BrandAssetForImage>(
@@ -1271,7 +1251,6 @@ function pickAssetsForMode(
     assetType: string,
   ): T | null => {
     if (arr.length === 0) {
-      console.log(`   ⚠️ No ${assetType} assets available`);
       return null;
     }
 
@@ -1288,11 +1267,6 @@ function pickAssetsForMode(
         categoryTracker[single.category]++;
       }
 
-      console.log(`   ✅ ${assetType}: "${single.name}" [${single.category}]`);
-      console.log(
-        `      Usage: ${usageTracker[single.url]} times | Category: ${categoryTracker[single.category || ""]} times`,
-      );
-
       return single;
     }
 
@@ -1304,14 +1278,6 @@ function pickAssetsForMode(
       if (item.category && !(item.category in categoryTracker)) {
         categoryTracker[item.category] = 0;
       }
-    });
-
-    // Log current usage before selection
-    console.log(`\n   📊 Current ${assetType} usage:`);
-    arr.forEach((item) => {
-      const usage = usageTracker[item.url] || 0;
-      const catUsage = item.category ? categoryTracker[item.category] || 0 : 0;
-      console.log(`      - ${item.name}: ${usage}x (category: ${catUsage}x)`);
     });
 
     // ✅ PRIORITY SORTING:
@@ -1347,15 +1313,6 @@ function pickAssetsForMode(
         (categoryTracker[selected.category] || 0) + 1;
     }
 
-    console.log(
-      `\n   ✅ SELECTED ${assetType}: "${selected.name}" [${selected.category}]`,
-    );
-    console.log(`      Asset usage: ${usageTracker[selected.url]} times`);
-    console.log(
-      `      Category usage: ${categoryTracker[selected.category || ""]} times`,
-    );
-    console.log(`      Pool size: ${arr.length} ${assetType} assets available`);
-
     return selected;
   };
 
@@ -1370,8 +1327,6 @@ function pickAssetsForMode(
   if (mode === "lifestyle" || mode === "venue_showcase") {
     location = selectLeastUsedWithPriority(allLocations, "LOCATION");
   }
-
-  console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
 
   return {
     product,
@@ -1426,8 +1381,8 @@ function pickVisualReferenceAssets(
     categoryUsageCache.set(cacheKey, {});
   }
 
-  const usageTracker = assetUsageCache.get(cacheKey)!;
-  const categoryTracker = categoryUsageCache.get(cacheKey)!;
+  const usageTracker = assetUsageCache.get(cacheKey) || {};
+  const categoryTracker = categoryUsageCache.get(cacheKey) || {};
 
   // Initialize usage counts
   visualAssets.forEach((asset) => {
@@ -1452,12 +1407,6 @@ function pickVisualReferenceAssets(
 
   const categories = Object.keys(assetsByCategory);
   const selected: BrandAssetForImage[] = [];
-
-  console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-  console.log(`[PostGenerator] 🎨 Selecting visual reference assets`);
-  console.log(`   Available categories: ${categories.join(", ")}`);
-  console.log(`   Total assets: ${visualAssets.length}`);
-  console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
 
   // STRATEGY: Rotate between categories, picking least-used asset from least-used category
   while (selected.length < count && selected.length < visualAssets.length) {
@@ -1511,14 +1460,7 @@ function pickVisualReferenceAssets(
         (categoryTracker[selectedAsset.category] || 0) + 1;
     }
 
-    console.log(
-      `   ✅ [${selected.length}/${count}] "${selectedAsset.name}"`,
-      `\n      Category: ${selectedAsset.category}`,
-      `\n      Usage: ${usageTracker[selectedAsset.url]} times (category: ${categoryTracker[selectedAsset.category || ""]})`,
-    );
   }
-
-  console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
 
   return selected;
 }
@@ -1655,13 +1597,9 @@ export async function generateImageWithGeminiNanoBanana({
   };
 }): Promise<string | null> {
   try {
-    console.log("🚀 [NanoBanana] Iniciando generación estilo Holo...");
-
     const brandId = brandAssets[0]?.url?.match(/brands\/([^/]+)/)?.[1];
     const mode = selectVisualMode(brandAssets);
     const modeAssets = pickAssetsForMode(mode, brandAssets, brandId);
-
-    console.log("🛠️ [Modo]:", mode);
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // PASO 1: CONSTRUCCIÓN DE REFERENCIAS VISUALES (ESTILO HOLO)
@@ -1673,18 +1611,32 @@ export async function generateImageWithGeminiNanoBanana({
       instruction: string;
     }> = [];
 
-    // 1️⃣ LOGO (siempre primero)
+    // 1️⃣-4️⃣ Fetch all asset images in parallel
     const logoUrl =
       brandDesign.whiteLogoUrl ||
       brandDesign.blackLogoUrl ||
       brandDesign.logoUrl;
-    if (logoUrl) {
-      const logoImg = await fetchImageAsBase64(logoUrl);
-      if (logoImg) {
-        visualReferences.push({
-          role: "LOGO",
-          imageData: logoImg,
-          instruction: `🏷️ BRAND LOGO - MANDATORY INTEGRATION
+
+    const needsTemplate =
+      (mode === "campaign_template" || mode === "inspiration_based") &&
+      modeAssets.template;
+    const needsLocation =
+      (mode === "lifestyle" || mode === "venue_showcase") &&
+      modeAssets.location;
+
+    const [logoImg, productImg, templateImg, locationImg] = await Promise.all([
+      logoUrl ? fetchImageAsBase64(logoUrl) : Promise.resolve(null),
+      modeAssets.product ? fetchImageAsBase64(modeAssets.product.url) : Promise.resolve(null),
+      needsTemplate ? fetchImageAsBase64(modeAssets.template!.url) : Promise.resolve(null),
+      needsLocation ? fetchImageAsBase64(modeAssets.location!.url) : Promise.resolve(null),
+    ]);
+
+    // 1️⃣ LOGO (siempre primero)
+    if (logoImg) {
+      visualReferences.push({
+        role: "LOGO",
+        imageData: logoImg,
+        instruction: `🏷️ BRAND LOGO - MANDATORY INTEGRATION
 This is the official brand mark that MUST appear in the final image.
 
 TYPOGRAPHY & FIDELITY (CRITICAL):
@@ -1709,18 +1661,15 @@ ALLOWED METHODS:
 • Tag (for jewelry/apparel)
 
 CRITICAL: If you cannot integrate this logo physically WITH CORRECT PROPORTIONS, the image is INVALID.`,
-        });
-      }
+      });
     }
 
     // 2️⃣ PRODUCTO (si existe)
-    if (modeAssets.product) {
-      const productImg = await fetchImageAsBase64(modeAssets.product.url);
-      if (productImg) {
-        visualReferences.push({
-          role: "PRODUCT",
-          imageData: productImg,
-          instruction: `🍎 PRODUCT REFERENCE - 100% FIDELITY REQUIRED
+    if (productImg) {
+      visualReferences.push({
+        role: "PRODUCT",
+        imageData: productImg,
+        instruction: `🍎 PRODUCT REFERENCE - 100% FIDELITY REQUIRED
 This is the PRIMARY SUBJECT of the image.
 
 FIDELITY RULES (ABSOLUTE):
@@ -1730,21 +1679,15 @@ FIDELITY RULES (ABSOLUTE):
 - Product must look PHYSICALLY PRESENT (with natural shadows)
 
 The product shown here is the ONLY product you can use.`,
-        });
-      }
+      });
     }
 
     // 3️⃣ TEMPLATE (si existe - solo para composición)
-    if (
-      (mode === "campaign_template" || mode === "inspiration_based") &&
-      modeAssets.template
-    ) {
-      const templateImg = await fetchImageAsBase64(modeAssets.template.url);
-      if (templateImg) {
-        visualReferences.push({
-          role: "TEMPLATE",
-          imageData: templateImg,
-          instruction: `🎨 COMPOSITION TEMPLATE - INSPIRATION ONLY
+    if (templateImg) {
+      visualReferences.push({
+        role: "TEMPLATE",
+        imageData: templateImg,
+        instruction: `🎨 COMPOSITION TEMPLATE - INSPIRATION ONLY
 Use this ONLY for visual style guidance. DO NOT copy elements.
 
 WHAT TO EXTRACT:
@@ -1765,21 +1708,15 @@ PROCESS:
 2. Extract the color palette
 3. Identify composition principles
 4. Create a NEW scene with DIFFERENT elements but SIMILAR feel`,
-        });
-      }
+      });
     }
 
     // 4️⃣ LOCATION (si existe - preservar)
-    if (
-      (mode === "lifestyle" || mode === "venue_showcase") &&
-      modeAssets.location
-    ) {
-      const locationImg = await fetchImageAsBase64(modeAssets.location.url);
-      if (locationImg) {
-        visualReferences.push({
-          role: "LOCATION",
-          imageData: locationImg,
-          instruction: `🏠 LOCATION REFERENCE - PRESERVE AS-IS
+    if (locationImg) {
+      visualReferences.push({
+        role: "LOCATION",
+        imageData: locationImg,
+        instruction: `🏠 LOCATION REFERENCE - PRESERVE AS-IS
 This represents a REAL PHYSICAL SPACE. DO NOT ALTER.
 
 PRESERVATION RULES (CRITICAL):
@@ -1793,8 +1730,7 @@ PRESERVATION RULES (CRITICAL):
 - Atmosphere/mood (without changing physical elements)
 
 The space must remain recognizable as the original location.`,
-        });
-      }
+      });
     }
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1888,22 +1824,13 @@ If ANY item is ❌, DO NOT generate. Adjust and verify again.
     // Agregar el prompt principal al final
     contentParts.push({ text: structuredPrompt });
 
-    console.log(`📊 [Content Parts]: ${contentParts.length} elementos`);
-    console.log(
-      `🖼️ [Visual References]: ${visualReferences.map((r) => r.role).join(", ")}`,
-    );
-
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // PASO 4: GENERACIÓN CON GEMINI
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    // 🔍 LOG: Verificar orden de imágenes y prompt
-    console.log("📝 [Total Content Parts]:", contentParts.length);
-    console.log("📝 [Prompt Final]:", structuredPrompt);
-
     contentParts.push({ text: structuredPrompt });
 
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: "gemini-2.5-flash-image",
       contents: contentParts,
       config: {
@@ -1915,7 +1842,6 @@ If ANY item is ❌, DO NOT generate. Adjust and verify again.
     const parts = response.candidates?.[0]?.content?.parts || [];
     for (const part of parts) {
       if (part.inlineData?.data) {
-        console.log("✅ [NanoBanana] Imagen generada con éxito (estilo Holo)");
         return `data:${part.inlineData.mimeType || "image/png"};base64,${part.inlineData.data}`;
       }
     }
@@ -2087,7 +2013,6 @@ ${logoPlacementBlock}
     ${styleSynthesisBlock}
     `;
 
-    console.log("[PostGenerator] Generating image with Nano Banana...");
     const contentParts: any[] = [];
 
     if (brandDesign.logoUrl) {
@@ -2099,9 +2024,6 @@ ${logoPlacementBlock}
             mimeType: logoImage.mimeType,
           },
         });
-        console.log(
-          "[PostGenerator] Added brand logo as visual source of truth",
-        );
       }
     }
 
@@ -2112,11 +2034,6 @@ ${logoPlacementBlock}
       // ✅ Use intelligent category-balanced rotation
       const assetsToUse = pickVisualReferenceAssets(brandAssets, 3, brandId);
 
-      console.log(
-        `[PostGenerator] Using intelligently rotated brand assets:`,
-        assetsToUse.map((a) => a.name),
-      );
-
       for (const asset of assetsToUse) {
         const imageData = await fetchImageAsBase64(asset.url);
         if (imageData) {
@@ -2126,9 +2043,6 @@ ${logoPlacementBlock}
               mimeType: imageData.mimeType,
             },
           });
-          console.log(
-            `[PostGenerator] Added asset "${asset.name}" as reference`,
-          );
         }
       }
 
@@ -2159,7 +2073,7 @@ ${logoPlacementBlock}
       contentParts.push({ text: enhancedPrompt });
     }
 
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: "gemini-2.5-flash-image",
       contents: contentParts,
       config: {
@@ -2173,13 +2087,11 @@ ${logoPlacementBlock}
           const base64Image = part.inlineData.data;
           const mimeType = part.inlineData.mimeType || "image/png";
           const dataUrl = `data:${mimeType};base64,${base64Image}`;
-          console.log("[PostGenerator] Image generated successfully");
           return dataUrl;
         }
       }
     }
 
-    console.log("[PostGenerator] No image in response");
     return null;
   } catch (error) {
     console.error("[PostGenerator] Error generating image:", error);
@@ -2192,13 +2104,9 @@ export function resetAssetUsageCache(brandId?: string): void {
   if (brandId) {
     assetUsageCache.delete(brandId);
     categoryUsageCache.delete(brandId);
-    console.log(
-      `[PostGenerator] Reset asset and category usage cache for brand ${brandId}`,
-    );
   } else {
     assetUsageCache.clear();
     categoryUsageCache.clear();
-    console.log("[PostGenerator] Reset all asset and category usage caches");
   }
 }
 
@@ -2215,85 +2123,7 @@ export function getAssetUsageStats(brandId?: string): {
 
 // Enhanced statistics display
 export function displayAssetUsageStats(brandId?: string): void {
-  const cacheKey = brandId || "default";
-  const assetUsage = assetUsageCache.get(cacheKey) || {};
-  const categoryUsage = categoryUsageCache.get(cacheKey) || {};
-
-  console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-  console.log(`📊 FINAL ASSET USAGE STATISTICS for brand: ${cacheKey}`);
-  console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-
-  // Group by category
-  const byCategory: Record<string, Array<{ name: string; count: number }>> = {};
-
-  Object.entries(assetUsage).forEach(([url, count]) => {
-    const filename = url.substring(url.lastIndexOf("/") + 1);
-
-    // Try to determine category from URL pattern
-    let category = "unknown";
-    if (url.includes("product")) category = "Products";
-    else if (url.includes("inspiration") || url.includes("template"))
-      category = "Templates";
-    else if (url.includes("location")) category = "Locations";
-
-    if (!byCategory[category]) byCategory[category] = [];
-    byCategory[category].push({ name: filename, count });
-  });
-
-  // Display by category
-  Object.entries(byCategory).forEach(([category, items]) => {
-    console.log(`\n🏷️  ${category}:`);
-    items
-      .sort((a, b) => b.count - a.count)
-      .forEach(({ name, count }) => {
-        const bar = "█".repeat(Math.min(count, 20));
-        console.log(`   ${count}x ${bar} ${name}`);
-      });
-  });
-
-  console.log(`\n📈 Category Totals:`);
-  Object.entries(categoryUsage)
-    .sort((a, b) => b[1] - a[1])
-    .forEach(([category, count]) => {
-      console.log(`   ${count}x - ${category}`);
-    });
-
-  const totalSelections = Object.values(assetUsage).reduce(
-    (sum, count) => sum + count,
-    0,
-  );
-  const uniqueAssets = Object.keys(assetUsage).length;
-
-  console.log(`\n📊 Summary:`);
-  console.log(`   Total asset selections: ${totalSelections}`);
-  console.log(`   Unique assets used: ${uniqueAssets}`);
-  if (uniqueAssets > 0) {
-    console.log(
-      `   Average uses per asset: ${(totalSelections / uniqueAssets).toFixed(2)}`,
-    );
-  }
-
-  // Check balance
-  const productCount = Object.entries(categoryUsage)
-    .filter(([cat]) => cat.toLowerCase().includes("product"))
-    .reduce((sum, [, count]) => sum + count, 0);
-  const templateCount = Object.entries(categoryUsage)
-    .filter(
-      ([cat]) =>
-        cat.toLowerCase().includes("template") ||
-        cat.toLowerCase().includes("inspiration"),
-    )
-    .reduce((sum, [, count]) => sum + count, 0);
-  const locationCount = Object.entries(categoryUsage)
-    .filter(([cat]) => cat.toLowerCase().includes("location"))
-    .reduce((sum, [, count]) => sum + count, 0);
-
-  console.log(`\n⚖️  Category Balance:`);
-  console.log(`   Products: ${productCount}x`);
-  console.log(`   Templates: ${templateCount}x`);
-  console.log(`   Locations: ${locationCount}x`);
-
-  console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
+  // No-op: debug logging removed
 }
 
 async function downloadImage(url: string): Promise<Buffer | null> {
@@ -2329,7 +2159,6 @@ export async function addWatermarkToImage(
   } = options;
 
   if (!logoUrl) {
-    console.log("[Watermark] No logo URL provided, returning original image");
     return imageDataUrl;
   }
 
@@ -2346,9 +2175,6 @@ export async function addWatermarkToImage(
 
     const logoBuffer = await downloadImage(logoUrl);
     if (!logoBuffer) {
-      console.log(
-        "[Watermark] Could not download logo, returning original image",
-      );
       return imageDataUrl;
     }
 
@@ -2418,7 +2244,6 @@ export async function addWatermarkToImage(
       .toBuffer();
 
     const watermarkedBase64 = watermarkedBuffer.toString("base64");
-    console.log("[Watermark] Successfully added watermark to image");
     return `data:${mimeType};base64,${watermarkedBase64}`;
   } catch (error) {
     console.error("[Watermark] Error adding watermark:", error);
@@ -2450,7 +2275,7 @@ CONTENT:
 ${JSON.stringify(content)}
 `;
 
-  const response = await ai.models.generateContent({
+  const response = await getAI().models.generateContent({
     model: "gemini-2.5-flash",
     contents: prompt,
     config: {
@@ -2477,7 +2302,11 @@ ${JSON.stringify(content)}
     },
   });
 
-  return JSON.parse(response.text || "{}");
+  try {
+    return JSON.parse(response.text || "{}");
+  } catch {
+    return { titulo: "", content: "", hashtags: "" };
+  }
 }
 
 export async function refinePostWithGeminiUsingImage({
@@ -2538,7 +2367,7 @@ RETURN VALID JSON WITH:
 
   // 🔁 Hasta 2 intentos “naturales”
   for (let attempt = 1; attempt <= 2; attempt++) {
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: "gemini-2.5-flash",
       contents: [
         {
@@ -2565,11 +2394,21 @@ RETURN VALID JSON WITH:
       },
     });
 
-    const result = JSON.parse(response.text || "{}");
+    let result: { titulo: string; content: string; hashtags: string };
+    try {
+      const parsed = JSON.parse(response.text || "{}");
+      result = {
+        titulo: parsed.titulo || "",
+        content: parsed.content || "",
+        hashtags: parsed.hashtags || "",
+      };
+    } catch {
+      result = { titulo: "", content: "", hashtags: "" };
+    }
     const combined = `${result.titulo} ${result.content} ${result.hashtags}`;
 
-    if (!containsForbiddenEnglish(combined)) {
-      return result; // ✅ Idioma correcto
+    if (!containsForbiddenEnglish(combined) && result.titulo) {
+      return result;
     }
 
     console.warn(
@@ -2582,7 +2421,7 @@ RETURN VALID JSON WITH:
     "[RefineCopy] Forcing translation to target language as fallback",
   );
 
-  const fallback = await ai.models.generateContent({
+  const fallback = await getAI().models.generateContent({
     model: "gemini-2.5-flash",
     contents: [
       {
@@ -2603,7 +2442,12 @@ Return valid JSON with titulo, content, hashtags.
     ],
   });
 
-  const fallbackParsed = JSON.parse(fallback.text || "{}");
+  let fallbackParsed: { titulo: string; content: string; hashtags: string };
+  try {
+    fallbackParsed = JSON.parse(fallback.text || "{}");
+  } catch {
+    fallbackParsed = { titulo: "", content: "", hashtags: "" };
+  }
 
   return forceTranslateToLanguage(fallbackParsed, languageLabel);
 }
@@ -2621,8 +2465,6 @@ export async function processPostGeneration(
   const billingService = new BillingService();
 
   try {
-    console.log(`[PostGenerator] Processing job ${jobId} for brand ${brandId}`);
-
     await updatePostGeneratorJob(jobId, { status: "processing" });
 
     const brand = await storage.getBrandByIdOnly(brandId);
@@ -2665,11 +2507,6 @@ export async function processPostGeneration(
       );
     }
 
-    console.log(
-      `[PostGenerator] Connected platforms for brand ${brandId}:`,
-      uniquePlatforms,
-    );
-
     // Get the first available integration for insights
     const metaIntegration = integrations.find(
       (int) =>
@@ -2686,9 +2523,6 @@ export async function processPostGeneration(
     // THIS IS THE SOURCE OF TRUTH - only platforms in this table will get posts generated
     const postingFrequencies =
       await storage.getSocialPostingFrequenciesByBrand(brandId);
-    console.log(
-      `[PostGenerator] Found ${postingFrequencies.length} posting frequency settings for brand ${brandId}`,
-    );
 
     if (postingFrequencies.length === 0) {
       throw new Error(
@@ -2721,16 +2555,10 @@ export async function processPostGeneration(
       });
 
       if (!hasIntegration) {
-        console.log(
-          `[PostGenerator] Platform "${frequencyPlatform}" is in posting frequency but has no active integration - skipping`,
-        );
         continue;
       }
 
       if (!frequency.daysWeek || frequency.daysWeek.length === 0) {
-        console.log(
-          `[PostGenerator] Platform "${frequencyPlatform}" has no posting days configured - skipping`,
-        );
         continue;
       }
 
@@ -2749,14 +2577,6 @@ export async function processPostGeneration(
           daysWeek: frequency.daysWeek,
           postingDates,
         });
-
-        console.log(
-          `[PostGenerator] Platform ${frequencyPlatform}: ${postingDates.length} posts scheduled on days ${frequency.daysWeek.join(", ")}`,
-        );
-      } else {
-        console.log(
-          `[PostGenerator] Platform ${frequencyPlatform}: No valid posting dates found (all may be in the past)`,
-        );
       }
     }
 
@@ -2764,9 +2584,6 @@ export async function processPostGeneration(
     const totalPosts = postingSchedule.reduce(
       (sum, s) => sum + s.postingDates.length,
       0,
-    );
-    console.log(
-      `[PostGenerator] Total posts to generate: ${totalPosts} across ${postingSchedule.length} platforms`,
     );
 
     if (postingSchedule.length === 0 || totalPosts === 0) {
@@ -2780,7 +2597,6 @@ export async function processPostGeneration(
 
     // Skip Lightspeed data - not used in post generation
     const salesInsights: SalesInsights | undefined = undefined;
-    console.log(`[PostGenerator] Skipping Lightspeed sales data (disabled)`);
 
     const context: PostGenerationContext = {
       brandId,
@@ -2833,9 +2649,6 @@ export async function processPostGeneration(
       // Check platform is in the posting schedule
       const allowedDates = allowedSchedule.get(post.platform);
       if (!allowedDates) {
-        console.log(
-          `[PostGenerator] Filtering out post for platform "${post.platform}" - not in posting schedule`,
-        );
         return false;
       }
 
@@ -2846,17 +2659,11 @@ export async function processPostGeneration(
 
         // Check date is not in the past
         if (postDate < today) {
-          console.log(
-            `[PostGenerator] Filtering out post for date "${post.dia}" - date is in the past`,
-          );
           return false;
         }
 
         // Check date is in the allowed dates for this platform
         if (!allowedDates.has(post.dia)) {
-          console.log(
-            `[PostGenerator] Filtering out post for platform "${post.platform}" on date "${post.dia}" - not a scheduled posting day`,
-          );
           return false;
         }
       }
@@ -2873,10 +2680,6 @@ export async function processPostGeneration(
       );
     }
 
-    console.log(
-      `[PostGenerator] Saving ${posts.length} posts to database (filtered from ${allPosts.length} generated)`,
-    );
-
     // Prepare brand assets for image generation (up to 3 relevant ones)
     const assetsForImageGen = brandAssets.map((a) => ({
       url: a.url,
@@ -2892,14 +2695,8 @@ export async function processPostGeneration(
     for (const post of posts) {
       // ⚠️ BILLING CHECK: Before generating each image, verify billing status
       const billingCheck = await billingService.canGenerateImages(brandId);
-      console.log(
-        `[PostGenerator] Billing check before image ${imagesGenerated + 1}/${posts.length}: freeRemaining=${billingCheck.freeRemaining}, hasPaymentMethod=${billingCheck.hasPaymentMethod}`,
-      );
 
       if (billingCheck.requiresPayment) {
-        console.log(
-          `[PostGenerator] 🛑 Payment required! User has ${billingCheck.freeRemaining} free images remaining and no payment method.`,
-        );
         paymentRequired = true;
 
         // Update job status to payment_required so frontend can show modal
@@ -2951,7 +2748,7 @@ export async function processPostGeneration(
 
             const upload = await cloudinary.uploader.upload(dataUri, {
               folder: `brands/posts/${brand.id}`,
-              public_id: `${jobId}_${post.platform}_${post.dia}`,
+              public_id: `${jobId}_${post.platform}_${post.dia.replace(/[^a-zA-Z0-9_-]/g, '_')}`,
               resource_type: "image",
             });
 
@@ -2965,9 +2762,6 @@ export async function processPostGeneration(
               1,
             );
             imagesGenerated++;
-            console.log(
-              `[PostGenerator] ✅ Image ${imagesGenerated}/${posts.length} generated and billed for ${post.platform}`,
-            );
           } catch (err) {
             console.warn(
               "[PostGenerator] Refinement failed, using original copy",
@@ -2997,7 +2791,6 @@ export async function processPostGeneration(
     }
 
     // ✅ Display final usage statistics
-    console.log(`\n[PostGenerator] Generation complete for job ${jobId}`);
     displayAssetUsageStats(brandId);
 
     // Only update to completed if we didn't hit payment_required
@@ -3006,9 +2799,6 @@ export async function processPostGeneration(
         status: "completed",
         result: { postsGenerated: imagesGenerated },
       });
-      console.log(
-        `[PostGenerator] Job ${jobId} completed successfully with ${imagesGenerated} images`,
-      );
     }
 
     return { postsGenerated: imagesGenerated, paymentRequired };

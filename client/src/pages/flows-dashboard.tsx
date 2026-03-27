@@ -223,16 +223,13 @@ export default function FlowsDashboard() {
             <div className="flex-shrink-0">
               <Button
                 size="lg"
-                disabled
+                onClick={() => setIsCreateDialogOpen(true)}
                 data-testid="button-create-flow"
-                className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white border-0 gap-2 opacity-70 cursor-not-allowed"
+                className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white border-0 gap-2"
               >
                 <Plus className="h-4 w-4" />
                 {isSpanish ? "Crear Flujo" : "Create Flow"}
               </Button>
-              <p className="text-slate-500 text-xs text-center mt-2">
-                {isSpanish ? "Disponible pronto" : "Available soon"}
-              </p>
             </div>
           </div>
 

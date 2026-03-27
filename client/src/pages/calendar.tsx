@@ -101,7 +101,7 @@ interface ContentPost {
     | "skipped_auto_post_disabled";
   content: string;
   imageUrl?: string;
-  type?: "image" | "video";
+  type?: "image" | "video" | "carousel" | "story" | "reel";
   source?: "manual" | "ai";
   hashtags?: string;
   scheduledPublishTime?: string;
@@ -217,6 +217,8 @@ export default function ContentCalendar() {
   const [createPostDialogOpen, setCreatePostDialogOpen] = useState(false);
   const [createPostImageUrl, setCreatePostImageUrl] = useState<string>("");
   const [isUploadingCreatePost, setIsUploadingCreatePost] = useState(false);
+  const [isDraggingCreatePost, setIsDraggingCreatePost] = useState(false);
+  const [isDraggingContent, setIsDraggingContent] = useState(false);
   const [isCreatingPost, setIsCreatingPost] = useState(false);
   const [isNewPostMode, setIsNewPostMode] = useState(false);
   const [gallerySubTab, setGallerySubTab] = useState<"all" | "ai" | "uploaded">("all");
@@ -244,6 +246,26 @@ export default function ContentCalendar() {
     queryFn: async () => {
       if (!activeBrandId) return null;
       const res = await fetch(`/api/brand-design?brandId=${activeBrandId}`, {
+        credentials: "include",
+      });
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!activeBrandId,
+    staleTime: 60000,
+  });
+
+  // Query to fetch real billing info (pricing, free credits)
+  const { data: billingInfo } = useQuery<{
+    freeImagesRemaining: number;
+    hasPaymentMethod: boolean;
+    pricePerImage: number;
+    freeImageLimit: number;
+  }>({
+    queryKey: ["/api/billing-info", activeBrandId],
+    queryFn: async () => {
+      if (!activeBrandId) return null;
+      const res = await fetch(`/api/brands/${activeBrandId}/billing-info`, {
         credentials: "include",
       });
       if (!res.ok) return null;
@@ -395,6 +417,7 @@ export default function ContentCalendar() {
   // Helper function to convert day name to dates in current month
   const getDatesForDayOfWeek = (dayName: string): Date[] => {
     const dayMap: { [key: string]: number } = {
+      // English
       sunday: 0,
       monday: 1,
       tuesday: 2,
@@ -402,9 +425,19 @@ export default function ContentCalendar() {
       thursday: 4,
       friday: 5,
       saturday: 6,
+      // Spanish
+      domingo: 0,
+      lunes: 1,
+      martes: 2,
+      miercoles: 3,
+      miércoles: 3,
+      jueves: 4,
+      viernes: 5,
+      sabado: 6,
+      sábado: 6,
     };
 
-    const targetDay = dayMap[dayName.toLowerCase()];
+    const targetDay = dayMap[dayName.toLowerCase().trim()];
     if (targetDay === undefined) return [];
 
     const monthStart = startOfMonth(currentDate);
@@ -884,7 +917,6 @@ export default function ContentCalendar() {
       // Start polling with the jobId
       if (data.jobId) {
         setCurrentJobId(data.jobId);
-        console.log("Job started with ID:", data.jobId);
       }
     },
     onError: (error: any) => {
@@ -1196,13 +1228,25 @@ export default function ContentCalendar() {
     postId: string,
     status: "accepted" | "rejected",
   ) => {
+    // When approving, include the scheduledPublishTime so the scheduler picks it up
+    let scheduledPublishTime: string | undefined;
+    if (status === "accepted") {
+      const post = allPosts.find((p) => p.id === postId);
+      if (post?.scheduledFor) {
+        scheduledPublishTime = new Date(post.scheduledFor).toISOString();
+      }
+    }
+
     updatePostStatusMutation.mutate(
-      { postId, status },
+      { postId, status, scheduledPublishTime },
       {
         onSuccess: () => {
           toast({
             title: status === "accepted" ? "Post Approved" : "Post Rejected",
-            description: `The post has been ${status}.`,
+            description:
+              status === "accepted"
+                ? `The post has been approved and scheduled.`
+                : `The post has been ${status}.`,
           });
         },
         onError: (error: any) => {
@@ -1224,31 +1268,7 @@ export default function ContentCalendar() {
     }>,
   ) => {
     setPostingSchedule(schedule);
-    // Here you could also save to backend API if needed
-    console.log("Posting schedule saved:", schedule);
   };
-
-  const generateTestImageMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/test/generate-image");
-      if (!response.ok) throw new Error("Failed to generate image");
-      return response.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Image Generated",
-        description: "Test image created and uploaded to Cloudinary.",
-      });
-      console.log("[Test] Image result:", data);
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
 
   const generateBrandImagesMutation = useMutation({
     mutationFn: async () => {
@@ -1296,10 +1316,19 @@ export default function ContentCalendar() {
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     if (!brandDesign?.id || !activeBrandId) return;
+    if (!cloudName || !uploadPreset) {
+      toast({
+        title: "Configuration Error",
+        description: "Cloudinary is not configured. Please contact support.",
+        variant: "destructive",
+      });
+      return;
+    }
     const files = Array.from(e.currentTarget.files || []);
     if (files.length === 0) return;
     setIsUploadingContent(true);
 
+    let successCount = 0;
     try {
       for (const file of files) {
         const fd = new FormData();
@@ -1310,7 +1339,18 @@ export default function ContentCalendar() {
           `https://api.cloudinary.com/v1_1/${cloudName}/upload`,
           { method: "POST", body: fd },
         );
+
+        if (!uploadRes.ok) {
+          console.error(`[Calendar] Cloudinary upload failed for ${file.name}: ${uploadRes.status}`);
+          continue;
+        }
+
         const data = await uploadRes.json();
+
+        if (data.error) {
+          console.error(`[Calendar] Cloudinary error for ${file.name}:`, data.error.message);
+          continue;
+        }
 
         if (data.secure_url) {
           await apiRequest("POST", "/api/brand-assets", {
@@ -1323,6 +1363,7 @@ export default function ContentCalendar() {
             publicId: data.public_id,
             description: "",
           });
+          successCount++;
         }
       }
 
@@ -1331,12 +1372,20 @@ export default function ContentCalendar() {
           `/api/brand-assets?brandDesignId=${brandDesign?.id}&brandId=${activeBrandId}`,
         ],
       });
-      toast({
-        title: isSpanish ? "Contenido subido" : "Content uploaded",
-        description: isSpanish
-          ? `${files.length} ${files.length === 1 ? "imagen subida" : "imagenes subidas"} a tu galeria.`
-          : `${files.length} ${files.length === 1 ? "image uploaded" : "images uploaded"} to your gallery.`,
-      });
+      if (successCount > 0) {
+        toast({
+          title: isSpanish ? "Contenido subido" : "Content uploaded",
+          description: isSpanish
+            ? `${successCount} de ${files.length} ${successCount === 1 ? "imagen subida" : "imagenes subidas"} a tu galeria.`
+            : `${successCount} of ${files.length} ${successCount === 1 ? "image uploaded" : "images uploaded"} to your gallery.`,
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: isSpanish ? "No se pudo subir ninguna imagen." : "No images could be uploaded.",
+          variant: "destructive",
+        });
+      }
     } catch (err) {
       console.error("[Calendar] Upload error:", err);
       toast({
@@ -1349,6 +1398,68 @@ export default function ContentCalendar() {
     } finally {
       setIsUploadingContent(false);
       e.target.value = "";
+    }
+  };
+
+  const handleContentDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingContent(false);
+    if (!brandDesign?.id || !activeBrandId || !cloudName || !uploadPreset) return;
+
+    const files = Array.from(e.dataTransfer.files).filter(
+      (f) => f.type.startsWith("image/") || f.type.startsWith("video/"),
+    );
+    if (files.length === 0) return;
+
+    setIsUploadingContent(true);
+    let successCount = 0;
+    try {
+      for (const file of files) {
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("upload_preset", uploadPreset);
+        const uploadRes = await fetch(
+          `https://api.cloudinary.com/v1_1/${cloudName}/upload`,
+          { method: "POST", body: fd },
+        );
+        if (!uploadRes.ok) continue;
+        const data = await uploadRes.json();
+        if (data.error || !data.secure_url) continue;
+        await apiRequest("POST", "/api/brand-assets", {
+          brandId: activeBrandId,
+          brandDesignId: brandDesign.id,
+          url: data.secure_url,
+          name: file.name,
+          category: "content",
+          assetType: file.type.startsWith("video/") ? "video" : "image",
+          publicId: data.public_id,
+          description: "",
+        });
+        successCount++;
+      }
+      queryClient.invalidateQueries({
+        queryKey: [
+          `/api/brand-assets?brandDesignId=${brandDesign?.id}&brandId=${activeBrandId}`,
+        ],
+      });
+      if (successCount > 0) {
+        toast({
+          title: isSpanish ? "Contenido subido" : "Content uploaded",
+          description: isSpanish
+            ? `${successCount} ${successCount === 1 ? "archivo subido" : "archivos subidos"}`
+            : `${successCount} ${successCount === 1 ? "file uploaded" : "files uploaded"}`,
+        });
+      }
+    } catch (err) {
+      console.error("[Calendar] Drop upload error:", err);
+      toast({
+        title: "Error",
+        description: isSpanish ? "Error al subir archivos" : "Failed to upload files",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingContent(false);
     }
   };
 
@@ -1431,12 +1542,17 @@ export default function ContentCalendar() {
     setEditPost({ ...newPost });
   };
 
-  const handleCreatePostUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  // Core upload function that accepts a File object directly
+  const uploadCreatePostFile = async (file: File) => {
     if (!brandDesign?.id || !activeBrandId) return;
-    const file = e.currentTarget.files?.[0];
-    if (!file) return;
+    if (!cloudName || !uploadPreset) {
+      toast({
+        title: "Configuration Error",
+        description: "Cloudinary is not configured.",
+        variant: "destructive",
+      });
+      return;
+    }
     setIsUploadingCreatePost(true);
     try {
       const fd = new FormData();
@@ -1459,7 +1575,7 @@ export default function ContentCalendar() {
         url: data.secure_url,
         name: file.name,
         category: "content",
-        assetType: "image",
+        assetType: file.type.startsWith("video/") ? "video" : "image",
         publicId: data.public_id,
         description: "",
       });
@@ -1478,8 +1594,35 @@ export default function ContentCalendar() {
       });
     } finally {
       setIsUploadingCreatePost(false);
-      e.target.value = "";
     }
+  };
+
+  const handleCreatePostUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.currentTarget.files?.[0];
+    if (!file) return;
+    await uploadCreatePostFile(file);
+    e.target.value = "";
+  };
+
+  const handleCreatePostDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingCreatePost(false);
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+      toast({
+        title: "Invalid file",
+        description: isSpanish
+          ? "Solo se permiten imágenes y videos."
+          : "Only images and videos are allowed.",
+        variant: "destructive",
+      });
+      return;
+    }
+    await uploadCreatePostFile(file);
   };
 
   const [createPostErrors, setCreatePostErrors] = useState<Record<string, string>>({});
@@ -1518,6 +1661,7 @@ export default function ContentCalendar() {
           scheduledPublishTime: editPost.scheduledFor
             ? new Date(editPost.scheduledFor).toISOString()
             : undefined,
+          type: editPost.type || "image",
         },
       );
       if (response.ok) {
@@ -1549,19 +1693,6 @@ export default function ContentCalendar() {
 
   return (
     <TooltipProvider>
-      {/*       <Button
-        onClick={() => generateTestImageMutation.mutate()}
-        disabled={generateTestImageMutation.isPending}
-      >
-        {generateTestImageMutation.isPending ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Generando imagen de prueba...
-          </>
-        ) : (
-          "Generando imagen de prueba"
-        )}
-      </Button> */}
       {/* Payment Required Modal - Large and prominent */}
       <Dialog
         open={showPaymentRequiredModal}
@@ -1583,8 +1714,8 @@ export default function ContentCalendar() {
               </DialogTitle>
               <DialogDescription className="text-center text-white/90 text-lg mt-3">
                 {isSpanish
-                  ? "Has utilizado tus 10 imágenes gratuitas. ¡Pero no te preocupes! Puedes continuar creando contenido increíble."
-                  : "You've used your 10 free images. But don't worry! You can continue creating amazing content."}
+                  ? `Has utilizado tus ${billingInfo?.freeImageLimit ?? 10} imágenes gratuitas. ¡Pero no te preocupes! Puedes continuar creando contenido increíble.`
+                  : `You've used your ${billingInfo?.freeImageLimit ?? 10} free images. But don't worry! You can continue creating amazing content.`}
               </DialogDescription>
             </DialogHeader>
           </div>
@@ -1598,7 +1729,7 @@ export default function ContentCalendar() {
                   {isSpanish ? "Precio por imagen" : "Price per image"}
                 </p>
                 <div className="flex items-center justify-center gap-2">
-                  <span className="text-5xl font-bold text-primary">$0.12</span>
+                  <span className="text-5xl font-bold text-primary">${billingInfo?.pricePerImage ?? 0.12}</span>
                   <span className="text-xl text-muted-foreground">USD</span>
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">
@@ -2103,32 +2234,6 @@ export default function ContentCalendar() {
                                     </Tooltip>
                                   )}
 
-                                  {/*         <Button
-                                size="sm"
-                                onClick={() => generateBrandImagesMutation.mutate()}
-                                disabled={
-                                  generateBrandImagesMutation.isPending ||
-                                  generatingBrandImages ||
-                                  !activeBrandId
-                                }
-                                className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white"
-                              >
-                                {generateBrandImagesMutation.isPending || generatingBrandImages ? (
-                                  <>
-                                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                    {isSpanish
-                                      ? "Generando imágenes..."
-                                      : "Generating images..."}
-                                  </>
-                                ) : (
-                                  <>
-                                    <Wand2 className="w-4 h-4 mr-1" />
-                                    {isSpanish
-                                      ? "Generar Imágenes"
-                                      : "Generate Images"}
-                                  </>
-                                )}
-                              </Button> */}
                                 </div>
                               </div>
                             </CardHeader>
@@ -2438,6 +2543,11 @@ export default function ContentCalendar() {
                                               .toUpperCase() +
                                               post.platform.slice(1)}
                                           </div>
+                                          {post.type && post.type !== "image" && (
+                                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 capitalize flex-shrink-0">
+                                              {post.type}
+                                            </span>
+                                          )}
                                         </div>
                                         <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
                                           <Clock className="w-3 h-3" />
@@ -2463,15 +2573,6 @@ export default function ContentCalendar() {
                                             <Eye className="w-3 h-3 mr-1" />{" "}
                                             {isSpanish ? "Ver" : "View"}
                                           </Button>
-                                          {/*  <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="flex-1"
-                                        onClick={() => setEditPost({ ...post })}
-                                        data-testid={`button-edit-post-${post.id}`}
-                                      >
-                                        <Edit className="w-3 h-3 mr-1" /> Edit
-                                      </Button> */}
                                         </div>
 
                                         {/* Individual Approve button for AI posts */}
@@ -2560,7 +2661,51 @@ export default function ContentCalendar() {
                       const displayImages = gallerySubTab === "ai" ? aiImages : gallerySubTab === "uploaded" ? contentImages : allGalleryImages;
 
                       return (
-                        <div className="pb-8">
+                        <div
+                          className="pb-8"
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setIsDraggingContent(true);
+                          }}
+                          onDragEnter={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setIsDraggingContent(true);
+                          }}
+                          onDragLeave={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            // Only set false if we're leaving the container itself
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const { clientX, clientY } = e;
+                            if (
+                              clientX <= rect.left ||
+                              clientX >= rect.right ||
+                              clientY <= rect.top ||
+                              clientY >= rect.bottom
+                            ) {
+                              setIsDraggingContent(false);
+                            }
+                          }}
+                          onDrop={handleContentDrop}
+                        >
+                          {/* Drop overlay */}
+                          {isDraggingContent && (
+                            <div className="mb-4 flex flex-col items-center justify-center h-32 border-2 border-dashed border-teal-500 bg-teal-50 rounded-xl transition-all">
+                              <Upload className="w-8 h-8 text-teal-500 animate-bounce mb-2" />
+                              <span className="text-sm font-medium text-teal-600">
+                                {isSpanish
+                                  ? "Suelta tus archivos aquí"
+                                  : "Drop your files here"}
+                              </span>
+                              <span className="text-xs text-teal-500">
+                                {isSpanish
+                                  ? "Imágenes y videos"
+                                  : "Images and videos"}
+                              </span>
+                            </div>
+                          )}
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center">
@@ -3061,10 +3206,59 @@ export default function ContentCalendar() {
                       </div>
                     )}
 
+                    {/* Post Type */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        {isSpanish ? "Tipo de publicación" : "Post Type"}
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {(
+                          [
+                            { value: "image", label: isSpanish ? "Imagen" : "Image" },
+                            { value: "carousel", label: "Carousel" },
+                            { value: "story", label: "Story" },
+                            { value: "reel", label: "Reel" },
+                            { value: "video", label: "Video" },
+                          ] as const
+                        ).map((t) => (
+                          <button
+                            key={t.value}
+                            type="button"
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                              (editPost.type || "image") === t.value
+                                ? "bg-gray-800 text-white border-gray-800"
+                                : "bg-white text-gray-600 border-gray-300 hover:border-gray-400"
+                            }`}
+                            onClick={() =>
+                              setEditPost((prev) =>
+                                prev ? { ...prev, type: t.value } : prev,
+                              )
+                            }
+                          >
+                            {t.label}
+                          </button>
+                        ))}
+                      </div>
+                      {(editPost.type === "carousel") && (
+                        <p className="text-xs text-gray-500">
+                          {isSpanish
+                            ? "Sube múltiples imágenes separadas por comas en la URL."
+                            : "Upload multiple images. Separate image URLs with commas."}
+                        </p>
+                      )}
+                      {(editPost.type === "reel") && (
+                        <p className="text-xs text-gray-500">
+                          {isSpanish
+                            ? "Se requiere un video para los Reels."
+                            : "A video file is required for Reels."}
+                        </p>
+                      )}
+                    </div>
+
                     {/* Date & Time */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-gray-700">
-                        Schedule Date & Time
+                        {isSpanish ? "Fecha y hora" : "Schedule Date & Time"}
                       </label>
                       <Input
                         type="datetime-local"
@@ -3300,6 +3494,44 @@ export default function ContentCalendar() {
                             </Button>
                           </>
                         )}
+                        {editPost.status === "accepted" && (
+                          <Button
+                            className="bg-gray-800 hover:bg-gray-900 text-white gap-2"
+                            onClick={() => {
+                              if (selectedPost && editPost) {
+                                const localDate = new Date(editPost.scheduledFor);
+                                updatePostStatusMutation.mutate(
+                                  {
+                                    postId: selectedPost.id,
+                                    status: "accepted",
+                                    scheduledPublishTime: localDate.toISOString(),
+                                    titulo: editPost.title,
+                                    content: editPost.content,
+                                    hashtags: editPost.hashtags,
+                                  },
+                                  {
+                                    onSuccess: () => {
+                                      toast({
+                                        title: isSpanish
+                                          ? "Post reprogramado"
+                                          : "Post Rescheduled",
+                                        description: isSpanish
+                                          ? "La fecha de publicación ha sido actualizada."
+                                          : "The publish date has been updated.",
+                                      });
+                                    },
+                                  },
+                                );
+                              }
+                              setSelectedPost(null);
+                            }}
+                            data-testid="button-reschedule-post"
+                            disabled={updatePostStatusMutation.isPending}
+                          >
+                            <CalendarCheck className="w-4 h-4" />{" "}
+                            {isSpanish ? "Reprogramar" : "Reschedule"}
+                          </Button>
+                        )}
                       </div>
                     </>
                   )}
@@ -3467,17 +3699,10 @@ export default function ContentCalendar() {
 
             <ImageSwipeCarousel
               images={generatedImages}
-              onApprove={(img) => {
-                console.log("[Calendar] Approved image:", img.id);
-              }}
-              onReject={(img) => {
-                console.log("[Calendar] Rejected image:", img.id);
-              }}
+              onApprove={() => {}}
+              onReject={() => {}}
               onComplete={async (approved, rejected) => {
                 setApprovedImages(approved);
-                console.log(
-                  `[Calendar] Selection complete (source: ${carouselSource}). Approved: ${approved.length}, Rejected: ${rejected.length}`,
-                );
 
                 if (!activeBrandId) {
                   setTimeout(() => setShowImageCarousel(false), 2000);
@@ -3797,10 +4022,32 @@ export default function ContentCalendar() {
             </DialogHeader>
 
             <div className="space-y-4">
-              <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-teal-400 hover:bg-teal-50/50 transition-colors">
+              <label
+                className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                  isDraggingCreatePost
+                    ? "border-teal-500 bg-teal-50 scale-[1.01]"
+                    : "border-gray-300 hover:border-teal-400 hover:bg-teal-50/50"
+                }`}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDraggingCreatePost(true);
+                }}
+                onDragEnter={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDraggingCreatePost(true);
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDraggingCreatePost(false);
+                }}
+                onDrop={handleCreatePostDrop}
+              >
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/*,video/*"
                   className="hidden"
                   onChange={handleCreatePostUpload}
                   disabled={isUploadingCreatePost}
@@ -3812,11 +4059,25 @@ export default function ContentCalendar() {
                       {isSpanish ? "Subiendo..." : "Uploading..."}
                     </span>
                   </div>
+                ) : isDraggingCreatePost ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Upload className="w-8 h-8 text-teal-500 animate-bounce" />
+                    <span className="text-sm font-medium text-teal-600">
+                      {isSpanish ? "Suelta aquí" : "Drop here"}
+                    </span>
+                  </div>
                 ) : (
                   <div className="flex flex-col items-center gap-2">
                     <Upload className="w-6 h-6 text-gray-400" />
                     <span className="text-sm text-gray-500">
-                      {isSpanish ? "Subir nueva imagen" : "Upload new image"}
+                      {isSpanish
+                        ? "Arrastra y suelta o haz clic para subir"
+                        : "Drag & drop or click to upload"}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {isSpanish
+                        ? "Imágenes y videos"
+                        : "Images and videos"}
                     </span>
                   </div>
                 )}

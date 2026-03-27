@@ -18,13 +18,21 @@ interface ChatRequest extends Request {
 // AI Chat endpoint
 router.post('/chat', async (req: ChatRequest, res: Response) => {
   try {
+    if (!openai) {
+      return res.status(503).json({ error: 'Chat service unavailable - OpenAI API key not configured' });
+    }
+
     const { message, language = 'en' } = req.body;
 
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
     }
 
-    const systemPrompt = language === 'es' 
+    if (typeof message !== 'string' || message.length > 5000) {
+      return res.status(400).json({ error: 'Message must be a string under 5000 characters' });
+    }
+
+    const systemPrompt = language === 'es'
       ? `Eres un asistente de atención al cliente experto para CampAIgner, una plataforma de marketing automatizada que usa IA.
 
 CampAIgner es una plataforma SaaS que:
@@ -51,8 +59,8 @@ CampAIgner is a SaaS platform that:
 
 Respond in a helpful, friendly, and professional manner. Keep responses concise but informative. If you're unsure about something specific, suggest contacting support or checking documentation.`;
 
-    const completion = await openai!.chat.completions.create({
-      model: 'gpt-4o', // the newest OpenAI model is "gpt-4o" which was released after your knowledge cutoff. do not change this unless explicitly requested by the user
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: message }
@@ -61,8 +69,8 @@ Respond in a helpful, friendly, and professional manner. Keep responses concise 
       temperature: 0.7,
     });
 
-    const response = completion.choices[0]?.message?.content || 
-      (language === 'es' 
+    const response = completion.choices[0]?.message?.content ||
+      (language === 'es'
         ? 'Lo siento, no pude procesar tu mensaje. Por favor intenta de nuevo.'
         : 'Sorry, I couldn\'t process your message. Please try again.');
 
@@ -73,7 +81,7 @@ Respond in a helpful, friendly, and professional manner. Keep responses concise 
     const errorMessage = req.body.language === 'es'
       ? 'Lo siento, hubo un error con el asistente IA. Por favor contacta soporte.'
       : 'Sorry, there was an error with the AI assistant. Please contact support.';
-    
+
     res.status(500).json({ error: errorMessage });
   }
 });

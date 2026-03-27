@@ -14,20 +14,55 @@ export interface AiGeneratedPost {
   dia: string;
   hashtags: string | null;
   status: "pending" | "accepted" | "rejected" | "published";
+  type?: string | null;
   isSample: boolean | null;
   scheduledPublishTime: string | null;
   publishedAt: string | null;
+  lockedAt?: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+// Shared mapper to avoid duplication across all query functions
+function mapPostRow(r: typeof aiGeneratedPosts.$inferSelect): AiGeneratedPost {
+  return {
+    id: r.id,
+    jobId: r.jobId,
+    brandId: r.brandId,
+    platform: r.platform,
+    titulo: r.titulo,
+    content: r.content,
+    imageUrl: r.imageUrl,
+    cloudinaryPublicId: r.cloudinaryPublicId,
+    dia: r.dia,
+    hashtags: r.hashtags,
+    status: r.status as any,
+    type: r.type || "image",
+    isSample: r.isSample || false,
+    scheduledPublishTime: r.scheduledPublishTime?.toISOString() || null,
+    publishedAt: r.publishedAt?.toISOString() || null,
+    lockedAt: r.lockedAt?.toISOString() || null,
+    createdAt: r.createdAt?.toISOString() || new Date().toISOString(),
+    updatedAt: r.updatedAt?.toISOString() || new Date().toISOString(),
+  };
 }
 
 export async function createAiGeneratedPost(
   data: Omit<
     AiGeneratedPost,
-    "id" | "createdAt" | "updatedAt" | "scheduledPublishTime" | "publishedAt"
+    "id" | "createdAt" | "updatedAt" | "publishedAt"
   >,
 ): Promise<AiGeneratedPost> {
   const now = new Date();
+
+  // Auto-compute scheduledPublishTime from dia if it's a valid YYYY-MM-DD date
+  let scheduledPublishTime: Date | undefined;
+  if (data.scheduledPublishTime) {
+    scheduledPublishTime = new Date(data.scheduledPublishTime);
+  } else if (data.dia && /^\d{4}-\d{2}-\d{2}$/.test(data.dia)) {
+    scheduledPublishTime = new Date(data.dia + "T10:00:00");
+  }
+
   const result = await db
     .insert(aiGeneratedPosts)
     .values({
@@ -42,29 +77,13 @@ export async function createAiGeneratedPost(
       hashtags: data.hashtags,
       status: data.status,
       isSample: data.isSample || false,
+      type: data.type || "image",
+      ...(scheduledPublishTime ? { scheduledPublishTime } : {}),
     })
     .returning();
 
   if (!result[0]) throw new Error("Failed to create AI generated post");
-
-  return {
-    id: result[0].id,
-    jobId: result[0].jobId,
-    brandId: result[0].brandId,
-    platform: result[0].platform,
-    titulo: result[0].titulo,
-    content: result[0].content,
-    imageUrl: result[0].imageUrl,
-    cloudinaryPublicId: result[0].cloudinaryPublicId,
-    dia: result[0].dia,
-    hashtags: result[0].hashtags,
-    status: result[0].status as any,
-    isSample: result[0].isSample || false,
-    scheduledPublishTime: result[0].scheduledPublishTime?.toISOString() || null,
-    publishedAt: result[0].publishedAt?.toISOString() || null,
-    createdAt: result[0].createdAt?.toISOString() || now.toISOString(),
-    updatedAt: result[0].updatedAt?.toISOString() || now.toISOString(),
-  };
+  return mapPostRow(result[0]);
 }
 
 export async function getAiGeneratedPostsByJob(
@@ -75,24 +94,7 @@ export async function getAiGeneratedPostsByJob(
     .from(aiGeneratedPosts)
     .where(eq(aiGeneratedPosts.jobId, jobId));
 
-  return results.map((r) => ({
-    id: r.id,
-    jobId: r.jobId,
-    brandId: r.brandId,
-    platform: r.platform,
-    titulo: r.titulo,
-    content: r.content,
-    imageUrl: r.imageUrl,
-    cloudinaryPublicId: r.cloudinaryPublicId,
-    dia: r.dia,
-    hashtags: r.hashtags,
-    status: r.status as any,
-    isSample: r.isSample || false,
-    scheduledPublishTime: r.scheduledPublishTime?.toISOString() || null,
-    publishedAt: r.publishedAt?.toISOString() || null,
-    createdAt: r.createdAt?.toISOString() || new Date().toISOString(),
-    updatedAt: r.updatedAt?.toISOString() || new Date().toISOString(),
-  }));
+  return results.map(mapPostRow);
 }
 
 export async function getSamplePostsByBrand(
@@ -108,24 +110,7 @@ export async function getSamplePostsByBrand(
       ),
     );
 
-  return results.map((r) => ({
-    id: r.id,
-    jobId: r.jobId,
-    brandId: r.brandId,
-    platform: r.platform,
-    titulo: r.titulo,
-    content: r.content,
-    imageUrl: r.imageUrl,
-    cloudinaryPublicId: r.cloudinaryPublicId,
-    dia: r.dia,
-    hashtags: r.hashtags,
-    status: r.status as any,
-    isSample: r.isSample || false,
-    scheduledPublishTime: r.scheduledPublishTime?.toISOString() || null,
-    publishedAt: r.publishedAt?.toISOString() || null,
-    createdAt: r.createdAt?.toISOString() || new Date().toISOString(),
-    updatedAt: r.updatedAt?.toISOString() || new Date().toISOString(),
-  }));
+  return results.map(mapPostRow);
 }
 
 export async function getAiGeneratedPostsByBrand(
@@ -150,26 +135,7 @@ export async function getAiGeneratedPostsByBrand(
   }
 
   const results = await query;
-
-  return results.map((r) => ({
-    id: r.id,
-    jobId: r.jobId,
-    brandId: r.brandId,
-    platform: r.platform,
-    titulo: r.titulo,
-    content: r.content,
-    imageUrl: r.imageUrl,
-    cloudinaryPublicId: r.cloudinaryPublicId,
-    dia: r.dia,
-    hashtags: r.hashtags,
-    status: r.status as any,
-    isSample: r.isSample || false,
-    scheduledPublishTime: r.scheduledPublishTime?.toISOString() || null,
-    publishedAt: r.publishedAt?.toISOString() || null,
-    createdAt: r.createdAt?.toISOString() || new Date().toISOString(),
-    updatedAt: r.updatedAt?.toISOString() || new Date().toISOString(),
-    type: r.type || "image",
-  }));
+  return results.map(mapPostRow);
 }
 
 export async function updateAiGeneratedPostStatus(
@@ -207,25 +173,7 @@ export async function updateAiGeneratedPostStatus(
     .returning();
 
   if (!result[0]) return null;
-
-  return {
-    id: result[0].id,
-    jobId: result[0].jobId,
-    brandId: result[0].brandId,
-    platform: result[0].platform,
-    titulo: result[0].titulo,
-    content: result[0].content,
-    imageUrl: result[0].imageUrl,
-    cloudinaryPublicId: result[0].cloudinaryPublicId,
-    dia: result[0].dia,
-    hashtags: result[0].hashtags,
-    status: result[0].status as any,
-    isSample: result[0].isSample || false,
-    scheduledPublishTime: result[0].scheduledPublishTime?.toISOString() || null,
-    publishedAt: result[0].publishedAt?.toISOString() || null,
-    createdAt: result[0].createdAt?.toISOString() || new Date().toISOString(),
-    updatedAt: result[0].updatedAt?.toISOString() || now.toISOString(),
-  };
+  return mapPostRow(result[0]);
 }
 
 export async function bulkUpdateAiGeneratedPostsStatus(

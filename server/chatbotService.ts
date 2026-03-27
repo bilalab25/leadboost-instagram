@@ -95,9 +95,16 @@ export class ChatbotService {
       const systemPrompt = this.buildSystemPrompt(config, calendarIntegration, services);
       const conversationContext = conversationHistory.join('\n');
 
+      if (!openai) {
+        return {
+          message: "I'm sorry, the AI assistant is not available right now. Please contact our team directly.",
+          confidence: 0
+        };
+      }
+
       // Generate AI response
-      const completion = await openai!.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released August 7, 2025. do not change this unless explicitly requested by the user
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Conversation history:\n${conversationContext}\n\nCustomer message: ${messageContent}` }
@@ -107,8 +114,14 @@ export class ChatbotService {
         max_tokens: 1000
       });
 
-      const aiResponse = JSON.parse(completion.choices[0].message.content || '{}');
-      
+      const rawContent = completion.choices?.[0]?.message?.content || '{}';
+      let aiResponse: any;
+      try {
+        aiResponse = JSON.parse(rawContent);
+      } catch {
+        aiResponse = { message: rawContent };
+      }
+
       return {
         message: aiResponse.message || "I'm sorry, I didn't understand that. Can you please rephrase?",
         action: aiResponse.action,
@@ -212,16 +225,33 @@ Remember: You're helping a business convert leads into appointments!`;
         };
       }
 
-      // For now, create a pending appointment that needs confirmation
-      // In a full implementation, this would integrate with actual calendar APIs
+      // Calculate start time from preferred time or default to next available
+      let startTime: Date;
+      if (schedulingData.preferredTime) {
+        startTime = new Date(schedulingData.preferredTime);
+        if (isNaN(startTime.getTime())) {
+          return {
+            success: false,
+            message: "I couldn't understand that time. Could you provide a date and time like '2025-03-28 10:00 AM'?"
+          };
+        }
+      } else {
+        // Default to tomorrow at 10 AM in the calendar's timezone
+        startTime = new Date();
+        startTime.setDate(startTime.getDate() + 1);
+        startTime.setHours(10, 0, 0, 0);
+      }
+
+      const endTime = new Date(startTime.getTime() + selectedService.duration * 60000);
+
       const [appointment] = await db
         .insert(appointments)
         .values({
           calendarIntegrationId: calendarIntegration.id,
           serviceId: selectedService.id,
-          startTime: new Date(), // This would be calculated based on preferred time
-          endTime: new Date(Date.now() + selectedService.duration * 60000),
-          timezone: calendarIntegration.timezone,
+          startTime,
+          endTime,
+          timezone: calendarIntegration.timezone || 'America/New_York',
           customerName: schedulingData.customerName || 'Unknown',
           customerEmail: schedulingData.customerEmail || null,
           customerPhone: schedulingData.customerPhone || null,
@@ -229,14 +259,18 @@ Remember: You're helping a business convert leads into appointments!`;
         } as any)
         .returning();
 
+      // Mark as confirmed
+      await this.sendAppointmentConfirmation(appointment.id);
+
+      const timeStr = startTime.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
       return {
         success: true,
         appointmentId: appointment.id,
-        message: `Great! I've scheduled your ${selectedService.name} appointment. You'll receive a confirmation shortly.`
+        message: `Great! I've scheduled your ${selectedService.name} appointment for ${timeStr}. It's been confirmed.`
       };
 
     } catch (error) {
-      console.error('Scheduling error:', error);
+      console.error('[ChatbotService] Scheduling error:', error);
       return {
         success: false,
         message: "I had trouble scheduling your appointment. Let me connect you with someone who can help."
@@ -321,27 +355,87 @@ Remember: You're helping a business convert leads into appointments!`;
     }
   }
 
-  // Calendar integration methods (will be expanded)
+  // Calendar integration methods
   async getAvailableTimeSlots(
     brandId: string,
     serviceId: string,
     date: string
   ): Promise<string[]> {
-    // This would integrate with actual calendar APIs
-    // For now, return mock available times
-    return [
-      '09:00 AM',
-      '10:30 AM',
-      '02:00 PM',
-      '03:30 PM',
-      '04:00 PM'
-    ];
+    const calIntegration = await this.getCalendarIntegration(brandId);
+    if (!calIntegration) return [];
+
+    // Get the service to know its duration
+    const services = await this.getAvailableServices(brandId);
+    const service = services.find(s => s.id === serviceId);
+    const duration = service?.duration || 30;
+
+    // Get business hours for the given day
+    const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'lowercase' as any })
+      || ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'][new Date(date).getDay()];
+    const businessHours = calIntegration.businessHours as Record<string, { start?: string; end?: string; enabled?: boolean }> | null;
+    const dayHours = businessHours?.[dayOfWeek];
+    if (!dayHours || dayHours.enabled === false || !dayHours.start || !dayHours.end) return [];
+
+    // Parse business hours
+    const [startH, startM] = dayHours.start.split(':').map(Number);
+    const [endH, endM] = dayHours.end.split(':').map(Number);
+    const bufferTime = calIntegration.bufferTime || 15;
+
+    // Get existing appointments for that date
+    const dateStart = new Date(date);
+    dateStart.setHours(0, 0, 0, 0);
+    const dateEnd = new Date(date);
+    dateEnd.setHours(23, 59, 59, 999);
+
+    const { gte, lte } = await import('drizzle-orm');
+    const existingAppointments = await db
+      .select()
+      .from(appointments)
+      .where(
+        and(
+          eq(appointments.calendarIntegrationId, calIntegration.id),
+          gte(appointments.startTime, dateStart),
+          lte(appointments.startTime, dateEnd)
+        )
+      );
+
+    // Generate available slots
+    const slots: string[] = [];
+    let currentMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+
+    while (currentMinutes + duration <= endMinutes) {
+      const slotStart = new Date(date);
+      slotStart.setHours(Math.floor(currentMinutes / 60), currentMinutes % 60, 0, 0);
+      const slotEnd = new Date(slotStart.getTime() + duration * 60000);
+
+      // Check for conflicts with existing appointments
+      const hasConflict = existingAppointments.some(apt => {
+        const aptStart = new Date(apt.startTime).getTime();
+        const aptEnd = new Date(apt.endTime).getTime();
+        return slotStart.getTime() < aptEnd && slotEnd.getTime() > aptStart;
+      });
+
+      if (!hasConflict) {
+        const hours = Math.floor(currentMinutes / 60);
+        const mins = currentMinutes % 60;
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
+        slots.push(`${displayHours}:${mins.toString().padStart(2, '0')} ${ampm}`);
+      }
+
+      currentMinutes += duration + bufferTime;
+    }
+
+    return slots;
   }
 
   async sendAppointmentConfirmation(appointmentId: string): Promise<void> {
-    // This would send SMS/email confirmations
-    // Integration with services like Twilio, SendGrid, etc.
-    console.log(`Would send confirmation for appointment ${appointmentId}`);
+    // Mark the appointment as confirmed in the database
+    await db
+      .update(appointments)
+      .set({ status: 'confirmed', confirmationSentAt: new Date() })
+      .where(eq(appointments.id, appointmentId));
   }
 }
 

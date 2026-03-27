@@ -57,9 +57,7 @@ interface DashboardStats {
   totalSocialAccounts: number;
   connectedPlatforms: string[];
   aiPosts: number;
-  monthlyEngagement: number;
   responseTime: string;
-  engagementRate: number;
   revenue: number;
 }
 
@@ -86,11 +84,6 @@ const scaleIn = {
   },
 };
 
-const pulseAnimation = {
-  scale: [1, 1.02, 1],
-  transition: { duration: 2, repeat: Infinity, ease: "easeInOut" },
-};
-
 // Animated counter component
 function AnimatedCounter({
   value,
@@ -115,44 +108,6 @@ function AnimatedCounter({
   );
 }
 
-// Mini sparkline component
-function MiniSparkline({ data, color }: { data: number[]; color: string }) {
-  const max = Math.max(...data);
-  const min = Math.min(...data);
-  const range = max - min || 1;
-
-  return (
-    <svg className="w-20 h-8" viewBox="0 0 80 32">
-      <defs>
-        <linearGradient
-          id={`gradient-${color}`}
-          x1="0%"
-          y1="0%"
-          x2="0%"
-          y2="100%"
-        >
-          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <motion.path
-        initial={{ pathLength: 0, opacity: 0 }}
-        animate={{ pathLength: 1, opacity: 1 }}
-        transition={{ duration: 1, ease: "easeOut" }}
-        d={`M ${data.map((v, i) => `${(i / (data.length - 1)) * 80},${32 - ((v - min) / range) * 28}`).join(" L ")}`}
-        fill="none"
-        stroke={color}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d={`M 0,32 L ${data.map((v, i) => `${(i / (data.length - 1)) * 80},${32 - ((v - min) / range) * 28}`).join(" L ")} L 80,32 Z`}
-        fill={`url(#gradient-${color})`}
-      />
-    </svg>
-  );
-}
 
 export default function Dashboard() {
   const { toast } = useToast();
@@ -248,13 +203,6 @@ export default function Dashboard() {
       ].includes(i.provider),
   );
 
-  // Sparkline placeholder data (real time-series not yet available from API)
-  const revenue = stats?.revenue ?? 0;
-  const campaigns = stats?.activeCampaigns ?? 0;
-  const msgs = stats?.unreadMessages ?? 0;
-  const salesData = revenue > 0 ? [revenue * 0.6, revenue * 0.7, revenue * 0.65, revenue * 0.8, revenue * 0.9, revenue * 0.85, revenue].map(v => Math.round(v / 100)) : [0, 0, 0, 0, 0, 0, 0];
-  const campaignData = campaigns > 0 ? [campaigns * 0.5, campaigns * 0.7, campaigns * 0.6, campaigns * 0.8, campaigns * 0.9, campaigns * 0.75, campaigns].map(Math.round) : [0, 0, 0, 0, 0, 0, 0];
-  const messageData = msgs > 0 ? [msgs * 0.4, msgs * 0.6, msgs * 0.5, msgs * 0.7, msgs * 0.8, msgs * 0.9, msgs].map(Math.round) : [0, 0, 0, 0, 0, 0, 0];
 
   // Boosty suggestions
   const boostySuggestions = [
@@ -545,7 +493,7 @@ export default function Dashboard() {
                               <div className="flex items-baseline gap-2">
                                 <span className="text-4xl font-bold">
                                   <AnimatedCounter
-                                    value={stats?.revenue ? (stats.revenue / 100).toLocaleString() : "0"}
+                                    value={stats?.revenue ? stats.revenue.toLocaleString() : "0"}
                                     prefix="$"
                                   />
                                 </span>
@@ -562,17 +510,11 @@ export default function Dashboard() {
                                   : "from point of sale"}
                               </p>
                             </div>
-                            <div className="text-right">
-                              <MiniSparkline data={salesData} color="#ffffff" />
-                            </div>
                           </div>
                           <div className="mt-4 pt-4 border-t border-white/20">
                             <div className="flex items-center justify-between text-sm">
                               <span className="text-emerald-100">
-                                {isSpanish ? "Total transacciones" : "Total transactions"}
-                              </span>
-                              <span className="font-semibold">
-                                {stats?.totalMessages ?? 0} {isSpanish ? "registros" : "records"}
+                                {isSpanish ? "Últimos 30 días" : "Last 30 days"}
                               </span>
                             </div>
                           </div>
@@ -602,11 +544,9 @@ export default function Dashboard() {
                           <Link href="/integrations">
                             <Button
                               className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg"
-                              disabled
                             >
                               <Plug className="w-4 h-4 mr-2" />
-                              {/* {isSpanish ? "Conectar" : "Connect"} */}{" "}
-                              {isSpanish ? "Proximamente" : "Coming Soon"}
+                              {isSpanish ? "Conectar" : "Connect"}
                             </Button>
                           </Link>
                         </CardContent>
@@ -641,12 +581,6 @@ export default function Dashboard() {
                               {stats?.totalCampaigns ?? 0}{" "}
                               {isSpanish ? "campañas totales" : "total campaigns"}
                             </span>
-                          </div>
-                          <div className="mt-4">
-                            <MiniSparkline
-                              data={campaignData}
-                              color="#ffffff"
-                            />
                           </div>
                         </CardContent>
                       </Card>
@@ -717,9 +651,6 @@ export default function Dashboard() {
                               {latestConversations.length}{" "}
                               {isSpanish ? "conversaciones" : "conversations"}
                             </span>
-                          </div>
-                          <div className="mt-4">
-                            <MiniSparkline data={messageData} color="#ffffff" />
                           </div>
                         </CardContent>
                       </Card>
@@ -1054,12 +985,12 @@ export default function Dashboard() {
                             </div>
                             <div>
                               <p className="text-sm font-medium text-gray-900 mb-1">
-                                {isSpanish ? "Tip del día" : "Tip of the day"}
+                                {isSpanish ? "Consejo" : "Quick tip"}
                               </p>
                               <p className="text-xs text-gray-600">
                                 {isSpanish
-                                  ? "Los Reels con música trending tienen 67% más alcance. ¿Quieres que cree uno?"
-                                  : "Reels with trending music get 67% more reach. Want me to create one?"}
+                                  ? "Usa el CampAIgner para generar y programar contenido con IA para tus redes sociales."
+                                  : "Use the CampAIgner to generate and schedule AI-powered content for your social media."}
                               </p>
                             </div>
                           </div>

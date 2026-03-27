@@ -173,9 +173,9 @@ export default function Home() {
               {statsLoading ? (
                 <div className="h-8 w-16 bg-gray-200 animate-pulse rounded" />
               ) : (
-                <div className="text-2xl font-bold">{stats?.engagementRate ?? 0}%</div>
+                <div className="text-2xl font-bold">{stats?.responseTime ?? "N/A"}</div>
               )}
-              <p className="text-xs text-muted-foreground">Engagement rate</p>
+              <p className="text-xs text-muted-foreground">Avg response time</p>
             </CardContent>
           </Card>
 

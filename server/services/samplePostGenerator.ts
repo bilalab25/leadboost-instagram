@@ -11,10 +11,18 @@ import {
   createAiGeneratedPost,
   getSamplePostsByBrand,
 } from "../storage/aiGeneratedPosts";
+import { BillingService } from "../stripe/billingService";
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY!,
-});
+let _ai: GoogleGenAI | null = null;
+function getAI(): GoogleGenAI {
+  if (!_ai) {
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error("GEMINI_API_KEY environment variable is required");
+    }
+    _ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  }
+  return _ai;
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // IMAGE INTENT SYSTEM - AI-based semantic classification
@@ -152,7 +160,7 @@ CLASSIFICATION RULES
 Return JSON: { intent: string, reasoning: string }`;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: "gemini-2.5-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       config: {
@@ -199,7 +207,6 @@ Return JSON: { intent: string, reasoning: string }`;
       };
     }
 
-    console.log(`🧠 [IntentClassifier] AI classified as: ${classifiedIntent}`);
     return {
       intent: classifiedIntent,
       reasoning: parsed.reasoning || `Classified as ${classifiedIntent}`,
@@ -232,10 +239,6 @@ async function detectImageIntent(
     brand.industry || null,
     brand.brandCategory || null,
     brand.description || null,
-  );
-
-  console.log(
-    `🧠 [IntentDetector] AI base classification: ${aiClassification.intent}`,
   );
 
   // Step 2: Override with asset-based logic if applicable
@@ -511,7 +514,7 @@ Return a JSON object with posts array containing objects with these fields:
 - imagePrompt: A detailed description for generating a professional marketing image that matches this post. ${hasProducts ? "Include the brand products in the scene." : "Focus on brand lifestyle and atmosphere."}`;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: "gemini-2.5-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       config: {
@@ -568,9 +571,6 @@ async function generateSampleImage(
   imageIntent: { intent: ImageIntent; reasoning: string },
 ): Promise<string | null> {
   try {
-    console.log(`🎯 [SampleImage] Intent: ${imageIntent.intent}`);
-    console.log(`📝 [SampleImage] Reasoning: ${imageIntent.reasoning}`);
-
     const aspectRatios: Record<string, string> = {
       instagram: "1:1 (square, 1080x1080px)",
       facebook: "16:9 (landscape, 1200x628px)",
@@ -647,7 +647,7 @@ NOT like an advertisement or brand poster. Think Instagram feed, not billboard.`
     // Add product assets ONLY if brand has them
     if (productAssets.length > 0) {
       console.log(
-        `🛍️ [SampleImage] Loading ${productAssets.length} product assets`,
+        `[SampleImage] Loading ${productAssets.length} product assets`,
       );
       for (const asset of productAssets) {
         if (asset.url) {
@@ -670,7 +670,7 @@ NOT like an advertisement or brand poster. Think Instagram feed, not billboard.`
     // Add location assets ONLY if brand has them
     if (locationAssets.length > 0) {
       console.log(
-        `📍 [SampleImage] Loading ${locationAssets.length} location assets`,
+        `[SampleImage] Loading ${locationAssets.length} location assets`,
       );
       for (const asset of locationAssets) {
         if (asset.url) {
@@ -716,9 +716,7 @@ NOT like an advertisement or brand poster. Think Instagram feed, not billboard.`
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        console.log(`🔄 [SampleImage] Attempt ${attempt}/${MAX_RETRIES}...`);
-
-        const response = await ai.models.generateContent({
+        const response = await getAI().models.generateContent({
           model: "gemini-3-pro-image-preview",
           contents: contentParts,
           config: {
@@ -730,7 +728,6 @@ NOT like an advertisement or brand poster. Think Instagram feed, not billboard.`
         if (response.candidates?.[0]?.content?.parts) {
           for (const part of response.candidates[0].content.parts) {
             if (part.inlineData?.data) {
-              console.log(`✅ [SampleImage] Image generated successfully`);
               const base64Data = part.inlineData.data;
               const dataUrl = `data:image/png;base64,${base64Data}`;
               return dataUrl;
@@ -739,18 +736,18 @@ NOT like an advertisement or brand poster. Think Instagram feed, not billboard.`
         }
 
         console.warn(
-          `⚠️ [SampleImage] No image in response for attempt ${attempt}`,
+          `[SampleImage] No image in response for attempt ${attempt}`,
         );
       } catch (retryError: any) {
         console.error(
-          `🔥 [SampleImage] Error on attempt ${attempt}:`,
+          `[SampleImage] Error on attempt ${attempt}:`,
           retryError?.message || retryError,
         );
 
         // Only retry on 500 errors
         if (retryError?.status !== 500 || attempt === MAX_RETRIES) {
           if (attempt === MAX_RETRIES) {
-            console.error("❌ [SampleImage] All retries failed");
+            console.error("[SampleImage] All retries failed");
           }
           break;
         }
@@ -758,7 +755,6 @@ NOT like an advertisement or brand poster. Think Instagram feed, not billboard.`
 
       // Exponential backoff: 2s, 4s, 8s
       const backoffMs = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
-      console.log(`⏳ [SampleImage] Waiting ${backoffMs}ms before retry...`);
       await delay(backoffMs);
     }
 
@@ -781,10 +777,6 @@ async function generateSimpleOrganicImage(
   brand: Brand,
 ): Promise<string | null> {
   try {
-    console.log(
-      `🌿 [SimpleOrganic] Generating organic lifestyle image (no assets path)`,
-    );
-
     const aspectRatios: Record<string, string> = {
       instagram: "1:1 (square, 1080x1080px)",
       facebook: "16:9 (landscape, 1200x628px)",
@@ -830,9 +822,7 @@ Create THAT kind of image - organic, engaging, real.`;
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        console.log(`🔄 [SimpleOrganic] Attempt ${attempt}/${MAX_RETRIES}...`);
-
-        const response = await ai.models.generateContent({
+        const response = await getAI().models.generateContent({
           model: "gemini-3-pro-image-preview",
           contents: [{ text: simplePrompt }],
           config: {
@@ -844,7 +834,6 @@ Create THAT kind of image - organic, engaging, real.`;
         if (response.candidates?.[0]?.content?.parts) {
           for (const part of response.candidates[0].content.parts) {
             if (part.inlineData?.data) {
-              console.log(`✅ [SimpleOrganic] Image generated successfully`);
               const base64Data = part.inlineData.data;
               const dataUrl = `data:image/png;base64,${base64Data}`;
               return dataUrl;
@@ -853,24 +842,23 @@ Create THAT kind of image - organic, engaging, real.`;
         }
 
         console.warn(
-          `⚠️ [SimpleOrganic] No image in response for attempt ${attempt}`,
+          `[SimpleOrganic] No image in response for attempt ${attempt}`,
         );
       } catch (retryError: any) {
         console.error(
-          `🔥 [SimpleOrganic] Error on attempt ${attempt}:`,
+          `[SimpleOrganic] Error on attempt ${attempt}:`,
           retryError?.message || retryError,
         );
 
         if (retryError?.status !== 500 || attempt === MAX_RETRIES) {
           if (attempt === MAX_RETRIES) {
-            console.error("❌ [SimpleOrganic] All retries failed");
+            console.error("[SimpleOrganic] All retries failed");
           }
           break;
         }
       }
 
       const backoffMs = Math.min(2000 * Math.pow(2, attempt - 1), 10000);
-      console.log(`⏳ [SimpleOrganic] Waiting ${backoffMs}ms before retry...`);
       await delay(backoffMs);
     }
 
@@ -926,32 +914,24 @@ export async function generateSamplePosts(
   let brandAssets: BrandAsset[] = [];
   try {
     brandAssets = await storage.getAssetsByBrandId(brandId);
-  } catch (e) {
-    console.log(`[SamplePostGenerator] No assets found for brand ${brandId}`);
+  } catch (_e) {
+    // No assets found for brand - continue with empty array
   }
 
   const preferredLanguage = brandDesign.preferredLanguage || "en";
 
   // Check if brand has any visual assets
   const brandHasVisualAssets = hasVisualAssets(brandAssets, brandDesign);
-  console.log(
-    `📊 [SamplePostGenerator] Brand has visual assets: ${brandHasVisualAssets}`,
-  );
   // Only run intent detection if brand has visual assets
   let imageIntent: { intent: ImageIntent; reasoning: string } | null = null;
 
   if (brandHasVisualAssets) {
     // Full intent detection path for brands WITH assets
     imageIntent = await detectImageIntent(brand, brandAssets);
-    console.log(`[SamplePostGenerator] Image Intent: ${imageIntent.intent}`);
-    console.log(`[SamplePostGenerator] Reasoning: ${imageIntent.reasoning}`);
   } else {
     // Simplified path for brands WITHOUT assets
     console.log(
-      `🌿 [SamplePostGenerator] NO VISUAL ASSETS - using simplified organic path`,
-    );
-    console.log(
-      `[SamplePostGenerator] Skipping intent detection, will generate organic lifestyle imagery`,
+      `[SamplePostGenerator] No visual assets - using simplified organic path`,
     );
   }
 
@@ -969,10 +949,6 @@ export async function generateSamplePosts(
   const generatedPosts: GeneratedSamplePost[] = [];
 
   for (const post of postContents) {
-    console.log(
-      `[SamplePostGenerator] Generating image for ${post.platform}...`,
-    );
-
     let imageDataUrl: string | null = null;
 
     if (brandHasVisualAssets && imageIntent) {
@@ -1023,36 +999,46 @@ export async function generateSamplePosts(
       imageUrl: cloudinaryResult.url,
       cloudinaryPublicId: cloudinaryResult.publicId,
     });
-
-    console.log(
-      `[SamplePostGenerator] Generated sample post for ${post.platform}`,
-    );
   }
 
   return generatedPosts;
 }
 
+// Track in-flight generation to prevent duplicate concurrent requests
+const inFlightGenerations = new Set<string>();
+
 export async function startSamplePostGeneration(
   brandId: string,
 ): Promise<{ jobId: string } | null> {
   try {
-    const existingSamples = await getSamplePostsByBrand(brandId);
-    if (existingSamples && existingSamples.length > 0) {
-      console.log(
-        `[SamplePostGenerator] Brand ${brandId} already has sample posts, skipping`,
-      );
+    // Prevent concurrent duplicate generation for the same brand
+    if (inFlightGenerations.has(brandId)) {
       return null;
     }
 
+    const existingSamples = await getSamplePostsByBrand(brandId);
+    if (existingSamples && existingSamples.length > 0) {
+      return null;
+    }
+
+    inFlightGenerations.add(brandId);
+
     const job = await createPostGeneratorJob(brandId);
     if (!job) {
+      inFlightGenerations.delete(brandId);
       console.error(
         `[SamplePostGenerator] Could not create job for brand ${brandId}`,
       );
       return null;
     }
 
-    processSamplePostsAsync(brandId, job.id);
+    processSamplePostsAsync(brandId, job.id)
+      .catch((err) => {
+        console.error(`[SamplePostGenerator] Unhandled error for brand ${brandId}:`, err);
+      })
+      .finally(() => {
+        inFlightGenerations.delete(brandId);
+      });
 
     return { jobId: job.id };
   } catch (error) {
@@ -1102,6 +1088,20 @@ async function processSamplePostsAsync(
     }
 
     await updatePostGeneratorJob(jobId, { status: "completed" });
+
+    // Record billing AFTER successful generation (Bug 20: avoid charging for failures)
+    if (generatedPosts.length > 0) {
+      try {
+        const billingService = new BillingService();
+        await billingService.recordImageGeneration(
+          brandId,
+          "/api/generate-sample-posts",
+          generatedPosts.length,
+        );
+      } catch (billingError) {
+        console.error("[SamplePostGenerator] Billing recording failed:", billingError);
+      }
+    }
 
     console.log(
       `[SamplePostGenerator] Successfully created ${generatedPosts.length} sample posts for brand ${brandId}`,

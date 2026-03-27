@@ -24,6 +24,7 @@ import { useBrand } from "@/contexts/BrandContext";
 import ReactMarkdown from "react-markdown";
 
 interface ChatMessage {
+  id: string;
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
@@ -62,11 +63,13 @@ export default function BoostyPage() {
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const msgIdCounter = useRef(0);
+  const nextMsgId = () => String(++msgIdCounter.current);
 
   const { data: suggestionsData } = useQuery<{ suggestions: string[] }>({
     queryKey: ["/api/boosty/suggestions", activeBrandId, language],
     queryFn: async () => {
-      const response = await fetch(`/api/boosty/suggestions?brandId=${activeBrandId}&language=${language}`);
+      const response = await fetch(`/api/boosty/suggestions?brandId=${activeBrandId}&language=${language}`, { credentials: "include" });
       if (!response.ok) throw new Error("Failed to fetch suggestions");
       return response.json();
     },
@@ -76,7 +79,7 @@ export default function BoostyPage() {
   const { data: contextData } = useQuery<{ context: BrandContext }>({
     queryKey: ["/api/boosty/context", activeBrandId],
     queryFn: async () => {
-      const response = await fetch(`/api/boosty/context?brandId=${activeBrandId}`);
+      const response = await fetch(`/api/boosty/context?brandId=${activeBrandId}`, { credentials: "include" });
       if (!response.ok) throw new Error("Failed to fetch context");
       return response.json();
     },
@@ -95,8 +98,19 @@ export default function BoostyPage() {
     },
     onSuccess: (data) => {
       setMessages(prev => [...prev, {
+        id: nextMsgId(),
         role: "assistant",
         content: data.response,
+        timestamp: new Date()
+      }]);
+    },
+    onError: () => {
+      setMessages(prev => [...prev, {
+        id: nextMsgId(),
+        role: "assistant",
+        content: language === "es"
+          ? "Lo siento, hubo un error al procesar tu mensaje. Por favor intenta de nuevo."
+          : "Sorry, there was an error processing your message. Please try again.",
         timestamp: new Date()
       }]);
     }
@@ -106,6 +120,7 @@ export default function BoostyPage() {
     if (!input.trim() || chatMutation.isPending) return;
 
     const userMessage: ChatMessage = {
+      id: nextMsgId(),
       role: "user",
       content: input.trim(),
       timestamp: new Date()
@@ -131,7 +146,9 @@ export default function BoostyPage() {
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      const viewport = scrollRef.current.querySelector("[data-radix-scroll-area-viewport]") as HTMLElement | null;
+      const target = viewport || scrollRef.current;
+      target.scrollTop = target.scrollHeight;
     }
   }, [messages]);
 
@@ -265,13 +282,13 @@ export default function BoostyPage() {
                           {context.sales && (
                             <Badge variant="outline" className="bg-white/50">
                               <ShoppingBag className="w-3 h-3 mr-1" />
-                              {context.sales.last30Days.transactionCount} ventas
+                              {context.sales.last30Days.transactionCount} {language === "es" ? "ventas" : "sales"}
                             </Badge>
                           )}
                           {context.integrations.connected.length > 0 && (
                             <Badge variant="outline" className="bg-white/50">
                               <TrendingUp className="w-3 h-3 mr-1" />
-                              {context.integrations.connected.length} plataformas
+                              {context.integrations.connected.length} {language === "es" ? "plataformas" : "platforms"}
                             </Badge>
                           )}
                         </div>
@@ -308,9 +325,9 @@ export default function BoostyPage() {
           )}
 
           <AnimatePresence>
-            {messages.map((message, index) => (
+            {messages.map((message) => (
               <motion.div
-                key={index}
+                key={message.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
