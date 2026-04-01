@@ -1484,7 +1484,10 @@ export const integrations = pgTable(
     expiresAt: timestamp("expires_at"), // Maps to: expires_at
     metadata: jsonb("metadata"), // Maps to: metadata (JSONB for structured data queries)
   },
-  (table) => [index("integrations_brand_idx").on(table.brandId)],
+  (table) => [
+    index("integrations_brand_idx").on(table.brandId),
+    index("integrations_user_idx").on(table.userId),
+  ],
 );
 
 // Scheduled Appointments

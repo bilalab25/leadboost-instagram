@@ -446,16 +446,6 @@ export default function Settings() {
   };
 
   useEffect(() => {
-    if (isAuthenticated && user) {
-      console.log("User data:", user);
-      setUserName(`${user.firstName || ""} ${user.lastName || ""}`);
-      setUserEmail(user.email || "");
-      setUserPhone(user.phone || "");
-      setUserAddress(user.address || "");
-    }
-  }, [isAuthenticated, user]);
-
-  useEffect(() => {
     if (user) {
       setUserName(`${user.firstName || ""} ${user.lastName || ""}`);
       setUserEmail(user.email || "");
@@ -488,7 +478,7 @@ export default function Settings() {
               </div>
 
               <Tabs defaultValue="account-information" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-5">
                   <TabsTrigger
                     value="account-information"
                     data-testid="tab-account-information"
@@ -553,8 +543,8 @@ export default function Settings() {
                   <PaymentMethodTab isSpanish={isSpanish} />
                 </TabsContent>
 
-                {/* Notifications Tab */}
-                <TabsContent value="notifications" className="space-y-6">
+                {/* Notifications Tab — removed (no tab trigger, dead code) */}
+                <TabsContent value="notifications" className="space-y-6 hidden">
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center">
@@ -850,6 +840,13 @@ function InstagramSettingsTab() {
   const [stages, setStages] = useState<{ id: string; name: string; approverRole: string; order: number }[]>([]);
   const [newStageName, setNewStageName] = useState("");
   const [initialized, setInitialized] = useState(false);
+  const [prevBrand, setPrevBrand] = useState(activeBrandId);
+
+  // Reset when brand changes
+  if (activeBrandId !== prevBrand) {
+    setPrevBrand(activeBrandId);
+    setInitialized(false);
+  }
 
   if (settings && pipeline && !initialized) {
     setFlags(settings.featureFlags || {});
@@ -872,6 +869,9 @@ function InstagramSettingsTab() {
       queryClient.invalidateQueries({ queryKey: [`/api/brands/${activeBrandId}/settings`] });
       toast({ title: isSpanish ? "Guardado" : "Saved", description: isSpanish ? "Módulos actualizados." : "Module visibility updated." });
     },
+    onError: () => {
+      toast({ title: "Error", description: isSpanish ? "No se pudo guardar." : "Failed to save settings.", variant: "destructive" });
+    },
   });
 
   const savePipelineMutation = useMutation({
@@ -887,6 +887,9 @@ function InstagramSettingsTab() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/brands/${activeBrandId}/approval-pipeline`] });
       toast({ title: isSpanish ? "Guardado" : "Saved", description: isSpanish ? "Pipeline actualizado." : "Approval pipeline updated." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: isSpanish ? "No se pudo guardar." : "Failed to save pipeline.", variant: "destructive" });
     },
   });
 
@@ -968,7 +971,7 @@ function InstagramSettingsTab() {
         <CardContent className="space-y-3">
           {stages.map((stage, i) => (
             <div key={stage.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-              <GripVertical className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              <span className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 text-xs font-medium flex items-center justify-center flex-shrink-0">{i + 1}</span>
               <div className="flex-1">
                 <span className="text-sm font-medium">{i + 1}. {stage.name}</span>
                 <span className="text-xs text-gray-500 ml-2">
@@ -1111,6 +1114,9 @@ function AIBuilderTab() {
         description: isSpanish ? "Los cambios han sido aplicados." : "Changes have been applied.",
       });
     },
+    onError: () => {
+      toast({ title: "Error", description: isSpanish ? "No se pudieron aplicar los cambios." : "Failed to apply changes.", variant: "destructive" });
+    },
   });
 
   // Reject proposal
@@ -1124,6 +1130,10 @@ function AIBuilderTab() {
     onSuccess: () => {
       setCurrentProposal(null);
       queryClient.invalidateQueries({ queryKey: [`/api/brands/${activeBrandId}/ai-customize/history`] });
+      toast({ title: isSpanish ? "Rechazado" : "Rejected", description: isSpanish ? "La propuesta fue rechazada." : "Proposal rejected." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: isSpanish ? "No se pudo rechazar." : "Failed to reject.", variant: "destructive" });
     },
   });
 

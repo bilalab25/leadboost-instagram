@@ -2245,10 +2245,13 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async deleteIntegration(id: string, userId: string): Promise<boolean> {
+  async deleteIntegration(id: string, _userId?: string): Promise<boolean> {
+    // Brand ownership is validated at the route level, so we only filter by id here.
+    // Previously filtering by userId prevented team admins from disconnecting integrations
+    // they didn't originally create.
     const result = await db
       .delete(integrations)
-      .where(and(eq(integrations.id, id), eq(integrations.userId, userId)))
+      .where(eq(integrations.id, id))
       .returning();
     return result.length > 0;
   }

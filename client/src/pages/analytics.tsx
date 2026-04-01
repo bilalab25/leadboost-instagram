@@ -48,7 +48,7 @@ interface DashboardStats {
 export default function Analytics() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
-  const { isSpanish } = useLanguage();
+  const { isSpanish, toggleLanguage } = useLanguage();
   const { activeBrandId } = useBrand();
 
   useEffect(() => {
@@ -457,7 +457,7 @@ export default function Analytics() {
                 )}
               </div>
             </div>
-            <HelpChatbot isSpanish={isSpanish} toggleLanguage={() => {}} />
+            <HelpChatbot isSpanish={isSpanish} toggleLanguage={toggleLanguage} />
           </main>
         </div>
       </div>

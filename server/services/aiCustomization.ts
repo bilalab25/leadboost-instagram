@@ -64,10 +64,16 @@ export async function generateProposal(
   };
 
   // Use Gemini to interpret the request
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY;
+  if (!apiKey) {
+    return {
+      summary: "AI customization is not configured. Please set the GEMINI_API_KEY environment variable.",
+      proposals: [],
+    };
+  }
+
   const { GoogleGenAI } = await import("@google/genai");
-  const ai = new GoogleGenAI({
-    apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY || "",
-  });
+  const ai = new GoogleGenAI({ apiKey });
 
   const systemPrompt = `You are an AI assistant for LeadBoost, an Instagram marketing platform.
 

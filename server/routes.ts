@@ -78,7 +78,30 @@ import {
 import { eq, and } from "drizzle-orm";
 import dayjs from "dayjs";
 import { nanoid } from "nanoid";
+import crypto from "crypto";
 import { generateAILogo } from "./services/generateLogo";
+
+// OAuth state signing helpers (CSRF protection)
+const STATE_SECRET = process.env.SESSION_SECRET || process.env.FB_APP_SECRET || "leadboost-state-secret";
+
+function signOAuthState(payload: object): string {
+  const data = Buffer.from(JSON.stringify(payload)).toString("base64");
+  const sig = crypto.createHmac("sha256", STATE_SECRET).update(data).digest("hex");
+  return `${data}.${sig}`;
+}
+
+function verifyOAuthState(state: string): object | null {
+  const parts = state.split(".");
+  if (parts.length !== 2) return null;
+  const [data, sig] = parts;
+  const expected = crypto.createHmac("sha256", STATE_SECRET).update(data).digest("hex");
+  if (sig !== expected) return null;
+  try {
+    return JSON.parse(Buffer.from(data, "base64").toString("utf8"));
+  } catch {
+    return null;
+  }
+}
 
 interface LogoJob {
   id: string;
@@ -201,7 +224,7 @@ async function fetchFacebookMessagesFromDB(
     metaConversationId: m.metaConversationId,
     text: m.textContent || "",
     imageUrl: m.imageUrl || null,
-    from: m.direction === "outbound" ? "You" : m.senderName || "Usuario",
+    from: m.direction === "outbound" ? "You" : m.senderName || "User",
     fromId: m.senderId,
     created_time: m.timestamp.toISOString(),
     provider: "facebook",
@@ -226,7 +249,7 @@ async function fetchInstagramMessagesFromDB(
     metaConversationId: m.metaConversationId,
     text: m.textContent || "",
     imageUrl: m.imageUrl || null,
-    from: m.direction === "outbound" ? "You" : m.senderName || "Usuario",
+    from: m.direction === "outbound" ? "You" : m.senderName || "User",
     fromId: m.senderId,
     created_time: m.timestamp.toISOString(),
     provider: "instagram",
@@ -251,7 +274,7 @@ async function fetchThreadsMessagesFromDB(
     metaConversationId: m.metaConversationId,
     text: m.textContent || "",
     imageUrl: m.imageUrl || null,
-    from: m.direction === "outbound" ? "You" : m.senderName || "Usuario",
+    from: m.direction === "outbound" ? "You" : m.senderName || "User",
     fromId: m.senderId,
     created_time: m.timestamp.toISOString(),
     provider: "threads",
@@ -741,7 +764,7 @@ async function performInstagramDirectSync(
       for (const m of messagesList) {
 
         if (m.error) {
- console.error(` Error fetching message ${msgRef.id}:`, m.error);
+          console.error(`  Error in message ${m.id || "unknown"}:`, m.error);
           continue;
         }
 
@@ -1019,7 +1042,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/users/:id", async (req, res) => {
+  app.put("/api/users/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const allowedFields = [
@@ -1942,7 +1965,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Social accounts routes
 
-  app.post("/api/social-accounts", async (req: any, res) => {
+  app.post("/api/social-accounts", isAuthenticated, async (req: any, res) => {
     try {
       const userId =
         getUserId(req);
@@ -2358,17 +2381,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const avgImpressions = avg(getMetric("page_impressions"));
               const engagementRate = avgEng / (avgReach || 1);
 
-              // 🧠 Dynamic frequency rules
-              let frequency = "1 publicación por semana";
-              if (engagementRate > 0.05)
-                frequency = "3 publicaciones por semana";
-              if (engagementRate > 0.08)
-                frequency = "5 publicaciones por semana";
+              // Dynamic frequency rules
+              let postsPerWeek = 1;
+              if (engagementRate > 0.05) postsPerWeek = 3;
+              if (engagementRate > 0.08) postsPerWeek = 5;
 
               let days = ["wed"];
-              if (frequency.includes("3")) days = ["mon", "wed", "fri"];
-              if (frequency.includes("5"))
-                days = ["mon", "tue", "wed", "thu", "fri"];
+              if (postsPerWeek >= 3) days = ["mon", "wed", "fri"];
+              if (postsPerWeek >= 5) days = ["mon", "tue", "wed", "thu", "fri"];
 
               // ⏰ Dynamic hours (randomized around realistic social windows)
               const baseHours = [10, 11, 12, 13, 14, 15];
@@ -2383,7 +2403,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
               recommendations.push({
                 platform: "facebook",
-                frequency_days: frequency,
+                postsPerWeek,
                 days_week: days,
                 best_hours: hours,
                 insights_data: {
@@ -2394,9 +2414,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               });
             }
 
-            // 🔹 INSTAGRAM
-            else if (integration.provider === "instagram") {
-              const mediaUrl = `https://graph.facebook.com/v24.0/${integration.accountId}/media?fields=id,timestamp,caption,insights.metric(impressions,reach,likes,comments,saved,total_interactions)&limit=25&access_token=${integration.accessToken}`;
+            // 🔹 INSTAGRAM (via Facebook or Direct)
+            else if (integration.provider === "instagram" || integration.provider === "instagram_direct") {
+              const igBaseUrl = integration.provider === "instagram_direct"
+                ? "https://graph.instagram.com"
+                : "https://graph.facebook.com";
+              const mediaUrl = `${igBaseUrl}/v24.0/${integration.accountId}/media?fields=id,timestamp,caption,insights.metric(impressions,reach,likes,comments,saved,total_interactions)&limit=25&access_token=${integration.accessToken}`;
               const resIG = await fetch(mediaUrl);
               const dataIG = await resIG.json();
 
@@ -3487,7 +3510,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Chatbot configuration routes
-  app.get("/api/chatbot/config/:brandId", async (req: any, res) => {
+  app.get("/api/chatbot/config/:brandId", isAuthenticated, async (req: any, res) => {
     try {
       const { brandId } = req.params;
       const configs = await storage.getChatbotConfigs(brandId);
@@ -3500,7 +3523,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/chatbot/config", async (req: any, res) => {
+  app.post("/api/chatbot/config", isAuthenticated, async (req: any, res) => {
     try {
       const configData = req.body;
       const config = await storage.createChatbotConfig(configData);
@@ -3540,7 +3563,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       Respond in English.`;
 
       // Generate response using OpenAI
-      const completion = await openai!.chat.completions.create({
+      if (!openai) {
+        return res.status(503).json({ message: "AI chat is not configured. Please set the OPENAI_API_KEY." });
+      }
+      const completion = await openai.chat.completions.create({
         model: "gpt-4", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
         messages: [
           { role: "system", content: systemPrompt },
@@ -3603,9 +3629,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         origin: origin || null,
       };
 
-      const state = Buffer.from(JSON.stringify(statePayload)).toString(
-        "base64",
-      );
+      const state = signOAuthState(statePayload);
 
       const authUrl = `https://www.facebook.com/v24.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
         redirectUri,
@@ -3619,11 +3643,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
     try {
-      const { code, state } = req.query;
+      const { code, state, error: oauthError } = req.query;
 
-      // -----------------------------------------
-      // 0️⃣ Validate query params
-      // -----------------------------------------
+      // Handle user-denied permissions
+      if (oauthError) {
+        return res.redirect("/integrations?error=user_denied");
+      }
+
       if (!code) {
         return res.redirect("/integrations?error=missing_code");
       }
@@ -3633,17 +3659,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // -----------------------------------------
-      // 1️⃣ Decode state
+      // 1️⃣ Verify and decode signed state (CSRF protection)
       // -----------------------------------------
       let userId, brandId, origin;
 
       try {
-        const decoded = Buffer.from(state as string, "base64").toString("utf8");
-        const parsed = JSON.parse(decoded);
+        const parsed = verifyOAuthState(state as string);
 
-        userId = parsed.userId;
-        brandId = parsed.brandId;
-        origin = parsed.origin || "integrations";
+        if (!parsed) {
+          return res.redirect("/integrations?error=invalid_state");
+        }
+
+        userId = (parsed as any).userId;
+        brandId = (parsed as any).brandId;
+        origin = (parsed as any).origin || "integrations";
 
       } catch (err) {
         return res.redirect("/integrations?error=invalid_state");
@@ -3788,6 +3817,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           igInfo.connected_instagram_account ||
           igInfo.instagram_business_account;
 
+        // Check for duplicate IG account across brands (same check as Instagram Direct flow)
+        const duplicateIg = await storage.checkDuplicateIntegration(
+          igAcc.id.toString(),
+          igAcc.id.toString(),
+          "instagram",
+          brandId,
+        );
+        if (duplicateIg) {
+          console.warn(`[Facebook OAuth] Instagram account ${igAcc.id} already connected to another brand`);
+          // Continue without creating IG integration — Facebook integration is still saved
+        }
+
         const igDetailsRes = await fetch(
           `https://graph.facebook.com/v24.0/${igAcc.id}` +
             `?fields=username,name,profile_picture_url` +
@@ -3795,7 +3836,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
         const igDetails = await igDetailsRes.json();
 
-        const savedIgIntegration = await storage.createOrUpdateIntegration({
+        const savedIgIntegration = !duplicateIg ? await storage.createOrUpdateIntegration({
           userId,
           brandId,
           provider: "instagram",
@@ -3814,10 +3855,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             igUsername: igDetails.username,
             source: "facebook_callback",
           },
-        });
+        }) : null;
 
         // Trigger sync if inbox subscription is already active
-        triggerSyncForNewIntegration(savedIgIntegration).catch(() => {});
+        if (savedIgIntegration) {
+          triggerSyncForNewIntegration(savedIgIntegration).catch(() => {});
+        }
 
         const savedThreadsIntegration = await storage.createOrUpdateIntegration(
           {
@@ -3892,9 +3935,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         origin, // Include origin for redirect after callback
       };
 
-      const state = Buffer.from(JSON.stringify(statePayload)).toString(
-        "base64",
-      );
+      const state = signOAuthState(statePayload);
 
       const authUrl = `https://www.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
         redirectUri,
@@ -3905,7 +3946,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/integrations/instagram/callback", async (req, res) => {
     try {
-      const { code, state } = req.query;
+      const { code, state, error: oauthError } = req.query;
+
+      // Handle user-denied permissions
+      if (oauthError) {
+        return res.redirect("/integrations?error=user_denied");
+      }
       if (!code) return res.status(400).send("Missing code");
       if (!state) return res.status(400).send("Missing OAuth state");
 
@@ -3915,17 +3961,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let origin: string = "integrations";
 
       try {
-        const decoded = Buffer.from(state as string, "base64").toString("utf8");
-        const parsed = JSON.parse(decoded);
-        userId = parsed.userId;
-        brandId = parsed.brandId;
-        origin = parsed.origin || "integrations";
+        const parsed = verifyOAuthState(state as string);
+        if (!parsed) {
+          return res.redirect("/integrations?error=invalid_state");
+        }
+        userId = (parsed as any).userId;
+        brandId = (parsed as any).brandId;
+        origin = (parsed as any).origin || "integrations";
       } catch {
-        return res.status(400).send("Invalid OAuth state");
+        return res.redirect("/integrations?error=invalid_state");
       }
 
-      if (!userId) return res.status(400).send("Missing userId in state");
-      if (!brandId) return res.status(400).send("Missing brandId in state");
+      if (!userId || !brandId) {
+        return res.redirect("/integrations?error=invalid_state");
+      }
 
       const redirect_uri = `${process.env.APP_URL}/api/integrations/instagram/callback`;
 
@@ -5907,7 +5956,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     direction: isOutbound ? "outbound" : "inbound",
                     isRead: isOutbound ? true : false,
                     timestamp: new Date(event.timestamp || Date.now()),
-                    rawPayload: body,
+                    rawPayload: event,
                   });
 
                   // Process and save attachments
@@ -5990,8 +6039,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.sendStatus(404);
       }
     } catch (err) {
-      console.error("[ERROR] Error procesando evento Meta:", err);
-      res.status(500).json({ error: "Meta webhook processing failed" });
+      console.error("[ERROR] Error processing Meta webhook event:", err);
+      // CRITICAL: Always return 200 to Meta. Returning 500 causes retries (duplicate messages)
+      // and repeated 500s will cause Meta to deactivate the webhook subscription.
+      res.status(200).send("EVENT_RECEIVED");
     }
   });
 
@@ -6722,7 +6773,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(
     "/api/conversations/messages/all",
     isAuthenticated,
-    async (req, res) => {
+    requireBrand,
+    async (req: any, res) => {
       try {
         const userId = (req.user as any)?.id;
         const integrations = await storage.getIntegrations(userId);
@@ -7052,7 +7104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             } else {
               return res.status(400).json({
                 error:
-                  "No se pudo determinar el destinatario (sin mensajes en Meta ni en DB)",
+                  "Could not determine recipient (no messages found in Meta API or local DB)",
               });
             }
           }
@@ -7065,7 +7117,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             message: { text: content },
           };
 
-          console.log("[OK] [Facebook] Payload final:", payload);
+          console.log("[OK] [Facebook] Payload prepared");
         }
 
         // =========================================================
@@ -7082,7 +7134,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const pageId = integration.pageId;
           if (!pageId)
             throw new Error(
-              "No se encontró el Page ID vinculado a la cuenta IG.",
+              "No Page ID found for this Instagram account",
             );
 
           console.log(`🆔 Page ID vinculado: ${pageId}`);
@@ -7129,7 +7181,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (!recipientId)
             return res
               .status(400)
-              .json({ error: "No se pudo determinar el destinatario de IG" });
+              .json({ error: "Could not determine Instagram recipient" });
 
  console.log(` Recipient ID (IG): ${recipientId}`);
 
@@ -7167,7 +7219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const igbaId = integration.accountId;
           if (!igbaId)
             throw new Error(
-              "No se encontró el IGBA ID de la cuenta Instagram.",
+              "No Instagram Business Account ID found",
             );
 
           console.log(`🆔 IGBA ID: ${igbaId}`);
@@ -7231,7 +7283,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             } else {
               return res.status(400).json({
                 error:
-                  "No se pudo determinar el destinatario de Instagram Direct",
+                  "Could not determine Instagram Direct recipient",
               });
             }
           }
@@ -7269,7 +7321,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             };
           }
 
-          console.log("[OK] [Instagram Direct] Payload final:", payload);
+          console.log("[OK] [Instagram Direct] Payload prepared");
           console.log(
             "✅ [Instagram Direct] Using Authorization Bearer header",
           );
@@ -7317,7 +7369,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           recipientId = finalRecipientId;
           metaConversationId = conversationId;
-          console.log("[OK] [WhatsApp] Payload final:", payload);
+          console.log("[OK] [WhatsApp] Payload prepared");
         }
 
         // =========================================================
@@ -7541,7 +7593,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Calendar integration routes
-  app.get("/api/calendar/integrations/:brandId", async (req: any, res) => {
+  app.get("/api/calendar/integrations/:brandId", isAuthenticated, async (req: any, res) => {
     try {
       const { brandId } = req.params;
       const integrations = await storage.getCalendarIntegrations(brandId);
@@ -7554,7 +7606,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/calendar/integrations", async (req: any, res) => {
+  app.post("/api/calendar/integrations", isAuthenticated, async (req: any, res) => {
     try {
       const integrationData = req.body;
       const integration =
@@ -7568,7 +7620,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/appointments/:brandId", async (req: any, res) => {
+  app.get("/api/appointments/:brandId", isAuthenticated, async (req: any, res) => {
     try {
       const { brandId } = req.params;
       const appointments = await storage.getAppointments(brandId);
@@ -7639,7 +7691,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Image processing endpoint for pixel-perfect platform assets
-  app.post("/api/process-campaign-images", async (req, res) => {
+  app.post("/api/process-campaign-images", isAuthenticated, async (req: any, res) => {
     try {
       const {
         sourceImageUrl,
@@ -7694,7 +7746,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Campaign visual generation with platform-specific sizing
-  app.post("/api/ai/generate-campaign-visuals", async (req, res) => {
+  app.post("/api/ai/generate-campaign-visuals", isAuthenticated, async (req: any, res) => {
     try {
       const { businessDescription, businessType, campaignTheme, posts } =
         req.body;
@@ -11113,11 +11165,11 @@ All content must be in English.`;
 
   app.post("/api/brands/:brandId/ai-customize/:requestId/reject", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
-      const { requestId } = req.params;
+      const { requestId, brandId } = req.params;
       await db
         .update(customizationRequests)
         .set({ status: "rejected" })
-        .where(eq(customizationRequests.id, requestId));
+        .where(and(eq(customizationRequests.id, requestId), eq(customizationRequests.brandId, brandId)));
       res.json({ success: true });
     } catch (err) {
       res.status(500).json({ error: "Failed to reject" });
@@ -11251,7 +11303,7 @@ All content must be in English.`;
   app.delete("/api/brands/:brandId/caption-templates/:templateId", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
       const { templateId } = req.params;
-      await db.delete(captionTemplates).where(eq(captionTemplates.id, templateId));
+      await db.delete(captionTemplates).where(and(eq(captionTemplates.id, templateId), eq(captionTemplates.brandId, req.params.brandId)));
       res.json({ success: true });
     } catch (err) {
       res.status(500).json({ error: "Failed to delete caption template" });
@@ -11368,7 +11420,7 @@ All content must be in English.`;
   app.delete("/api/brands/:brandId/hashtag-sets/:setId", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
       const { setId } = req.params;
-      await db.delete(hashtagSets).where(eq(hashtagSets.id, setId));
+      await db.delete(hashtagSets).where(and(eq(hashtagSets.id, setId), eq(hashtagSets.brandId, req.params.brandId)));
       res.json({ success: true });
     } catch (err) {
       res.status(500).json({ error: "Failed to delete hashtag set" });

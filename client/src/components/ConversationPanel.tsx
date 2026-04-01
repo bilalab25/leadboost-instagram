@@ -24,6 +24,7 @@ import {
   Trash2,
   Image as ImageIcon,
   FileIcon,
+  MessageCircle,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -84,6 +85,7 @@ const platformIcons = {
   twitter: Twitter,
   telegram: SiTelegram,
   discord: SiDiscord,
+  threads: MessageCircle,
 };
 
 const platformColors = {
@@ -97,6 +99,7 @@ const platformColors = {
   twitter: "bg-sky-500",
   telegram: "bg-primary",
   discord: "bg-indigo-600",
+  threads: "bg-gray-800",
 };
 
 const platformLabels: Record<string, string> = {
@@ -274,7 +277,7 @@ export default function ConversationPanel({
 
     loadMessages();
     return () => { aborted = true; };
-  }, [conversationId, platform]);
+  }, [conversationId, platform, activeBrandId]);
 
   // Mark conversation as read mutation (using new conversation API)
   const markAsReadMutation = useMutation({
@@ -426,6 +429,7 @@ export default function ConversationPanel({
           direction: "outbound",
           status: "sent",
           createdAt: new Date().toISOString(),
+          attachments: [],
         },
       ] as any);
     },
@@ -460,6 +464,10 @@ export default function ConversationPanel({
       setContactProfilePicture(contactProfilePictureProp);
     }
     setConversationFlag("none");
+    setCanSendFacebookMessage(true); // Reset 24h restriction until new messages load
+    setMessages([]);
+    setMessageText("");
+    setAttachments([]);
   }, [conversationId, contactProfilePictureProp]);
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -790,7 +798,7 @@ export default function ConversationPanel({
                             }
 
                             if (att.type === "video") {
-                              return (
+                              return isSafeUrl(att.url) ? (
                                 <video
                                   key={att.id}
                                   controls
@@ -801,11 +809,11 @@ export default function ConversationPanel({
                                     type={att.mimeType || "video/mp4"}
                                   />
                                 </video>
-                              );
+                              ) : null;
                             }
 
                             if (att.type === "audio") {
-                              return (
+                              return isSafeUrl(att.url) ? (
                                 <div
                                   key={att.id}
                                   className="flex items-center gap-2 p-3 rounded-lg bg-gray-100 max-w-xs"
@@ -823,7 +831,7 @@ export default function ConversationPanel({
                                     element.
                                   </audio>
                                 </div>
-                              );
+                              ) : null;
                             }
 
                             // file
@@ -937,6 +945,7 @@ export default function ConversationPanel({
           <div className="flex items-end space-x-2">
             {/* File attachment button */}
             <input
+              id="dm-file-input"
               ref={fileInputRef}
               type="file"
               multiple
@@ -968,6 +977,41 @@ export default function ConversationPanel({
                 }
               />
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="flex-shrink-0 text-gray-400 hover:text-gray-600"
+              onClick={() => {
+                const input = document.getElementById("dm-file-input") as HTMLInputElement;
+                input?.click();
+              }}
+              disabled={isRecording || (isMetaConversation && !canSendFacebookMessage)}
+              title="Attach file"
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
+            {!isRecording ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="flex-shrink-0 text-gray-400 hover:text-gray-600"
+                onClick={startRecording}
+                disabled={isMetaConversation && !canSendFacebookMessage}
+                title="Record voice"
+              >
+                <Mic className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="flex-shrink-0 text-red-500 hover:text-red-700 animate-pulse"
+                onClick={stopRecording}
+                title="Stop recording"
+              >
+                <MicOff className="h-4 w-4" />
+              </Button>
+            )}
             <Button
               onClick={handleSendMessage}
               disabled={

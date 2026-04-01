@@ -772,8 +772,21 @@ export default function IntegrationsPage() {
     }
 
     const popup = window.open(url, "_blank", "width=600,height=700");
+
+    if (!popup || popup.closed) {
+      // Popup was blocked — fall back to direct navigation
+      toast({
+        title: isSpanish ? "Popup bloqueado" : "Popup blocked",
+        description: isSpanish
+          ? "Permitiendo popups o redirigiendo..."
+          : "Allowing popups or redirecting...",
+      });
+      window.location.href = url;
+      return;
+    }
+
     const timer = setInterval(() => {
-      if (popup?.closed) {
+      if (popup.closed) {
         clearInterval(timer);
         window.location.reload();
       }

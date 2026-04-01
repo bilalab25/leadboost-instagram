@@ -200,7 +200,7 @@ class PostSchedulerService {
         const params = new URLSearchParams({
           access_token: accessToken,
           file_url: post.imageUrl,
-          title: post.titulo,
+          title: post.titulo || post.content?.substring(0, 100) || "",
           description: post.content ?? "",
           published: "true",
         });
@@ -242,6 +242,11 @@ class PostSchedulerService {
 
       // Publish to Instagram (image, carousel, story, reel)
       if (isInstagramVariant) {
+        // Guard: image/story/reel require imageUrl
+        if (!post.imageUrl && effectiveType !== "carousel") {
+          throw new Error(`Missing imageUrl for Instagram ${effectiveType} post`);
+        }
+
         const isDirect = integration.provider === "instagram_direct";
         const baseUrl = isDirect
           ? "https://graph.instagram.com"
@@ -261,6 +266,9 @@ class PostSchedulerService {
           const imageUrls = (post.imageUrl || "").split(",").map((u) => u.trim()).filter(Boolean);
           if (imageUrls.length < 2) {
             throw new Error("Carousel requires at least 2 images");
+          }
+          if (imageUrls.length > 10) {
+            throw new Error("Instagram carousels support a maximum of 10 items");
           }
 
           // Step 1: Create individual item containers
@@ -282,16 +290,18 @@ class PostSchedulerService {
             childIds.push(itemData.id);
           }
 
-          // Step 2: Create carousel container
-          const carouselParams = new URLSearchParams({
-            media_type: "CAROUSEL",
-            caption: finalCaption,
-            children: childIds.join(","),
-            access_token: accessToken,
-          });
+          // Step 2: Create carousel container (use JSON body for children array)
           const carouselRes = await fetch(
-            `${baseUrl}/v24.0/${integration.accountId}/media`,
-            { method: "POST", body: carouselParams },
+            `${baseUrl}/v24.0/${integration.accountId}/media?access_token=${accessToken}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                media_type: "CAROUSEL",
+                caption: finalCaption,
+                children: childIds,
+              }),
+            },
           );
           const carouselData = await carouselRes.json();
           if (!carouselRes.ok || carouselData.error) {

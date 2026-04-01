@@ -149,11 +149,7 @@ const platformIconColors: Record<string, string> = {
   linkedin: "text-sky-600",
 };
 
-const statusColors = {
-  draft: "bg-gray-100 text-gray-800",
-  scheduled: "bg-primary/10 text-primary",
-  published: "bg-green-100 text-green-800",
-};
+
 
 export default function ContentCalendar() {
   const { toast } = useToast();
@@ -396,18 +392,6 @@ export default function ContentCalendar() {
     );
   }, [integrations]);
 
-  const connectedPlatforms = useMemo(() => {
-    if (!integrations) return [];
-    return integrations
-      .filter(
-        (int: any) =>
-          int.provider === "instagram" ||
-          int.provider === "instagram_direct" ||
-          int.provider === "facebook",
-      )
-      .map((int: any) => int.provider);
-  }, [integrations]);
-
   const hasBrandDesign = useMemo(() => {
     return !!brandDesign && brandDesign.id;
   }, [brandDesign]);
@@ -468,16 +452,17 @@ export default function ContentCalendar() {
     const targetDay = dayMap[dayName.toLowerCase().trim()];
     if (targetDay === undefined) return [];
 
-    const monthStart = startOfMonth(currentDate);
-    const monthEnd = endOfMonth(currentDate);
+    const monthStartDate = startOfMonth(currentDate);
+    const monthEndDate = endOfMonth(currentDate);
     const dates: Date[] = [];
 
-    let current = new Date(monthStart);
-    while (current <= monthEnd) {
-      if (current.getDay() === targetDay) {
-        dates.push(new Date(current));
+    // Use immutable date iteration to avoid mutation bugs
+    const totalDays = Math.round((monthEndDate.getTime() - monthStartDate.getTime()) / (24 * 60 * 60 * 1000)) + 1;
+    for (let i = 0; i < totalDays; i++) {
+      const day = new Date(monthStartDate.getFullYear(), monthStartDate.getMonth(), monthStartDate.getDate() + i);
+      if (day.getDay() === targetDay) {
+        dates.push(day);
       }
-      current.setDate(current.getDate() + 1);
     }
 
     return dates;
@@ -1118,7 +1103,7 @@ export default function ContentCalendar() {
         variant: "destructive",
       });
       setTimeout(() => {
-        window.location.href = "/api/login";
+        window.location.href = "/login";
       }, 500);
       return;
     }
@@ -1159,7 +1144,13 @@ export default function ContentCalendar() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const url = URL.createObjectURL(e.target.files[0]);
-      setEditPost((prev) => (prev ? { ...prev, imageUrl: url } : prev));
+      setEditPost((prev) => {
+        // Revoke previous blob URL to prevent memory leak
+        if (prev?.imageUrl?.startsWith("blob:")) {
+          URL.revokeObjectURL(prev.imageUrl);
+        }
+        return prev ? { ...prev, imageUrl: url } : prev;
+      });
     }
   };
 
@@ -1215,9 +1206,13 @@ export default function ContentCalendar() {
     const postIds = pendingPosts.map((p) => p.id);
     const scheduleTimes: Record<string, string> = {};
     if (status === "accepted") {
-      pendingPosts.forEach((p) => {
-        if (p.scheduledFor) {
-          scheduleTimes[p.id] = new Date(p.scheduledFor).toISOString();
+      pendingPosts.forEach((p: any) => {
+        // Use scheduledPublishTime (from DB) or scheduledFor (from ContentPost) or compute from dia
+        const schedTime = p.scheduledPublishTime || p.scheduledFor;
+        if (schedTime) {
+          scheduleTimes[p.id] = new Date(schedTime).toISOString();
+        } else if (p.dia && /^\d{4}-\d{2}-\d{2}$/.test(p.dia)) {
+          scheduleTimes[p.id] = new Date(p.dia + "T10:00:00").toISOString();
         }
       });
     }
@@ -1242,9 +1237,12 @@ export default function ContentCalendar() {
     const postIds = pendingPosts.map((p) => p.id);
     const scheduleTimes: Record<string, string> = {};
     if (status === "accepted") {
-      pendingPosts.forEach((p) => {
-        if (p.scheduledFor) {
-          scheduleTimes[p.id] = new Date(p.scheduledFor).toISOString();
+      pendingPosts.forEach((p: any) => {
+        const schedTime = p.scheduledPublishTime || p.scheduledFor;
+        if (schedTime) {
+          scheduleTimes[p.id] = new Date(schedTime).toISOString();
+        } else if (p.dia && /^\d{4}-\d{2}-\d{2}$/.test(p.dia)) {
+          scheduleTimes[p.id] = new Date(p.dia + "T10:00:00").toISOString();
         }
       });
     }
@@ -1527,6 +1525,13 @@ export default function ContentCalendar() {
           hashtags: "",
           scheduledDate: "",
         });
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        toast({
+          title: "Error",
+          description: errData.message || (isSpanish ? "Error al programar" : "Failed to schedule post"),
+          variant: "destructive",
+        });
       }
     } catch (err) {
       console.error("[Calendar] Schedule error:", err);
@@ -1668,6 +1673,13 @@ export default function ContentCalendar() {
     if (!editPost.scheduledFor) {
       errors.scheduledFor = isSpanish ? "La fecha es obligatoria" : "Schedule date is required";
     }
+    if ((editPost.content?.length || 0) > 2200) {
+      errors.content = isSpanish ? "Máximo 2,200 caracteres" : "Maximum 2,200 characters";
+    }
+    const hashtagCount = (editPost.hashtags?.match(/#\w+/g) || []).length;
+    if (hashtagCount > 30) {
+      errors.hashtags = isSpanish ? "Máximo 30 hashtags" : "Maximum 30 hashtags";
+    }
     if (Object.keys(errors).length > 0) {
       setCreatePostErrors(errors);
       return;
@@ -1704,6 +1716,13 @@ export default function ContentCalendar() {
         });
         setSelectedPost(null);
         setIsNewPostMode(false);
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        toast({
+          title: "Error",
+          description: errData.message || (isSpanish ? "Error al crear post" : "Failed to create post"),
+          variant: "destructive",
+        });
       }
     } catch (err) {
       console.error("[Calendar] Create post error:", err);
@@ -2273,7 +2292,7 @@ export default function ContentCalendar() {
                                   isSpanish ? "Dom" : "Sun",
                                   isSpanish ? "Lu" : "Mon",
                                   isSpanish ? "Mar" : "Tue",
-                                  isSpanish ? "Mie" : "Web",
+                                  isSpanish ? "Mie" : "Wed",
                                   isSpanish ? "Jue" : "Thu",
                                   isSpanish ? "Vie" : "Fri",
                                   isSpanish ? "Sab" : "Sat",
@@ -2365,6 +2384,11 @@ export default function ContentCalendar() {
                                             </div>
                                           );
                                         })}
+                                        {postsForDay.length > 2 && (
+                                          <p className="text-[10px] text-gray-400 text-center mt-0.5">
+                                            +{postsForDay.length - 2} {isSpanish ? "más" : "more"}
+                                          </p>
+                                        )}
                                       </div>
                                     </div>
                                   );
@@ -3014,9 +3038,6 @@ export default function ContentCalendar() {
                           className="rounded-full border border-gray-300 px-3 py-1 text-sm font-medium bg-white"
                         >
                           <option value="instagram">Instagram</option>
-                          <option value="facebook">Facebook</option>
-                          <option value="whatsapp">WhatsApp</option>
-                          <option value="tiktok">TikTok</option>
                         </select>
                       ) : editPost.platform === "instagram" ||
                       editPost.platform === "instagram_direct" ? (
@@ -3587,6 +3608,16 @@ export default function ContentCalendar() {
                               className="bg-gray-800 hover:bg-gray-900 text-white"
                               onClick={() => {
                                 if (selectedPost && editPost) {
+                                  // Validate before approving
+                                  if ((editPost.content?.length || 0) > 2200) {
+                                    toast({ title: "Error", description: isSpanish ? "Máximo 2,200 caracteres" : "Caption exceeds 2,200 characters", variant: "destructive" });
+                                    return;
+                                  }
+                                  const hc = (editPost.hashtags?.match(/#\w+/g) || []).length;
+                                  if (hc > 30) {
+                                    toast({ title: "Error", description: isSpanish ? "Máximo 30 hashtags" : "More than 30 hashtags", variant: "destructive" });
+                                    return;
+                                  }
                                   const localDate = new Date(editPost.scheduledFor);
                                   updatePostStatusMutation.mutate({
                                     postId: selectedPost.id,
@@ -4004,9 +4035,6 @@ export default function ContentCalendar() {
                       className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                     >
                       <option value="instagram">Instagram</option>
-                      <option value="facebook">Facebook</option>
-                      <option value="whatsapp">WhatsApp</option>
-                      <option value="tiktok">TikTok</option>
                     </select>
                   </div>
 
@@ -4251,6 +4279,7 @@ function CaptionTemplatePicker({
   onApply: (template: string) => void;
 }) {
   const { isSpanish } = useLanguage();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
@@ -4281,6 +4310,9 @@ function CaptionTemplatePicker({
       setNewName("");
       setNewTemplate("");
       setShowAdd(false);
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to create template", variant: "destructive" });
     },
   });
 
@@ -4379,6 +4411,7 @@ function HashtagSetPicker({
   onInsert: (tags: string) => void;
 }) {
   const { isSpanish } = useLanguage();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
@@ -4409,6 +4442,9 @@ function HashtagSetPicker({
       setNewName("");
       setNewTags("");
       setShowAdd(false);
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to create hashtag set", variant: "destructive" });
     },
   });
 

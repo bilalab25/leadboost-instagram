@@ -4,6 +4,8 @@ import { integrations, analytics, aiGeneratedPosts } from "@shared/schema";
 import { eq, and, isNotNull, isNull, lte, gte, inArray } from "drizzle-orm";
 import { storage } from "../storage";
 
+const FETCH_TIMEOUT = { signal: AbortSignal.timeout(30_000) };
+
 /**
  * Instagram Insights Ingestion Service
  *
@@ -16,6 +18,7 @@ import { storage } from "../storage";
 
 class InstagramInsightsService {
   private isRunning = false;
+  private isSyncing = false;
 
   start() {
     if (this.isRunning) return;
@@ -34,6 +37,12 @@ class InstagramInsightsService {
   }
 
   async syncAllBrandInsights() {
+    if (this.isSyncing) {
+      console.log("[IGInsights] Sync already in progress, skipping");
+      return;
+    }
+    this.isSyncing = true;
+
     try {
       // Find all active Instagram integrations
       const igIntegrations = await db
@@ -75,6 +84,8 @@ class InstagramInsightsService {
       console.log(`[IGInsights] Done: ${synced} synced, ${failed} failed`);
     } catch (error) {
       console.error("[IGInsights] Error in sync cycle:", error);
+    } finally {
+      this.isSyncing = false;
     }
   }
 
@@ -97,6 +108,7 @@ class InstagramInsightsService {
       // Basic profile info (followers, media count)
       const profileRes = await fetch(
         `${baseUrl}/v24.0/${accountId}?fields=followers_count,media_count&access_token=${token}`,
+        FETCH_TIMEOUT,
       );
       const profileData = await profileRes.json();
 
@@ -114,10 +126,16 @@ class InstagramInsightsService {
     try {
       const insightsRes = await fetch(
         `${baseUrl}/v24.0/${accountId}/insights?metric=reach,impressions&period=day&since=${Math.floor(Date.now() / 1000) - 7 * 86400}&until=${Math.floor(Date.now() / 1000)}&access_token=${token}`,
+        FETCH_TIMEOUT,
       );
       const insightsData = await insightsRes.json();
 
-      if (insightsData.data) {
+      if (insightsData.error) {
+        console.warn(
+          `[IGInsights] Account insights API error for ${isDirect ? "instagram_direct" : "instagram"} (${accountId}): ${insightsData.error.message}. ` +
+          `This may be expected for some account types that don't support account-level insights.`,
+        );
+      } else if (insightsData.data) {
         for (const metric of insightsData.data) {
           // Sum the last 7 days of values
           const total = (metric.values || []).reduce(
@@ -135,6 +153,7 @@ class InstagramInsightsService {
     try {
       const onlineRes = await fetch(
         `${baseUrl}/v24.0/${accountId}/insights?metric=online_followers&period=lifetime&access_token=${token}`,
+        FETCH_TIMEOUT,
       );
       const onlineData = await onlineRes.json();
 
@@ -197,6 +216,7 @@ class InstagramInsightsService {
         const mediaId = post.publishedMediaId;
         const insightsRes = await fetch(
           `${baseUrl}/v24.0/${mediaId}/insights?metric=reach,impressions,likes,comments,saved,shares&access_token=${token}`,
+          FETCH_TIMEOUT,
         );
         const insightsData = await insightsRes.json();
 
@@ -240,6 +260,24 @@ class InstagramInsightsService {
     period: string = "daily",
   ) {
     try {
+      // Delete today's existing row for this metric to prevent unbounded growth
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      await db
+        .delete(analytics)
+        .where(
+          and(
+            eq(analytics.brandId, brandId),
+            eq(analytics.platform, platform),
+            eq(analytics.metric, metric),
+            gte(analytics.recordedAt, today),
+            lte(analytics.recordedAt, tomorrow),
+          ),
+        );
+
       await storage.createAnalytics({
         brandId,
         platform,

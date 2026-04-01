@@ -46,6 +46,9 @@ export class SocialMediaService {
           case 'instagram':
             results[platform] = await this.postToInstagram(content, token);
             break;
+          case 'instagram_direct':
+            results[platform] = await this.postToInstagram(content, token, undefined, true);
+            break;
           default:
             results[platform] = { success: false, error: `Platform "${platform}" posting is not yet supported` };
         }
@@ -97,11 +100,13 @@ export class SocialMediaService {
     content: PostContent,
     pageAccessToken: string,
     igAccountId?: string,
+    isDirect?: boolean,
   ): Promise<{ success: boolean; postId?: string; error?: string }> {
     if (!content.images?.length) {
       return { success: false, error: 'Instagram requires at least one image to post' };
     }
 
+    const graphBaseUrl = isDirect ? 'https://graph.instagram.com' : 'https://graph.facebook.com';
     let accessToken = pageAccessToken;
 
     // Only discover IG account ID if not provided
@@ -127,7 +132,7 @@ export class SocialMediaService {
       access_token: accessToken,
     });
 
-    const containerRes = await fetch(`https://graph.facebook.com/v24.0/${igAccountId}/media`, {
+    const containerRes = await fetch(`${graphBaseUrl}/v24.0/${igAccountId}/media`, {
       method: 'POST',
       body: containerParams,
     });
@@ -140,7 +145,7 @@ export class SocialMediaService {
       await new Promise((res) => setTimeout(res, 3000));
       try {
         const statusRes = await fetch(
-          `https://graph.facebook.com/v24.0/${containerData.id}?fields=status_code&access_token=${accessToken}`
+          `${graphBaseUrl}/v24.0/${containerData.id}?fields=status_code&access_token=${accessToken}`
         );
         const statusData = await statusRes.json();
         if (statusData.status_code === 'FINISHED') break;
@@ -158,7 +163,7 @@ export class SocialMediaService {
       access_token: accessToken,
     });
 
-    const publishRes = await fetch(`https://graph.facebook.com/v24.0/${igAccountId}/media_publish`, {
+    const publishRes = await fetch(`${graphBaseUrl}/v24.0/${igAccountId}/media_publish`, {
       method: 'POST',
       body: publishParams,
     });

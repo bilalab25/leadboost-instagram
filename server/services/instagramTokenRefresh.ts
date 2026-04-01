@@ -17,6 +17,7 @@ const REFRESH_WINDOW_DAYS = 7; // Refresh when token expires within 7 days
 
 class InstagramTokenRefreshService {
   private isRunning = false;
+  private isRefreshing = false;
 
   start() {
     if (this.isRunning) {
@@ -38,6 +39,12 @@ class InstagramTokenRefreshService {
   }
 
   async refreshExpiringTokens() {
+    if (this.isRefreshing) {
+      console.log("[IGTokenRefresh] Refresh already in progress, skipping");
+      return;
+    }
+    this.isRefreshing = true;
+
     const refreshBefore = new Date(
       Date.now() + REFRESH_WINDOW_DAYS * 24 * 60 * 60 * 1000,
     );
@@ -78,6 +85,30 @@ class InstagramTokenRefreshService {
           console.error(
             `[IGTokenRefresh] Failed to refresh token for integration ${integration.id} (brand ${integration.brandId}): ${err.message}`,
           );
+
+          // If token is already expired (expiresAt < now), mark integration as needing reconnection
+          if (integration.expiresAt && new Date(integration.expiresAt) < new Date()) {
+            try {
+              await db
+                .update(integrations)
+                .set({
+                  isActive: false,
+                  updatedAt: new Date(),
+                  metadata: {
+                    ...(integration.metadata as any || {}),
+                    tokenExpired: true,
+                    tokenExpiredAt: new Date().toISOString(),
+                    refreshError: err.message,
+                  },
+                })
+                .where(eq(integrations.id, integration.id));
+              console.warn(
+                `[IGTokenRefresh] Marked integration ${integration.id} as inactive (token expired and refresh failed)`,
+              );
+            } catch {
+              // Best effort
+            }
+          }
         }
       }
 
@@ -86,6 +117,8 @@ class InstagramTokenRefreshService {
       );
     } catch (error) {
       console.error("[IGTokenRefresh] Error in refresh cycle:", error);
+    } finally {
+      this.isRefreshing = false;
     }
   }
 
@@ -97,9 +130,10 @@ class InstagramTokenRefreshService {
       throw new Error("No access token to refresh");
     }
 
-    // Instagram Graph API token refresh endpoint
+    // Instagram Graph API token refresh endpoint (30s timeout)
     const refreshRes = await fetch(
       `https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${currentToken}`,
+      { signal: AbortSignal.timeout(30_000) },
     );
 
     const refreshData = await refreshRes.json();

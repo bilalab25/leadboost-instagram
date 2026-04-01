@@ -229,7 +229,7 @@ export default function Inbox() {
         description: "You are logged out. Logging in again...",
         variant: "destructive",
       });
-      setTimeout(() => (window.location.href = "/api/login"), 500);
+      setTimeout(() => (window.location.href = "/login"), 500);
     }
   }, [isAuthenticated, isLoading, toast]);
 

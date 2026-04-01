@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNewMessageListener } from "@/hooks/useSocket";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
-import { Instagram, Mail, Twitter, Star, Archive } from "lucide-react";
+import { Instagram, Mail, Twitter, Star, Archive, MessageCircle } from "lucide-react";
 import { SiWhatsapp, SiTiktok, SiFacebook } from "react-icons/si";
 import { cn } from "@/lib/utils";
 import ConversationPanel from "@/components/ConversationPanel";
@@ -24,7 +24,7 @@ const platformIcons = {
   tiktok: SiTiktok,
   facebook: SiFacebook,
   twitter: Twitter,
-  threads: Twitter,
+  threads: MessageCircle,
 };
 
 const platformColors = {
@@ -36,7 +36,7 @@ const platformColors = {
   tiktok: "bg-gray-800",
   facebook: "bg-primary",
   twitter: "bg-sky-500",
-  threads: "bg-blue-500",
+  threads: "bg-gray-800",
 };
 
 interface Conversation {
@@ -171,11 +171,7 @@ export default function MessageList({
         });
       }
 
-      // Show toast notification
-      toast({
-        title: "New Message",
-        description: `${message.contactName || "Contact"}: ${(message.textContent || "").substring(0, MESSAGE_PREVIEW_MAX_LENGTH)}${message.textContent?.length > MESSAGE_PREVIEW_MAX_LENGTH ? "..." : ""}`,
-      });
+      // Toast notification handled by inbox.tsx to avoid duplicates
     },
     [toast, queryClient, activeBrandId, activeConversation],
   );
