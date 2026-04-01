@@ -2308,6 +2308,10 @@ export default function ContentCalendar() {
 
                               {/* Days */}
                               <div className="grid grid-cols-7 gap-2">
+                                {/* Empty cells for days before the 1st of the month */}
+                                {Array.from({ length: monthStart.getDay() }).map((_, i) => (
+                                  <div key={`empty-${i}`} className="min-h-[100px]" />
+                                ))}
                                 {daysInMonth.map((day) => {
                                   const postsForDay = getPostsForDate(day);
                                   const isSelected =

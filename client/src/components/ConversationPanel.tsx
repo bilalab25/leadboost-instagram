@@ -1057,7 +1057,7 @@ export default function ConversationPanel({
       </div>
 
       {/* Right column - Participant/Customer Info */}
-      <div className="w-80 bg-gray-50 border-l border-gray-200 flex flex-col overflow-y-auto">
+      <div className="hidden lg:flex w-80 bg-gray-50 border-l border-gray-200 flex-col overflow-y-auto">
         {/* Participant Info Header */}
         <div className="p-6 border-b border-gray-200 flex flex-col items-center">
           <Avatar className="h-20 w-20 mb-3">

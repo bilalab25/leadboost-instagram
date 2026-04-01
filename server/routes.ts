@@ -82,7 +82,7 @@ import crypto from "crypto";
 import { generateAILogo } from "./services/generateLogo";
 
 // OAuth state signing helpers (CSRF protection)
-const STATE_SECRET = process.env.SESSION_SECRET || process.env.FB_APP_SECRET || "leadboost-state-secret";
+const STATE_SECRET = process.env.SESSION_SECRET || process.env.FB_APP_SECRET || crypto.randomBytes(32).toString("hex");
 
 function signOAuthState(payload: object): string {
   const data = Buffer.from(JSON.stringify(payload)).toString("base64");
@@ -3420,7 +3420,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // AI Chatbot routes
-  app.post("/api/chatbot/message", async (req: any, res) => {
+  app.post("/api/chatbot/message", isAuthenticated, async (req: any, res) => {
     try {
       const { message, brandId, customerIdentifier, platform } = req.body;
 
@@ -3453,7 +3453,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/chatbot/schedule", async (req: any, res) => {
+  app.post("/api/chatbot/schedule", isAuthenticated, async (req: any, res) => {
     try {
       const { schedulingData, brandId, customerIdentifier } = req.body;
 
@@ -3480,7 +3480,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/chatbot/available-times", async (req: any, res) => {
+  app.get("/api/chatbot/available-times", isAuthenticated, async (req: any, res) => {
     try {
       const { brandId, serviceId, date } = req.query;
 
@@ -7916,8 +7916,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           const { BillingService } = await import("./stripe/billingService");
           const billingService = new BillingService();
-          const canGenerate = await billingService.canGenerateImages(brandId);
-          if (!canGenerate) {
+          const billingCheck = await billingService.canGenerateImages(brandId);
+          if (!billingCheck.allowed) {
             return res.status(403).json({
               message: "Image generation limit reached. Please upgrade your plan.",
             });
@@ -9306,7 +9306,11 @@ Respond ONLY in JSON with this exact format:
         const signatureHeader = req.headers["x-signature"] as string;
         const rawBody = JSON.stringify(req.body);
 
-        // Verify webhook signature (optional - some webhooks may not have signatures)
+        // Verify webhook signature (required in production)
+        if (!signatureHeader && process.env.NODE_ENV === "production") {
+          console.warn("[Lightspeed Webhook] Missing signature header in production");
+          return res.sendStatus(403);
+        }
         if (signatureHeader) {
           const isValid = lightspeedService.verifyWebhookSignature(
             rawBody,

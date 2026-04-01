@@ -109,9 +109,9 @@ export default function Sidebar() {
 
   const { data: integrations, isLoading } = useQuery({
     enabled: !!activeBrandId,
-    queryKey: ["integrations", activeBrandId],
+    queryKey: ["/api/integrations", activeBrandId],
     queryFn: async () => {
-      const res = await fetch(`/api/integrations?brandId=${activeBrandId}`);
+      const res = await fetch(`/api/integrations?brandId=${activeBrandId}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch integrations");
       return res.json();
     },

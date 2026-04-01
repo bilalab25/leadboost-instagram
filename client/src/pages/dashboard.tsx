@@ -367,6 +367,35 @@ export default function Dashboard() {
                   </motion.div>
                 )}
 
+                {/* Connect Instagram CTA — shown when no Instagram integration exists */}
+                {!isOnboardingIncomplete && !hasSocial && !integrationsLoading && (
+                  <motion.div variants={fadeInUp}>
+                    <Alert className="border-pink-200 bg-gradient-to-r from-pink-50 to-purple-50">
+                      <SiInstagram className="h-5 w-5 text-pink-600" />
+                      <AlertTitle className="text-pink-800 font-semibold">
+                        {isSpanish
+                          ? "Conecta tu Instagram"
+                          : "Connect your Instagram"}
+                      </AlertTitle>
+                      <AlertDescription className="flex items-center justify-between">
+                        <span className="text-pink-700">
+                          {isSpanish
+                            ? "Conecta tu cuenta de Instagram para empezar a generar contenido, programar publicaciones y gestionar mensajes."
+                            : "Connect your Instagram account to start generating content, scheduling posts, and managing messages."}
+                        </span>
+                        <Button
+                          type="button"
+                          onClick={() => setLocation("/integrations")}
+                          className="ml-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white cursor-pointer"
+                        >
+                          {isSpanish ? "Conectar" : "Connect"}
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </Button>
+                      </AlertDescription>
+                    </Alert>
+                  </motion.div>
+                )}
+
                 {/* Hero Section - Clean Style */}
                 <motion.div variants={fadeInUp} className="relative p-8">
                   <div className="relative">

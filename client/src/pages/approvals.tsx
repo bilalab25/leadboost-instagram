@@ -87,7 +87,7 @@ export default function ApprovalsPage() {
   // Task approval mutation
   const approveMutation = useMutation({
     mutationFn: async ({ taskId, action, comments }: { taskId: string; action: "approve" | "reject"; comments?: string }) => {
-      return apiRequest(`/api/tasks/${taskId}/approve`, "PUT", { action, comments });
+      return apiRequest("PUT", `/api/tasks/${taskId}/approve`, { action, comments });
     },
     onSuccess: (_, { action }) => {
       toast({

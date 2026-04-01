@@ -192,6 +192,18 @@ export const translations = {
       connectedAccounts: "Connected Accounts",
       noAccountsConnected: "No accounts connected",
     },
+    // Tools (matches Spanish tools section)
+    tools: {
+      aiPlanner: "30-Day Planner",
+      brandStudio: "Brand Studio",
+      campaignCreator: "Campaign Creator",
+      analytics: "Analytics",
+      smartInbox: "Smart Inbox",
+      contentLibrary: "Content Library",
+      socialCalendar: "Social Calendar",
+      brandManager: "Brand Manager",
+      teamCollaboration: "Team Collaboration",
+    },
     // Analytics
     analytics: {
       performanceAnalytics: "Performance Analytics",

@@ -27,12 +27,18 @@ export default function AddressAutocomplete({
           },
         );
 
-        autocompleteRef.current.addListener("place_changed", () => {
+        const listener = autocompleteRef.current.addListener("place_changed", () => {
           const place = autocompleteRef.current?.getPlace();
           if (place?.formatted_address) {
             onChange(place.formatted_address);
           }
         });
+        // Store listener for cleanup
+        return () => {
+          if (listener && (window as any).google?.maps?.event) {
+            (window as any).google.maps.event.removeListener(listener);
+          }
+        };
       })
       .catch((err) => console.error("Error loading Google Maps script:", err));
   }, [onChange]);

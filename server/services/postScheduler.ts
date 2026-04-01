@@ -471,14 +471,18 @@ class PostSchedulerService {
         safeMessage.includes("fetch failed") ||
         safeMessage.includes("network");
 
-      if (isTransient) {
-        // Reset to accepted so scheduler retries on next cycle
-        console.log(`[PostScheduler] Transient error for post ${post.id}, will retry on next cycle`);
+      // Track retry count from publishError field
+      const currentRetries = (post.publishError?.match(/Retry (\d+)/)?.[1] || "0");
+      const retryCount = parseInt(currentRetries) + 1;
+      const MAX_RETRIES = 5;
+
+      if (isTransient && retryCount <= MAX_RETRIES) {
+        console.log(`[PostScheduler] Transient error for post ${post.id}, retry ${retryCount}/${MAX_RETRIES}`);
         await db
           .update(aiGeneratedPosts)
           .set({
             lockedAt: null,
-            publishError: `Retry pending: ${safeMessage}`,
+            publishError: `Retry ${retryCount}/${MAX_RETRIES}: ${safeMessage}`,
             updatedAt: new Date(),
           })
           .where(eq(aiGeneratedPosts.id, post.id));

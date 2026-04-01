@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useToast } from "@/hooks/use-toast";
 import Sidebar from "@/components/Sidebar";
@@ -416,6 +416,14 @@ export default function IntegrationsPage() {
   const { isSpanish } = useLanguage();
   const { toast } = useToast();
   const { activeBrandId } = useBrand();
+  const popupTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Cleanup popup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (popupTimerRef.current) clearInterval(popupTimerRef.current);
+    };
+  }, []);
 
   // State
   const [integrations, setIntegrations] = useState<Integration[]>([]);
@@ -788,9 +796,11 @@ export default function IntegrationsPage() {
       return;
     }
 
-    const timer = setInterval(() => {
+    if (popupTimerRef.current) clearInterval(popupTimerRef.current);
+    popupTimerRef.current = setInterval(() => {
       if (popup.closed) {
-        clearInterval(timer);
+        if (popupTimerRef.current) clearInterval(popupTimerRef.current);
+        popupTimerRef.current = null;
         setConnectingProvider(null);
         window.location.reload();
       }
@@ -1732,11 +1742,27 @@ export default function IntegrationsPage() {
                                           {/* Connected Store Name */}
                                           {(connectedIntegration ||
                                             lightspeedStoreName) && (
-                                            <p className="text-xs text-green-600 dark:text-green-400 truncate mb-3">
+                                            <p className="text-xs text-green-600 dark:text-green-400 truncate mb-1">
                                               {lightspeedStoreName ||
                                                 connectedIntegration?.accountName ||
                                                 connectedIntegration?.storeName}
                                             </p>
+                                          )}
+                                          {/* Token expiry warning */}
+                                          {connectedIntegration?.expiresAt && (() => {
+                                            const expiresAt = new Date(connectedIntegration.expiresAt);
+                                            const now = new Date();
+                                            const daysLeft = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                                            if (daysLeft < 0) {
+                                              return <p className="text-[10px] text-red-600 font-medium mb-2">Token expired — please reconnect</p>;
+                                            }
+                                            if (daysLeft <= 7) {
+                                              return <p className="text-[10px] text-amber-600 mb-2">Token expires in {daysLeft}d</p>;
+                                            }
+                                            return null;
+                                          })()}
+                                          {connectedIntegration && !connectedIntegration?.expiresAt && !(connectedIntegration as any)?.lightspeedStoreName && (
+                                            <div className="mb-2" />
                                           )}
 
                                           {/* Action Button */}

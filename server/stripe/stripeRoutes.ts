@@ -5,7 +5,7 @@ import { db } from '../db';
 import { brands, users } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
-export function registerStripeRoutes(app: Express, isAuthenticated: any) {
+export function registerStripeRoutes(app: Express, isAuthenticated: any, requireBrand?: any) {
   // Get Stripe publishable key
   app.get('/api/stripe/config', async (req, res) => {
     try {
@@ -17,9 +17,42 @@ export function registerStripeRoutes(app: Express, isAuthenticated: any) {
     }
   });
 
+  // Helper: verify the authenticated user has access to the requested brand
+  const verifyBrandAccess = async (req: any, res: any): Promise<boolean> => {
+    const { brandId } = req.params;
+    const userId = req.user?.id;
+    if (!userId || !brandId) {
+      res.status(400).json({ message: "Missing user or brand context" });
+      return false;
+    }
+    // Check if user has a brand membership for this brand
+    try {
+      const membership = await db.query.brandMemberships?.findFirst({
+        where: (bm: any, { and, eq }: any) => and(eq(bm.userId, userId), eq(bm.brandId, brandId)),
+      });
+      if (!membership) {
+        // Fallback: check if user owns the brand directly
+        const [brand] = await db.select().from(brands).where(eq(brands.id, brandId)).limit(1);
+        if (!brand || brand.userId !== userId) {
+          res.status(403).json({ message: "Access denied to this brand" });
+          return false;
+        }
+      }
+    } catch {
+      // If brand_memberships query fails, fall back to brand ownership check
+      const [brand] = await db.select().from(brands).where(eq(brands.id, brandId)).limit(1);
+      if (!brand || brand.userId !== userId) {
+        res.status(403).json({ message: "Access denied to this brand" });
+        return false;
+      }
+    }
+    return true;
+  };
+
   // Get billing summary for a brand
   app.get('/api/billing/:brandId', isAuthenticated, async (req: any, res) => {
     try {
+      if (!(await verifyBrandAccess(req, res))) return;
       const { brandId } = req.params;
       const summary = await billingService.getBillingSummary(brandId);
       res.json(summary);
@@ -234,6 +267,7 @@ export function registerStripeRoutes(app: Express, isAuthenticated: any) {
   // Delete a payment method
   app.delete('/api/billing/:brandId/payment-methods/:paymentMethodId', isAuthenticated, async (req: any, res) => {
     try {
+      if (!(await verifyBrandAccess(req, res))) return;
       const { paymentMethodId } = req.params;
       
       const stripe = await getUncachableStripeClient();

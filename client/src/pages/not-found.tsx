@@ -15,8 +15,13 @@ export default function NotFound() {
           </div>
 
           <p className="mt-4 text-sm text-gray-600">
-            {isSpanish ? '¿Olvidaste agregar la página al router?' : 'Did you forget to add the page to the router?'}
+            {isSpanish
+              ? 'La página que buscas no existe o fue movida.'
+              : 'The page you are looking for does not exist or has been moved.'}
           </p>
+          <a href="/dashboard" className="mt-4 inline-block text-sm text-blue-600 hover:text-blue-800">
+            {isSpanish ? '← Volver al Dashboard' : '← Back to Dashboard'}
+          </a>
         </CardContent>
       </Card>
     </div>

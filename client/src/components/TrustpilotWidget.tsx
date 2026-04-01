@@ -18,7 +18,7 @@ export default function TrustpilotWidget({
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Evitar cargar varias veces el script
+    // Avoid loading the script multiple times
     if (!document.getElementById("trustpilot-script")) {
       const script = document.createElement("script");
       script.src =
@@ -27,6 +27,11 @@ export default function TrustpilotWidget({
       script.async = true;
       document.body.appendChild(script);
     }
+    return () => {
+      // Cleanup script on unmount
+      const script = document.getElementById("trustpilot-script");
+      if (script) script.remove();
+    };
   }, []);
 
   return (

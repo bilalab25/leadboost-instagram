@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/translations";
 import BrandSwitcher from "@/components/BrandSwitcher";
 import { HelpDropdown } from "@/components/HelpDropdown";
-import { Bell, Zap, Database } from "lucide-react";
+import { Bell, Zap, Database, Menu, X, LayoutDashboard, Inbox, Palette, BarChart3, Plug, Settings, Sparkles } from "lucide-react";
 import { Link, useLocation } from "wouter";
 const leadBoostLogo = "/images/leadboost-logo-alt.png";
 
@@ -15,17 +16,28 @@ export default function TopHeader({ pageName }: TopHeaderProps) {
   const { toggleLanguage, isSpanish, language } = useLanguage();
   const t = translations[language];
   const [location] = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Check if we're on the dashboard to show full header
   const isDashboard = location === "/dashboard" || location === "/";
   const isCompact = !isDashboard;
 
+  const mobileNavItems = [
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: isSpanish ? "Contenido" : "Content", href: "/waterfall", icon: Sparkles },
+    { name: "Inbox", href: "/inbox", icon: Inbox },
+    { name: "Brand Studio", href: "/brand-studio", icon: Palette },
+    { name: "Analytics", href: "/analytics", icon: BarChart3 },
+    { name: isSpanish ? "Integraciones" : "Integrations", href: "/integrations", icon: Plug },
+    { name: isSpanish ? "Configuración" : "Settings", href: "/settings", icon: Settings },
+  ];
+
   return (
     <header className="bg-gradient-to-r from-white via-gray-50 to-white border-b border-gray-200 shadow-lg">
       <div className={`flex items-center ${isCompact ? "py-1" : "py-2"}`}>
         {isCompact ? (
-          /* Compact Header - Logo Only */
-          <div className="w-full px-8 flex items-center">
+          /* Compact Header - Logo + Mobile Menu */
+          <div className="w-full px-4 md:px-8 flex items-center justify-between">
             <Link href="/" className="flex-shrink-0">
               <img
                 src={leadBoostLogo}
@@ -33,12 +45,28 @@ export default function TopHeader({ pageName }: TopHeaderProps) {
                 className="h-10 w-auto object-contain cursor-pointer hover:opacity-80 transition-opacity duration-200 drop-shadow-sm"
               />
             </Link>
+            {/* Mobile hamburger button — only visible below md */}
+            <button
+              className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
           </div>
         ) : (
           /* Full Header - Dashboard */
           <>
+            {/* Mobile hamburger for dashboard */}
+            <button
+              className="md:hidden p-2 ml-2 rounded-lg hover:bg-gray-100 transition-colors"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
             {/* Left side - Logo (exact width to match sidebar) */}
-            <div className="w-64 pl-8 pr-4 flex items-center flex-shrink-0">
+            <div className="w-64 pl-4 md:pl-8 pr-4 flex items-center flex-shrink-0">
               <Link href="/" className="flex-shrink-0">
                 <img
                   src={leadBoostLogo}
@@ -113,6 +141,7 @@ export default function TopHeader({ pageName }: TopHeaderProps) {
                     variant="ghost"
                     size="icon"
                     className="hover:bg-gray-100 transition-colors duration-150"
+                    aria-label="Notifications"
                     data-testid="button-notifications-header"
                   >
                     <Bell className="h-5 w-5 text-gray-600" />
@@ -125,6 +154,31 @@ export default function TopHeader({ pageName }: TopHeaderProps) {
           </>
         )}
       </div>
+
+      {/* Mobile Navigation Menu — slides down below header */}
+      {mobileMenuOpen && (
+        <nav className="md:hidden border-t border-gray-200 bg-white px-4 py-3 space-y-1">
+          {mobileNavItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  isActive
+                    ? "bg-gray-900 text-white"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <Icon className="h-5 w-5" />
+                {item.name}
+              </Link>
+            );
+          })}
+        </nav>
+      )}
     </header>
   );
 }

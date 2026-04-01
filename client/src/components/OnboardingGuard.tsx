@@ -17,7 +17,8 @@ export default function OnboardingGuard({ children }: OnboardingGuardProps) {
     location === "/login" ||
     location === "/pricing" ||
     location === "/privacy-policy" ||
-    location === "/spanish-preview";
+    location === "/spanish-preview" ||
+    location === "/waitlist";
 
   useEffect(() => {
     if (authLoading || isLoading) return;

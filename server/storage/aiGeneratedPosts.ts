@@ -1,6 +1,6 @@
 import { db } from "../db";
 import { aiGeneratedPosts } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 
 export interface AiGeneratedPost {
   id: string;
@@ -166,10 +166,23 @@ export async function updateAiGeneratedPostStatus(
     updateData.hashtags = editedFields.hashtags;
   }
 
+  // Only allow transitions from valid source statuses (prevents concurrent race conditions)
+  const validSourceStatuses: Record<string, string[]> = {
+    accepted: ["pending"],
+    rejected: ["pending"],
+    pending: ["accepted", "rejected", "pending"],
+    published: ["accepted"],
+  };
+  const allowedFrom = validSourceStatuses[status] || [];
+
   const result = await db
     .update(aiGeneratedPosts)
     .set(updateData)
-    .where(eq(aiGeneratedPosts.id, postId))
+    .where(
+      allowedFrom.length > 0
+        ? and(eq(aiGeneratedPosts.id, postId), inArray(aiGeneratedPosts.status, allowedFrom))
+        : eq(aiGeneratedPosts.id, postId),
+    )
     .returning();
 
   if (!result[0]) return null;

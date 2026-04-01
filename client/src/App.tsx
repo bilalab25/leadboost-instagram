@@ -7,6 +7,7 @@ import { LanguageProvider } from "@/hooks/useLanguage";
 import { BrandProvider } from "@/contexts/BrandContext";
 import OnboardingGuard from "@/components/OnboardingGuard";
 import PrivateRoute from "@/components/PrivateRoute";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Login from "@/pages/login";
@@ -81,18 +82,20 @@ function Router() {
 
 function App() {
   return (
-    <LanguageProvider>
-      <QueryClientProvider client={queryClient}>
-        <BrandProvider>
-          <OnboardingGuard>
-            <TooltipProvider>
-              <Toaster />
-              <Router />
-            </TooltipProvider>
-          </OnboardingGuard>
-        </BrandProvider>
-      </QueryClientProvider>
-    </LanguageProvider>
+    <ErrorBoundary>
+      <LanguageProvider>
+        <QueryClientProvider client={queryClient}>
+          <BrandProvider>
+            <OnboardingGuard>
+              <TooltipProvider>
+                <Toaster />
+                <Router />
+              </TooltipProvider>
+            </OnboardingGuard>
+          </BrandProvider>
+        </QueryClientProvider>
+      </LanguageProvider>
+    </ErrorBoundary>
   );
 }
 

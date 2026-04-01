@@ -115,7 +115,9 @@ export default function AIPlanner() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const { language, toggleLanguage, isSpanish } = useLanguage();
-  const { activeBrand } = useBrand() as any;
+  const { activeBrandId: activeBrandIdRaw } = useBrand();
+  // Compatibility shim: code references activeBrand?.id throughout
+  const activeBrand = activeBrandIdRaw ? { id: activeBrandIdRaw } : null;
   const queryClient = useQueryClient();
   const t = translations[language];
   
@@ -144,7 +146,7 @@ export default function AIPlanner() {
         variant: "destructive",
       });
       setTimeout(() => {
-        window.location.href = "/api/login";
+        window.location.href = "/login";
       }, 500);
       return;
     }
@@ -1054,7 +1056,7 @@ export default function AIPlanner() {
                                 placeholder={t.aiPlanner.productPlaceholder}
                                 value={newProduct}
                                 onChange={(e) => setNewProduct(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && addProduct()}
+                                onKeyDown={(e) => e.key === 'Enter' && addProduct()}
                                 data-testid="input-new-product"
                               />
                               <Button onClick={addProduct} data-testid="button-add-product">{t.aiPlanner.addButton}</Button>

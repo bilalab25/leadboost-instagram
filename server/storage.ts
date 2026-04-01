@@ -2018,18 +2018,6 @@ export class DatabaseStorage implements IStorage {
 
     const now = new Date();
 
-    // 👇 Ahora buscamos por userId + brandId + provider
-    const existing = await db
-      .select()
-      .from(integrations)
-      .where(
-        and(
-          eq(integrations.provider, data.provider),
-          eq(integrations.userId, data.userId),
-          eq(integrations.brandId, data.brandId),
-        ),
-      );
-
     const baseData = {
       userId: data.userId,
       brandId: data.brandId, // 🔥 CLAVE
@@ -2051,43 +2039,20 @@ export class DatabaseStorage implements IStorage {
       updatedAt: now,
     };
 
-    if (existing.length > 0) {
-      console.log(
-        `🔄 Updating integration for ${data.provider} (user: ${data.userId}, brand: ${data.brandId})`,
-      );
-      await db
-        .update(integrations)
-        .set(baseData)
-        .where(
-          and(
-            eq(integrations.provider, data.provider),
-            eq(integrations.userId, data.userId),
-            eq(integrations.brandId, data.brandId),
-          ),
-        );
-    } else {
-      console.log(
-        `🆕 Creating new integration for ${data.provider} (user: ${data.userId}, brand: ${data.brandId})`,
-      );
-      await db.insert(integrations).values({
+    // Atomic upsert using ON CONFLICT on (provider, brandId) unique constraint
+    const [result] = await db
+      .insert(integrations)
+      .values({
         ...baseData,
         createdAt: now,
-      });
-    }
+      })
+      .onConflictDoUpdate({
+        target: [integrations.provider, integrations.brandId],
+        set: baseData,
+      })
+      .returning();
 
-    // Return the saved integration
-    const savedIntegration = await db
-      .select()
-      .from(integrations)
-      .where(
-        and(
-          eq(integrations.provider, data.provider),
-          eq(integrations.userId, data.userId),
-          eq(integrations.brandId, data.brandId),
-        ),
-      );
-
-    return savedIntegration[0] || null;
+    return result || null;
   }
 
   async getIntegrations(userId: string) {
