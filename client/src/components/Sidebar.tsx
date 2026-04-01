@@ -73,29 +73,39 @@ export default function Sidebar() {
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
 
-  const navigation = [
-    { name: t.sidebar.dashboard, href: "/dashboard", icon: LayoutDashboard },
-    {
-      name: t.sidebar.waterfall,
-      href: "/waterfall",
-      icon: Sparkles,
-      special: true,
-    },
-    { name: t.sidebar.inbox, href: "/inbox", icon: Inbox },
-    { name: t.sidebar.brandStudio, href: "/brand-studio", icon: Palette },
-    // Uncomment features below as they become production-ready:
-    // { name: t.sidebar.calendar, href: "/calendar", icon: Calendar },
-    // { name: t.sidebar.analytics, href: "/analytics", icon: BarChart3 },
-    // { name: t.sidebar.campaigns, href: "/campaigns", icon: Megaphone },
-    // { name: t.sidebar.customers, href: "/customers", icon: UserCheck },
-    // { name: t.sidebar.sales, href: "/sales", icon: ShoppingCart },
-    // { name: t.sidebar.team, href: "/team", icon: Users },
-    // { name: t.sidebar.automationFlows, href: "/flows-dashboard", icon: GitBranch },
-    { name: t.sidebar.integrations, href: "/integrations", icon: Plug },
-    { name: t.sidebar.settings, href: "/settings", icon: Settings },
-  ];
-
   const { activeBrandId } = useBrand();
+
+  // Fetch brand feature flags for dynamic navigation
+  const { data: brandSettingsData } = useQuery({
+    enabled: !!activeBrandId,
+    queryKey: ["brand-settings", activeBrandId],
+    queryFn: async () => {
+      const res = await fetch(`/api/brands/${activeBrandId}/settings`, {
+        credentials: "include",
+      });
+      if (!res.ok) return null;
+      return res.json();
+    },
+    retry: false,
+    staleTime: 60_000,
+  });
+
+  const flags = (brandSettingsData?.featureFlags || {}) as Record<string, boolean>;
+
+  // Build navigation dynamically based on feature flags
+  const navigation = [
+    { name: t.sidebar.dashboard, href: "/dashboard", icon: LayoutDashboard, always: true },
+    { name: t.sidebar.waterfall, href: "/waterfall", icon: Sparkles, special: true, always: true },
+    { name: t.sidebar.inbox, href: "/inbox", icon: Inbox, flag: "inbox" },
+    { name: t.sidebar.brandStudio, href: "/brand-studio", icon: Palette, flag: "brandStudio" },
+    { name: t.sidebar.analytics || "Analytics", href: "/analytics", icon: BarChart3, flag: "analytics" },
+    { name: t.sidebar.integrations, href: "/integrations", icon: Plug, flag: "integrations" },
+    { name: t.sidebar.settings, href: "/settings", icon: Settings, always: true },
+  ].filter((item) => {
+    if (item.always) return true;
+    if (item.flag) return flags[item.flag] !== false; // default to visible if flag not set
+    return true;
+  });
 
   const { data: integrations, isLoading } = useQuery({
     enabled: !!activeBrandId,

@@ -36,6 +36,11 @@ import {
   Grid3X3,
   CalendarPlus,
   Plus,
+  Heart,
+  MessageCircle,
+  Bookmark,
+  Share2,
+  TrendingUp,
 } from "lucide-react";
 import { SiWhatsapp, SiTiktok, SiFacebook, SiLinkedin } from "react-icons/si";
 import { Badge } from "@/components/ui/badge";
@@ -222,6 +227,29 @@ export default function ContentCalendar() {
   const [isCreatingPost, setIsCreatingPost] = useState(false);
   const [isNewPostMode, setIsNewPostMode] = useState(false);
   const [gallerySubTab, setGallerySubTab] = useState<"all" | "ai" | "uploaded">("all");
+
+  // Fetch approval pipeline for this brand
+  const { data: approvalPipeline } = useQuery({
+    queryKey: [`/api/brands/${activeBrandId}/approval-pipeline`],
+    enabled: !!activeBrandId,
+    queryFn: async () => {
+      const res = await fetch(`/api/brands/${activeBrandId}/approval-pipeline`, {
+        credentials: "include",
+      });
+      if (!res.ok) return null;
+      return res.json();
+    },
+    staleTime: 60_000,
+  });
+
+  // Determine if multi-stage approval is active
+  const pipelineStages = (approvalPipeline?.stages || []) as {
+    id: string;
+    name: string;
+    approverRole: string;
+    order: number;
+  }[];
+  const isMultiStageApproval = pipelineStages.length > 1;
 
   // Query to fetch integrations for the brand
   const { data: integrations, isLoading: integrationsLoading } = useQuery<
@@ -3039,6 +3067,15 @@ export default function ContentCalendar() {
                   </div>
                 </div>
 
+                {/* Post Performance Insights (for published Instagram posts) */}
+                {editPost.status === "published" &&
+                  selectedPost?.id &&
+                  (editPost.platform === "instagram" ||
+                    editPost.platform === "instagram_story" ||
+                    editPost.platform === "instagram_reel") && (
+                    <PostInsightsBar postId={selectedPost.id} />
+                  )}
+
                 {/* Content */}
                 <div className="grid grid-cols-5 gap-0">
                   {/* Live Preview - Left Side */}
@@ -3142,13 +3179,33 @@ export default function ContentCalendar() {
                       )}
                     </div>
 
+                    {/* Caption Templates */}
+                    {editPost.status === "pending" && activeBrandId && (
+                      <CaptionTemplatePicker
+                        brandId={activeBrandId}
+                        onApply={(template) =>
+                          setEditPost((prev) =>
+                            prev ? { ...prev, content: template } : prev,
+                          )
+                        }
+                      />
+                    )}
+
                     {/* Content */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <label className="text-sm font-medium text-gray-700">
                           {isSpanish ? "Título" : "Caption"}
                         </label>
-                        <span className="text-xs text-gray-400">
+                        <span
+                          className={`text-xs ${
+                            (editPost.content?.length || 0) > 2200
+                              ? "text-red-500 font-medium"
+                              : (editPost.content?.length || 0) > 2000
+                                ? "text-amber-500"
+                                : "text-gray-400"
+                          }`}
+                        >
                           {editPost.content?.length || 0} / 2,200
                         </span>
                       </div>
@@ -3164,7 +3221,13 @@ export default function ContentCalendar() {
                         }}
                         style={{ fontSize: ".6rem" }}
                         placeholder="Write your caption..."
-                        className={`min-h-[120px] resize-none ${isNewPostMode && createPostErrors.content ? "border-red-400 focus-visible:ring-red-400" : ""}`}
+                        className={`min-h-[120px] resize-none ${
+                          (editPost.content?.length || 0) > 2200
+                            ? "border-red-400 focus-visible:ring-red-400"
+                            : isNewPostMode && createPostErrors.content
+                              ? "border-red-400 focus-visible:ring-red-400"
+                              : ""
+                        }`}
                         disabled={
                           editPost.status === "accepted" ||
                           editPost.status === "rejected" ||
@@ -3173,17 +3236,40 @@ export default function ContentCalendar() {
                         }
                         data-testid="input-post-content"
                       />
+                      {(editPost.content?.length || 0) > 2200 && (
+                        <p className="text-xs text-red-500">
+                          {isSpanish
+                            ? "Instagram permite máximo 2,200 caracteres."
+                            : "Instagram allows maximum 2,200 characters."}
+                        </p>
+                      )}
                       {isNewPostMode && createPostErrors.content && (
                         <p className="text-xs text-red-500">{createPostErrors.content}</p>
                       )}
                     </div>
 
                     {/* Hashtags */}
-                    {(isNewPostMode || editPost.hashtags) && (
+                    {(isNewPostMode || editPost.hashtags) && (() => {
+                      const hashtagCount = (editPost.hashtags?.match(/#\w+/g) || []).length;
+                      const isOverLimit = hashtagCount > 30;
+                      return (
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">
-                          Hashtags
-                        </label>
+                        <div className="flex items-center justify-between">
+                          <label className="text-sm font-medium text-gray-700">
+                            Hashtags
+                          </label>
+                          <span
+                            className={`text-xs ${
+                              isOverLimit
+                                ? "text-red-500 font-medium"
+                                : hashtagCount > 25
+                                  ? "text-amber-500"
+                                  : "text-gray-400"
+                            }`}
+                          >
+                            {hashtagCount} / 30
+                          </span>
+                        </div>
                         <Textarea
                           value={editPost.hashtags}
                           onChange={(e) =>
@@ -3203,8 +3289,34 @@ export default function ContentCalendar() {
                           }
                           data-testid="input-post-hashtags"
                         />
+                        {isOverLimit && (
+                          <p className="text-xs text-red-500">
+                            {isSpanish
+                              ? "Instagram permite máximo 30 hashtags."
+                              : "Instagram allows maximum 30 hashtags."}
+                          </p>
+                        )}
+                        {/* Saved Hashtag Sets */}
+                        {editPost.status === "pending" && (
+                          <HashtagSetPicker
+                            brandId={activeBrandId || ""}
+                            onInsert={(tags) =>
+                              setEditPost((prev) =>
+                                prev
+                                  ? {
+                                      ...prev,
+                                      hashtags: prev.hashtags
+                                        ? prev.hashtags + " " + tags
+                                        : tags,
+                                    }
+                                  : prev,
+                              )
+                            }
+                          />
+                        )}
                       </div>
-                    )}
+                      );
+                    })()}
 
                     {/* Post Type */}
                     <div className="space-y-2">
@@ -3490,7 +3602,14 @@ export default function ContentCalendar() {
                               data-testid="button-approve-post"
                               disabled={!hasPostingFrequency}
                             >
-                              <CheckCircle className="w-4 h-4 mr-2" /> Approve
+                              <CheckCircle className="w-4 h-4 mr-2" />{" "}
+                              {isMultiStageApproval
+                                ? isSpanish
+                                  ? `Aprobar (${pipelineStages[pipelineStages.length - 1]?.name || "Final"})`
+                                  : `Approve (${pipelineStages[pipelineStages.length - 1]?.name || "Final"})`
+                                : isSpanish
+                                  ? "Aprobar"
+                                  : "Approve"}
                             </Button>
                           </>
                         )}
@@ -4120,5 +4239,355 @@ export default function ContentCalendar() {
         </Dialog>
       </div>
     </TooltipProvider>
+  );
+}
+
+// Caption template picker
+function CaptionTemplatePicker({
+  brandId,
+  onApply,
+}: {
+  brandId: string;
+  onApply: (template: string) => void;
+}) {
+  const { isSpanish } = useLanguage();
+  const queryClient = useQueryClient();
+  const [showAdd, setShowAdd] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newTemplate, setNewTemplate] = useState("");
+
+  const { data: templates } = useQuery<
+    { id: string; name: string; template: string; category: string }[]
+  >({
+    queryKey: [`/api/brands/${brandId}/caption-templates`],
+    enabled: !!brandId,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/brands/${brandId}/caption-templates`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ name: newName, template: newTemplate }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [`/api/brands/${brandId}/caption-templates`],
+      });
+      setNewName("");
+      setNewTemplate("");
+      setShowAdd(false);
+    },
+  });
+
+  if (!templates || templates.length === 0) {
+    if (!showAdd) {
+      return (
+        <button
+          type="button"
+          onClick={() => setShowAdd(true)}
+          className="text-xs text-purple-600 hover:text-purple-700 font-medium"
+        >
+          + {isSpanish ? "Crear plantilla de caption" : "Create caption template"}
+        </button>
+      );
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      {templates && templates.length > 0 && (
+        <div>
+          <label className="text-xs font-medium text-gray-500">
+            {isSpanish ? "Plantillas" : "Templates"}
+          </label>
+          <div className="flex flex-wrap gap-1.5 mt-1">
+            {templates.map((tmpl) => (
+              <button
+                key={tmpl.id}
+                type="button"
+                onClick={() => onApply(tmpl.template)}
+                className="px-2 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition-colors"
+                title={tmpl.template.substring(0, 100)}
+              >
+                {tmpl.name}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => setShowAdd(!showAdd)}
+              className="px-2 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-500 border border-dashed border-gray-300 hover:bg-gray-100"
+            >
+              +
+            </button>
+          </div>
+        </div>
+      )}
+      {showAdd && (
+        <div className="space-y-2 p-3 bg-gray-50 rounded-lg border">
+          <input
+            type="text"
+            placeholder={isSpanish ? "Nombre (ej: Promo)" : "Name (e.g. Promo)"}
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            className="w-full px-2 py-1 border rounded text-xs"
+          />
+          <textarea
+            placeholder={
+              isSpanish
+                ? "Plantilla (ej: 🔥 {titulo}\n\n{descripcion}\n\n👉 Link en bio)"
+                : "Template (e.g. 🔥 {title}\n\n{description}\n\n👉 Link in bio)"
+            }
+            value={newTemplate}
+            onChange={(e) => setNewTemplate(e.target.value)}
+            className="w-full px-2 py-1 border rounded text-xs min-h-[60px] resize-none"
+          />
+          <div className="flex gap-2 justify-end">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 text-xs"
+              onClick={() => { setShowAdd(false); setNewName(""); setNewTemplate(""); }}
+            >
+              {isSpanish ? "Cancelar" : "Cancel"}
+            </Button>
+            <Button
+              size="sm"
+              className="h-7 text-xs bg-purple-600 hover:bg-purple-700 text-white"
+              onClick={() => createMutation.mutate()}
+              disabled={!newName.trim() || !newTemplate.trim()}
+            >
+              {isSpanish ? "Guardar" : "Save"}
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Hashtag set picker for quick insertion
+function HashtagSetPicker({
+  brandId,
+  onInsert,
+}: {
+  brandId: string;
+  onInsert: (tags: string) => void;
+}) {
+  const { isSpanish } = useLanguage();
+  const queryClient = useQueryClient();
+  const [showAdd, setShowAdd] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newTags, setNewTags] = useState("");
+
+  const { data: sets } = useQuery<
+    { id: string; name: string; hashtags: string }[]
+  >({
+    queryKey: [`/api/brands/${brandId}/hashtag-sets`],
+    enabled: !!brandId,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/brands/${brandId}/hashtag-sets`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ name: newName, hashtags: newTags }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [`/api/brands/${brandId}/hashtag-sets`],
+      });
+      setNewName("");
+      setNewTags("");
+      setShowAdd(false);
+    },
+  });
+
+  if (!sets || sets.length === 0) {
+    return (
+      <div className="space-y-2">
+        {!showAdd ? (
+          <button
+            type="button"
+            onClick={() => setShowAdd(true)}
+            className="text-xs text-purple-600 hover:text-purple-700 font-medium"
+          >
+            + {isSpanish ? "Crear set de hashtags" : "Create hashtag set"}
+          </button>
+        ) : (
+          <div className="flex gap-2 items-end">
+            <input
+              type="text"
+              placeholder={isSpanish ? "Nombre" : "Name"}
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              className="px-2 py-1 border rounded text-xs w-24"
+            />
+            <input
+              type="text"
+              placeholder="#tag1 #tag2..."
+              value={newTags}
+              onChange={(e) => setNewTags(e.target.value)}
+              className="px-2 py-1 border rounded text-xs flex-1"
+            />
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs"
+              onClick={() => createMutation.mutate()}
+              disabled={!newName.trim() || !newTags.trim()}
+            >
+              {isSpanish ? "Guardar" : "Save"}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 text-xs"
+              onClick={() => setShowAdd(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-1.5">
+        {sets.map((set) => (
+          <button
+            key={set.id}
+            type="button"
+            onClick={() => onInsert(set.hashtags)}
+            className="px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
+            title={set.hashtags}
+          >
+            {set.name}
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={() => setShowAdd(!showAdd)}
+          className="px-2 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-500 border border-dashed border-gray-300 hover:bg-gray-100"
+        >
+          +
+        </button>
+      </div>
+      {showAdd && (
+        <div className="flex gap-2 items-end">
+          <input
+            type="text"
+            placeholder={isSpanish ? "Nombre" : "Name"}
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            className="px-2 py-1 border rounded text-xs w-24"
+          />
+          <input
+            type="text"
+            placeholder="#tag1 #tag2..."
+            value={newTags}
+            onChange={(e) => setNewTags(e.target.value)}
+            className="px-2 py-1 border rounded text-xs flex-1"
+          />
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs"
+            onClick={() => createMutation.mutate()}
+            disabled={!newName.trim() || !newTags.trim()}
+          >
+            {isSpanish ? "Guardar" : "Save"}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Inline component for showing Instagram post performance
+function PostInsightsBar({ postId }: { postId: string }) {
+  const { isSpanish } = useLanguage();
+  const { data, isLoading } = useQuery<{
+    insights: Record<string, number> | null;
+    message?: string;
+  }>({
+    queryKey: [`/api/ai-posts/${postId}/insights`],
+    enabled: !!postId,
+    retry: false,
+    staleTime: 60_000,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="px-6 py-3 bg-purple-50 border-b flex items-center gap-2 text-sm text-purple-600">
+        <Loader2 className="w-3 h-3 animate-spin" />
+        {isSpanish ? "Cargando métricas..." : "Loading metrics..."}
+      </div>
+    );
+  }
+
+  if (!data?.insights) {
+    return (
+      <div className="px-6 py-2 bg-gray-50 border-b text-xs text-gray-400 text-center">
+        {data?.message || (isSpanish ? "Métricas no disponibles aún" : "Metrics not available yet")}
+      </div>
+    );
+  }
+
+  const ins = data.insights;
+  const fmt = (n: number) => {
+    if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
+    return n.toString();
+  };
+
+  return (
+    <div className="px-6 py-3 bg-gradient-to-r from-purple-50 to-pink-50 border-b">
+      <div className="flex items-center gap-6 text-sm">
+        <span className="text-xs font-medium text-purple-600 uppercase tracking-wide">
+          {isSpanish ? "Rendimiento" : "Performance"}
+        </span>
+        {ins.reach !== undefined && (
+          <span className="flex items-center gap-1 text-gray-700">
+            <Eye className="w-3.5 h-3.5 text-blue-500" /> {fmt(ins.reach)}
+          </span>
+        )}
+        {ins.impressions !== undefined && (
+          <span className="flex items-center gap-1 text-gray-700">
+            <TrendingUp className="w-3.5 h-3.5 text-purple-500" /> {fmt(ins.impressions)}
+          </span>
+        )}
+        {ins.likes !== undefined && (
+          <span className="flex items-center gap-1 text-gray-700">
+            <Heart className="w-3.5 h-3.5 text-pink-500" /> {fmt(ins.likes)}
+          </span>
+        )}
+        {ins.comments !== undefined && (
+          <span className="flex items-center gap-1 text-gray-700">
+            <MessageCircle className="w-3.5 h-3.5 text-blue-500" /> {fmt(ins.comments)}
+          </span>
+        )}
+        {ins.saved !== undefined && (
+          <span className="flex items-center gap-1 text-gray-700">
+            <Bookmark className="w-3.5 h-3.5 text-amber-500" /> {fmt(ins.saved)}
+          </span>
+        )}
+        {ins.shares !== undefined && (
+          <span className="flex items-center gap-1 text-gray-700">
+            <Share2 className="w-3.5 h-3.5 text-green-500" /> {fmt(ins.shares)}
+          </span>
+        )}
+      </div>
+    </div>
   );
 }

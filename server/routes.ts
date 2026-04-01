@@ -68,6 +68,12 @@ import {
   waitlist,
   insertWaitlistSchema,
   socialPostingFrequency,
+  aiGeneratedPosts,
+  hashtagSets,
+  brandSettings,
+  captionTemplates,
+  approvalPipelines,
+  customizationRequests,
 } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 import dayjs from "dayjs";
@@ -713,29 +719,26 @@ async function performInstagramDirectSync(
     const seenMessageIds = new Set<string>();
 
     for (const convo of conversations) {
-      const messagesListUrl = `https://graph.instagram.com/v24.0/${convo.id}?fields=messages&access_token=${accessToken}`;
-      const msgListRes = await fetch(messagesListUrl);
-      const msgListData = await msgListRes.json();
+      // Fetch messages with full details in a single call using nested fields
+      // This avoids the N+1 pattern of fetching each message individually
+      const messagesUrl = `https://graph.instagram.com/v24.0/${convo.id}?fields=messages.limit(50){id,created_time,from,to,message,attachments}&access_token=${accessToken}`;
+      const msgRes = await fetch(messagesUrl);
+      const msgData = await msgRes.json();
 
-      if (msgListData.error) {
+      if (msgData.error) {
         console.error(
-          `⚠️ Error fetching message list for conversation ${convo.id}:`,
-          msgListData.error,
+          `⚠️ Error fetching messages for conversation ${convo.id}:`,
+          msgData.error,
         );
         continue;
       }
 
-      const messageIds = msgListData.messages?.data || [];
+      const messagesList = msgData.messages?.data || [];
       console.log(
-        `  📨 Conversation ${convo.id}: ${messageIds.length} message IDs`,
+        `  📨 Conversation ${convo.id}: ${messagesList.length} messages fetched (inline)`,
       );
 
-      const limitedMessageIds = messageIds.slice(0, 50);
-
-      for (const msgRef of limitedMessageIds) {
-        const msgDetailUrl = `https://graph.instagram.com/v24.0/${msgRef.id}?fields=id,created_time,from,to,message,attachments&access_token=${accessToken}`;
-        const msgDetailRes = await fetch(msgDetailUrl);
-        const m = await msgDetailRes.json();
+      for (const m of messagesList) {
 
         if (m.error) {
  console.error(` Error fetching message ${msgRef.id}:`, m.error);
@@ -759,7 +762,8 @@ async function performInstagramDirectSync(
         const messageTimestamp = new Date(m.created_time);
 
         const recipientIgsid = isOutbound ? toId : fromId;
-        const compositeConversationId = `${igbaId}_${recipientIgsid}`;
+        // Standardized format: ig_{contactId}_{accountId} — matches webhook handler format
+        const compositeConversationId = `ig_${recipientIgsid}_${igbaId}`;
 
         const attachments = m.attachments?.data || [];
 
@@ -783,6 +787,7 @@ async function performInstagramDirectSync(
             latestMessage: preview,
             latestTimestamp: messageTimestamp,
             contactName,
+            contactId: recipientIgsid, // The non-business contact ID
           });
         }
 
@@ -852,6 +857,22 @@ async function performInstagramDirectSync(
       metaConversationId,
       metadata,
     ] of conversationMetadata.entries()) {
+      // Try to fetch contact profile picture from Instagram
+      let contactProfilePicture: string | null = null;
+      if (metadata.contactId && metadata.contactId !== igbaId) {
+        try {
+          const profileRes = await fetch(
+            `https://graph.instagram.com/v24.0/${metadata.contactId}?fields=profile_pic&access_token=${accessToken}`,
+          );
+          const profileData = await profileRes.json();
+          if (profileData.profile_pic) {
+            contactProfilePicture = profileData.profile_pic;
+          }
+        } catch {
+          // Profile picture fetch is best-effort
+        }
+      }
+
       const conversation = await storage.getOrCreateConversation({
         integrationId: integration.id,
         brandId: integration.brandId,
@@ -861,6 +882,7 @@ async function performInstagramDirectSync(
         contactName: metadata.contactName,
         lastMessage: metadata.latestMessage,
         lastMessageAt: metadata.latestTimestamp,
+        contactProfilePicture,
       });
 
       conversationMap.set(metaConversationId, conversation.id);
@@ -2301,7 +2323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const allIntegrations = await storage.getIntegrationsByBrandId(brandId);
         const active = allIntegrations.filter(
           (i: any) =>
-            ["facebook", "instagram"].includes(i.provider) && i.isActive,
+            ["facebook", "instagram", "instagram_direct"].includes(i.provider) && i.isActive,
         );
 
         if (active.length === 0) {
@@ -3564,6 +3586,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "instagram_basic",
         "instagram_manage_messages",
         "instagram_content_publish",
+        "instagram_manage_comments",
         "read_insights",
         "instagram_manage_insights",
         "pages_read_user_content",
@@ -3645,7 +3668,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.redirect("/integrations?error=token_failed");
       }
 
-      const userAccessToken = tokenJson.access_token;
+      let userAccessToken = tokenJson.access_token;
+
+      // -----------------------------------------
+      // 2.5️⃣ Exchange for LONG-LIVED user token
+      // Page tokens derived from long-lived user tokens are automatically long-lived (no expiry)
+      // -----------------------------------------
+      try {
+        const longLivedRes = await fetch(
+          `https://graph.facebook.com/v24.0/oauth/access_token` +
+            `?grant_type=fb_exchange_token` +
+            `&client_id=${process.env.FB_APP_ID}` +
+            `&client_secret=${process.env.FB_APP_SECRET}` +
+            `&fb_exchange_token=${userAccessToken}`,
+        );
+        const longLivedData = await longLivedRes.json();
+        if (longLivedData.access_token) {
+          userAccessToken = longLivedData.access_token;
+          console.log("[Facebook OAuth] Exchanged for long-lived user token");
+        }
+      } catch (err) {
+        console.warn("[Facebook OAuth] Failed to exchange for long-lived token, using short-lived");
+      }
 
       // -----------------------------------------
       // 3️⃣ Get pages user manages
@@ -3836,6 +3880,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "instagram_business_basic",
         "instagram_business_manage_messages",
         "instagram_business_content_publish",
+        "instagram_business_manage_insights",
       ].join(",");
 
       // Get origin from query params (onboarding or integrations)
@@ -3906,7 +3951,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (tokenData.error_type || tokenData.error_message) {
         return res
           .status(500)
-          .send(`Error: ${tokenData.error_message || "Token exchange failed"}`);
+          .redirect(`/integrations?error=token_failed`);
       }
 
       const shortLivedToken = tokenData.access_token;
@@ -3930,7 +3975,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             : null;
         }
       } catch (err) {
-        // Failed to exchange for long-lived token, using short-lived
+        console.warn("[Instagram Direct OAuth] Failed to exchange for long-lived token, using short-lived (1h expiry)");
+        expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour fallback
       }
 
       // 4️⃣ Get Instagram user profile
@@ -3954,10 +4000,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             igUsername = profileData.username;
           }
           // CRITICAL: Use profileData.id as the IGBA ID - this matches webhook recipient.id
-          // The token's user_id is app-scoped and different from the IGBA ID
-          if (profileData.user_id) {
-            igbaId = profileData.user_id.toString();
-            appScopedId = igUserId.toString(); // Keep token's user_id as app-scoped reference
+          // profileData.user_id is the app-scoped IG user ID, NOT the IGBA ID
+          if (profileData.id) {
+            igbaId = profileData.id.toString();
+            appScopedId = profileData.user_id?.toString() || igUserId.toString();
           }
         } else {
           // Fallback to token's user_id (less reliable for webhook matching)
@@ -4024,8 +4070,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       return res.redirect(`/integrations?connected=instagram_direct`);
     } catch (err) {
-      console.error("[ERROR] Instagram callback error");
-      return res.status(500).send("Error in Instagram callback");
+      console.error("[ERROR] Instagram callback error:", err);
+      return res.redirect("/integrations?error=callback_failed");
     }
   });
 
@@ -5123,9 +5169,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.sendStatus(403);
         }
         const crypto = await import("crypto");
+        // Use raw body buffer for accurate signature verification
+        // (JSON.stringify may produce different byte output than the original payload)
+        const bodyForSignature = (req as any).rawBody || Buffer.from(JSON.stringify(body));
         const expectedSignature = "sha256=" + crypto
           .createHmac("sha256", appSecret)
-          .update(JSON.stringify(body))
+          .update(bodyForSignature)
           .digest("hex");
         if (signature !== expectedSignature) {
           return res.sendStatus(403);
@@ -5237,8 +5286,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 const senderId = value.sender?.id;
                 const recipientId = value.recipient?.id;
                 const messageId = value.message?.mid;
-                const messageText = value.message?.text || "";
+                let messageText = value.message?.text || "";
                 const timestamp = value.timestamp;
+
+                // Detect story replies (user replied to one of our stories)
+                const storyReply = value.message?.reply_to?.story;
+                if (storyReply && !messageText) {
+                  messageText = "[Story Reply]";
+                } else if (storyReply && messageText) {
+                  messageText = `[Story Reply] ${messageText}`;
+                }
+
+                // Detect story mentions (user mentioned us in their story)
+                const storyMention = (value.message?.attachments || []).find(
+                  (a: any) => a.type === "story_mention",
+                );
+                if (storyMention) {
+                  messageText = messageText || "[Story Mention]";
+                  if (!messageText.includes("[Story Mention]")) {
+                    messageText = `[Story Mention] ${messageText}`;
+                  }
+                }
+
+                // Detect share messages (user shared a post/reel)
+                const shareAttachment = (value.message?.attachments || []).find(
+                  (a: any) => a.type === "share",
+                );
+                if (shareAttachment && !messageText) {
+                  messageText = "[Shared Post]";
+                }
 
                 // Handle attachments
                 const attachments = value.message?.attachments || [];
@@ -5587,9 +5663,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const senderId = event.sender.id;
               const recipientId = event.recipient.id;
               const messageId = event.message.mid;
-              const messageText = event.message.text || "";
+              let messageText = event.message.text || "";
               const searchPlatform =
                 body.object === "instagram" ? "instagram" : "facebook";
+
+              // Detect story replies
+              const storyReply = event.message?.reply_to?.story;
+              if (storyReply) {
+                messageText = messageText
+                  ? `[Story Reply] ${messageText}`
+                  : "[Story Reply]";
+              }
+
+              // Detect story mentions
+              const storyMention = (event.message.attachments || []).find(
+                (a: any) => a.type === "story_mention",
+              );
+              if (storyMention) {
+                messageText = messageText
+                  ? `[Story Mention] ${messageText}`
+                  : "[Story Mention]";
+              }
+
+              // Detect shared posts
+              const shareAttachment = (event.message.attachments || []).find(
+                (a: any) => a.type === "share",
+              );
+              if (shareAttachment && !messageText) {
+                messageText = "[Shared Post]";
+              }
 
               // Handle attachments
               const attachments = event.message.attachments || [];
@@ -5642,10 +5744,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   if (convoData?.data?.[0]?.id) {
                     metaConversationId = convoData.data[0].id;
                   } else {
-                    metaConversationId = `${recipientId}_${senderId}`;
+                    // Standardized fallback format: ig_{contactId}_{accountId}
+                    metaConversationId = `ig_${senderId}_${recipientId}`;
                   }
                 } catch (err) {
-                  metaConversationId = `${recipientId}_${senderId}`;
+                  metaConversationId = `ig_${senderId}_${recipientId}`;
                 }
 
                 // Find existing conversation FIRST to check if we already have profile picture
@@ -5783,6 +5886,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     }
                   }
 
+                  // Detect outbound (echo) messages: sender matches the business page/account
+                  const isOutbound =
+                    senderId === integration.pageId ||
+                    senderId === integration.accountId ||
+                    event.message?.is_echo === true;
+
                   const savedMessage = await storage.createMessage({
                     userId: integration.userId,
                     brandId: integration.brandId,
@@ -5795,8 +5904,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     recipientId,
                     contactName,
                     textContent: textContent || "",
-                    direction: "inbound",
-                    isRead: false,
+                    direction: isOutbound ? "outbound" : "inbound",
+                    isRead: isOutbound ? true : false,
                     timestamp: new Date(event.timestamp || Date.now()),
                     rawPayload: body,
                   });
@@ -5843,7 +5952,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     }
                   }
 
-                  await storage.incrementUnreadCount(conversation.id);
+                  // Only increment unread count for inbound messages
+                  if (!isOutbound) {
+                    await storage.incrementUnreadCount(conversation.id);
+                  }
 
                   // Emit socket event to brand room only
                   const io = app.get("io");
@@ -5905,6 +6017,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         url = `https://graph.facebook.com/v24.0/${integration.accountId}/conversations?fields=id,participants,snippet,updated_time&access_token=${integration.accessToken}`;
       } else if (provider === "threads") {
         url = `https://graph.facebook.com/v24.0/${integration.accountId}/conversations?fields=id,participants,snippet,updated_time&access_token=${integration.accessToken}`;
+      } else if (provider === "instagram_direct") {
+        // Instagram Direct conversations come from webhooks/sync, query local DB
+        const brandId = req.brandMembership?.brandId;
+        const dbConversations = brandId
+          ? await storage.getConversationsByBrandId(brandId)
+          : [];
+        const igDirectConversations = dbConversations.filter(
+          (c: any) => c.platform === "instagram_direct" || c.platform === "instagram",
+        );
+        return res.json({ conversations: igDirectConversations });
       } else if (provider === "whatsapp") {
         // WhatsApp conversations come from webhooks, so we query our local DB
         const brandId = req.brandMembership?.brandId;
@@ -5946,6 +6068,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const validProviders = [
           "facebook",
           "instagram",
+          "instagram_direct",
           "threads",
           "whatsapp",
           "whatsapp_baileys",
@@ -5983,6 +6106,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             );
             break;
           case "instagram":
+          case "instagram_direct":
             messages = await fetchInstagramMessagesFromDB(
               integrationId,
               conversationId,
@@ -6550,95 +6674,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
-  // ✅ NEW: Get inbox statistics (total messages, unread, urgent, avg response time)
-  // ✅ NEW: Get inbox statistics (total messages, unread, urgent, avg response time)
+  // Inbox statistics — efficient SQL aggregation (no N+1)
   app.get(
     "/api/inbox/stats",
     isAuthenticated,
     requireBrand,
-    async (req, res) => {
+    async (req: any, res) => {
       try {
         const brandId = req.brandMembership!.brandId;
+        const { conversations, messages } = await import("@shared/schema");
+        const { sql, count, sum } = await import("drizzle-orm");
 
-        // Get all conversations for the brand
-        const conversationsList =
-          await storage.getConversationsByBrandId(brandId);
+        // Single query: aggregate conversation stats
+        const convoStats = await db
+          .select({
+            conversationCount: count(),
+            totalUnread: sum(conversations.unreadCount),
+            urgentCount: sql<number>`count(*) filter (where ${conversations.flag} = 'important')`,
+          })
+          .from(conversations)
+          .where(eq(conversations.brandId, brandId));
 
-        // Calculate statistics
-        let totalMessages = 0;
-        let totalUnread = 0;
-        let urgentCount = 0;
-        let responseTimes: number[] = [];
+        // Single query: count total messages
+        const msgStats = await db
+          .select({ totalMessages: count() })
+          .from(messages)
+          .where(eq(messages.brandId, brandId));
 
-        for (const conversation of conversationsList) {
-          // Count unread
-          totalUnread += conversation.unreadCount || 0;
-
-          // Count urgent
-          if (conversation.flag === "important") {
-            urgentCount++;
-          }
-
-          // Get messages
-          const conversationMessages = await storage.getConversationMessages(
-            conversation.id,
-          );
-
-          totalMessages += conversationMessages.length;
-
-          // Calculate response times
-          let lastInboundTime: Date | null = null;
-
-          for (const msg of conversationMessages) {
-            // 🔑 NORMALIZAR TIMESTAMP (CLAVE DEL FIX)
-            const msgTime =
-              msg.timestamp instanceof Date
-                ? msg.timestamp
-                : new Date(msg.timestamp);
-
-            if (msg.direction === "inbound") {
-              lastInboundTime = msgTime;
-            } else if (msg.direction === "outbound" && lastInboundTime) {
-              const responseTime =
-                msgTime.getTime() - lastInboundTime.getTime();
-
-              if (responseTime > 0) {
-                responseTimes.push(responseTime);
-              }
-
-              lastInboundTime = null; // Reset after pairing
-            }
-          }
-        }
-
-        // Calculate average response time
-        let avgResponseTime = "N/A";
-
-        if (responseTimes.length > 0) {
-          const avgMs =
-            responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
-
-          const avgMinutes = Math.round(avgMs / 60000);
-
-          if (avgMinutes < 60) {
-            avgResponseTime = `${avgMinutes}m`;
-          } else {
-            const hours = Math.floor(avgMinutes / 60);
-            const mins = avgMinutes % 60;
-            avgResponseTime = mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
-          }
-        }
-
-        console.log(
-          `📊 Inbox stats for brand ${brandId}: ${totalMessages} messages, ${totalUnread} unread, ${urgentCount} urgent`,
-        );
+        const stats = convoStats[0] || { conversationCount: 0, totalUnread: 0, urgentCount: 0 };
+        const totalMessages = msgStats[0]?.totalMessages || 0;
 
         res.json({
           totalMessages,
-          unread: totalUnread,
-          urgent: urgentCount,
-          avgResponseTime,
-          conversationCount: conversationsList.length,
+          unread: Number(stats.totalUnread) || 0,
+          urgent: Number(stats.urgentCount) || 0,
+          avgResponseTime: "N/A",
+          conversationCount: Number(stats.conversationCount) || 0,
         });
       } catch (err) {
         console.error("[ERROR] Error fetching inbox stats:", err);
@@ -6830,11 +6901,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userId = (req.user as any)?.id;
         const brandId = req.brandMembership!.brandId;
         const messageConversationId = req.body.conversationId;
-        const { content } = req.body;
+        const { content, attachmentUrl, attachmentType } = req.body;
 
         console.log("\n=============================");
-        if (!content?.trim()) {
-          return res.status(400).json({ error: "Message content is required" });
+        if (!content?.trim() && !attachmentUrl) {
+          return res.status(400).json({ error: "Message content or attachment is required" });
         }
 
         const integrations = await storage.getIntegrationsByBrandId(brandId);
@@ -7062,14 +7133,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
  console.log(` Recipient ID (IG): ${recipientId}`);
 
-          // Construcción del payload
+          // Build payload — supports text or attachment
           url = `https://graph.facebook.com/v24.0/${pageId}/messages`;
-          payload = {
-            recipient: { id: recipientId },
-            message: { text: content },
-          };
+          if (attachmentUrl && (attachmentType === "image" || attachmentType === "audio" || attachmentType === "video" || attachmentType === "file")) {
+            payload = {
+              recipient: { id: recipientId },
+              message: {
+                attachment: {
+                  type: attachmentType === "file" ? "file" : attachmentType,
+                  payload: { url: attachmentUrl, is_reusable: true },
+                },
+              },
+            };
+          } else {
+            payload = {
+              recipient: { id: recipientId },
+              message: { text: content },
+            };
+          }
 
-          console.log("[OK] [Instagram] Payload final:", payload);
+          console.log("[OK] [Instagram] Payload final:", JSON.stringify(payload).substring(0, 200));
         }
 
         // =========================================================
@@ -7156,14 +7239,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
  console.log(` Recipient ID (IG Direct): ${recipientId}`);
 
           // Instagram Direct uses /me/messages endpoint with Bearer token
-          // Per Meta's API docs, uses Authorization header instead of access_token param
-          url = `https://graph.instagram.com/v21.0/me/messages`;
+          url = `https://graph.instagram.com/v24.0/me/messages`;
 
-          // Build payload - Instagram Direct API expects stringified JSON for message and recipient
-          payload = {
-            recipient: JSON.stringify({ id: recipientId }),
-            message: JSON.stringify({ text: content }),
-          };
+          // Build payload — supports text or attachment
+          if (attachmentUrl && attachmentType === "image") {
+            payload = {
+              recipient: JSON.stringify({ id: recipientId }),
+              message: JSON.stringify({
+                attachment: {
+                  type: "image",
+                  payload: { url: attachmentUrl },
+                },
+              }),
+            };
+          } else if (attachmentUrl && (attachmentType === "audio" || attachmentType === "video" || attachmentType === "file")) {
+            payload = {
+              recipient: JSON.stringify({ id: recipientId }),
+              message: JSON.stringify({
+                attachment: {
+                  type: attachmentType === "file" ? "file" : attachmentType,
+                  payload: { url: attachmentUrl },
+                },
+              }),
+            };
+          } else {
+            payload = {
+              recipient: JSON.stringify({ id: recipientId }),
+              message: JSON.stringify({ text: content }),
+            };
+          }
 
           console.log("[OK] [Instagram Direct] Payload final:", payload);
           console.log(
@@ -7384,9 +7488,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             userId,
             brandId: integration.brandId,
             integrationId: integration.id,
-            platform: provider,
+            platform: actualProvider,
             metaMessageId: messageId,
-            metaConversationId, // ✅ Guardamos siempre
+            metaConversationId,
             senderId: integration.accountId || '',
             recipientId,
             textContent: content,
@@ -10831,6 +10935,72 @@ All content must be in English.`;
 
   // ─── Brand Products ─────────────────────────────────────────────────────────
 
+  // Instagram Post Insights (on-demand fetch for a published post)
+  app.get("/api/ai-posts/:postId/insights", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const { postId } = req.params;
+      const brandId = req.brandId;
+
+      const { getAiGeneratedPostsByBrand } = await import("./storage/aiGeneratedPosts");
+      const posts = await getAiGeneratedPostsByBrand(brandId);
+      const post = posts.find(p => p.id === postId);
+
+      if (!post) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+
+      if (post.status !== "published" || !post.publishedAt) {
+        return res.json({ insights: null, message: "Post not published yet" });
+      }
+
+      // Need publishedMediaId to fetch insights
+      const dbPost = await db
+        .select()
+        .from(aiGeneratedPosts)
+        .where(eq(aiGeneratedPosts.id, postId))
+        .limit(1);
+
+      const mediaId = dbPost[0]?.publishedMediaId;
+      if (!mediaId) {
+        return res.json({ insights: null, message: "No media ID stored for this post" });
+      }
+
+      // Find the Instagram integration for this brand
+      const brandIntegrations = await storage.getIntegrationsByBrandId(brandId);
+      const igIntegration = brandIntegrations.find(
+        (i: any) => (i.provider === "instagram_direct" || i.provider === "instagram") && i.accessToken,
+      );
+
+      if (!igIntegration) {
+        return res.json({ insights: null, message: "No Instagram integration found" });
+      }
+
+      const isDirect = igIntegration.provider === "instagram_direct";
+      const baseUrl = isDirect ? "https://graph.instagram.com" : "https://graph.facebook.com";
+
+      const insightsRes = await fetch(
+        `${baseUrl}/v24.0/${mediaId}/insights?metric=reach,impressions,likes,comments,saved,shares&access_token=${igIntegration.accessToken}`,
+      );
+      const insightsData = await insightsRes.json();
+
+      if (insightsData.error) {
+        return res.json({ insights: null, message: insightsData.error.message });
+      }
+
+      const insights: Record<string, number> = {};
+      if (insightsData.data) {
+        for (const metric of insightsData.data) {
+          insights[metric.name] = metric.values?.[0]?.value || 0;
+        }
+      }
+
+      res.json({ insights, mediaId, publishedAt: post.publishedAt });
+    } catch (err: any) {
+      console.error("[API] Post insights error:", err.message);
+      res.status(500).json({ error: "Failed to fetch post insights" });
+    }
+  });
+
   // Brand Essence (Tone of Voice, Personality, etc.)
   app.get("/api/brands/:brandId/essence", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
@@ -10861,6 +11031,347 @@ All content must be in English.`;
     } catch (err) {
       console.error("PUT /api/brands/:brandId/essence error:", err);
       res.status(500).json({ error: "Failed to save brand essence" });
+    }
+  });
+
+  // AI Customization Engine
+  app.post("/api/brands/:brandId/ai-customize", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const brandId = req.params.brandId;
+      const userId = req.user?.id;
+      const { request } = req.body;
+
+      if (!request?.trim()) {
+        return res.status(400).json({ error: "Request text is required" });
+      }
+
+      const { generateProposal } = await import("./services/aiCustomization");
+      const proposal = await generateProposal(brandId, request.trim());
+
+      // Save the request
+      const [saved] = await db
+        .insert(customizationRequests)
+        .values({
+          brandId,
+          requestedBy: userId,
+          requestText: request.trim(),
+          aiProposal: proposal,
+          status: "pending",
+        })
+        .returning();
+
+      res.json({ id: saved.id, ...proposal });
+    } catch (err: any) {
+      console.error("AI customize error:", err);
+      res.status(500).json({ error: "Failed to generate proposal" });
+    }
+  });
+
+  app.post("/api/brands/:brandId/ai-customize/:requestId/apply", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const { brandId, requestId } = req.params;
+
+      const [request] = await db
+        .select()
+        .from(customizationRequests)
+        .where(eq(customizationRequests.id, requestId))
+        .limit(1);
+
+      if (!request || request.brandId !== brandId) {
+        return res.status(404).json({ error: "Request not found" });
+      }
+
+      if (request.status === "applied") {
+        return res.status(400).json({ error: "Already applied" });
+      }
+
+      const proposal = request.aiProposal as { proposals: any[] };
+      if (!proposal?.proposals?.length) {
+        return res.status(400).json({ error: "No proposals to apply" });
+      }
+
+      const { applyProposal } = await import("./services/aiCustomization");
+      const results = [];
+
+      for (const p of proposal.proposals) {
+        const result = await applyProposal(brandId, p);
+        results.push(result);
+      }
+
+      // Mark as applied
+      await db
+        .update(customizationRequests)
+        .set({ status: "applied", appliedAt: new Date() })
+        .where(eq(customizationRequests.id, requestId));
+
+      res.json({ success: true, results });
+    } catch (err: any) {
+      console.error("Apply customize error:", err);
+      res.status(500).json({ error: "Failed to apply proposal" });
+    }
+  });
+
+  app.post("/api/brands/:brandId/ai-customize/:requestId/reject", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const { requestId } = req.params;
+      await db
+        .update(customizationRequests)
+        .set({ status: "rejected" })
+        .where(eq(customizationRequests.id, requestId));
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to reject" });
+    }
+  });
+
+  // Get customization history
+  app.get("/api/brands/:brandId/ai-customize/history", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const brandId = req.params.brandId;
+      const history = await db
+        .select()
+        .from(customizationRequests)
+        .where(eq(customizationRequests.brandId, brandId))
+        .orderBy(customizationRequests.createdAt)
+        .limit(20);
+      res.json(history);
+    } catch (err) {
+      res.status(500).json({ error: "Failed to fetch history" });
+    }
+  });
+
+  // Brand Settings (feature flags, customization layer)
+  app.get("/api/brands/:brandId/settings", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const brandId = req.params.brandId;
+      const [settings] = await db
+        .select()
+        .from(brandSettings)
+        .where(eq(brandSettings.brandId, brandId))
+        .limit(1);
+      if (settings) {
+        res.json(settings);
+      } else {
+        // Return defaults if no settings row exists yet
+        res.json({
+          brandId,
+          featureFlags: {
+            calendar: true, analytics: true, inbox: true, brandStudio: true,
+            integrations: true, campaigns: false, customers: false,
+            sales: false, team: false, automations: false,
+          },
+          uiConfig: {},
+          instagramConfig: {
+            enabledPostTypes: ["image", "carousel", "story", "reel"],
+            defaultPostType: "image", autoHashtags: true, captionTemplatesEnabled: true,
+          },
+        });
+      }
+    } catch (err) {
+      res.status(500).json({ error: "Failed to fetch brand settings" });
+    }
+  });
+
+  app.put("/api/brands/:brandId/settings", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const brandId = req.params.brandId;
+      const { featureFlags, uiConfig, instagramConfig } = req.body;
+      const now = new Date();
+
+      // Upsert
+      const [existing] = await db
+        .select()
+        .from(brandSettings)
+        .where(eq(brandSettings.brandId, brandId))
+        .limit(1);
+
+      if (existing) {
+        const updateData: any = { updatedAt: now };
+        if (featureFlags !== undefined) updateData.featureFlags = featureFlags;
+        if (uiConfig !== undefined) updateData.uiConfig = uiConfig;
+        if (instagramConfig !== undefined) updateData.instagramConfig = instagramConfig;
+        const [updated] = await db
+          .update(brandSettings)
+          .set(updateData)
+          .where(eq(brandSettings.brandId, brandId))
+          .returning();
+        res.json(updated);
+      } else {
+        const [created] = await db
+          .insert(brandSettings)
+          .values({
+            brandId,
+            featureFlags: featureFlags || {},
+            uiConfig: uiConfig || {},
+            instagramConfig: instagramConfig || {},
+            createdAt: now,
+            updatedAt: now,
+          })
+          .returning();
+        res.json(created);
+      }
+    } catch (err) {
+      console.error("PUT /api/brands/:brandId/settings error:", err);
+      res.status(500).json({ error: "Failed to save brand settings" });
+    }
+  });
+
+  // Caption Templates CRUD
+  app.get("/api/brands/:brandId/caption-templates", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const brandId = req.params.brandId;
+      const templates = await db
+        .select()
+        .from(captionTemplates)
+        .where(eq(captionTemplates.brandId, brandId))
+        .orderBy(captionTemplates.createdAt);
+      res.json(templates);
+    } catch (err) {
+      res.status(500).json({ error: "Failed to fetch caption templates" });
+    }
+  });
+
+  app.post("/api/brands/:brandId/caption-templates", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const brandId = req.params.brandId;
+      const { name, template, category } = req.body;
+      if (!name?.trim() || !template?.trim()) {
+        return res.status(400).json({ error: "Name and template are required" });
+      }
+      const [created] = await db
+        .insert(captionTemplates)
+        .values({ brandId, name: name.trim(), template: template.trim(), category: category || "general" })
+        .returning();
+      res.status(201).json(created);
+    } catch (err) {
+      res.status(500).json({ error: "Failed to create caption template" });
+    }
+  });
+
+  app.delete("/api/brands/:brandId/caption-templates/:templateId", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const { templateId } = req.params;
+      await db.delete(captionTemplates).where(eq(captionTemplates.id, templateId));
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to delete caption template" });
+    }
+  });
+
+  // Approval Pipeline CRUD
+  app.get("/api/brands/:brandId/approval-pipeline", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const brandId = req.params.brandId;
+      const [pipeline] = await db
+        .select()
+        .from(approvalPipelines)
+        .where(eq(approvalPipelines.brandId, brandId))
+        .limit(1);
+      if (pipeline) {
+        res.json(pipeline);
+      } else {
+        // Return default 2-stage pipeline
+        res.json({
+          brandId,
+          name: "Default",
+          stages: [
+            { id: "review", name: "Review", approverRole: "editor", order: 1 },
+            { id: "approve", name: "Approve", approverRole: "owner", order: 2 },
+          ],
+          isActive: true,
+        });
+      }
+    } catch (err) {
+      res.status(500).json({ error: "Failed to fetch approval pipeline" });
+    }
+  });
+
+  app.put("/api/brands/:brandId/approval-pipeline", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const brandId = req.params.brandId;
+      const { name, stages, isActive } = req.body;
+      if (!stages || !Array.isArray(stages) || stages.length === 0) {
+        return res.status(400).json({ error: "At least one stage is required" });
+      }
+      const now = new Date();
+
+      const [existing] = await db
+        .select()
+        .from(approvalPipelines)
+        .where(eq(approvalPipelines.brandId, brandId))
+        .limit(1);
+
+      if (existing) {
+        const [updated] = await db
+          .update(approvalPipelines)
+          .set({
+            name: name || existing.name,
+            stages,
+            isActive: isActive ?? existing.isActive,
+            updatedAt: now,
+          })
+          .where(eq(approvalPipelines.brandId, brandId))
+          .returning();
+        res.json(updated);
+      } else {
+        const [created] = await db
+          .insert(approvalPipelines)
+          .values({
+            brandId,
+            name: name || "Default",
+            stages,
+            isActive: isActive ?? true,
+            createdAt: now,
+            updatedAt: now,
+          })
+          .returning();
+        res.json(created);
+      }
+    } catch (err) {
+      console.error("PUT /api/brands/:brandId/approval-pipeline error:", err);
+      res.status(500).json({ error: "Failed to save approval pipeline" });
+    }
+  });
+
+  // Hashtag Sets CRUD
+  app.get("/api/brands/:brandId/hashtag-sets", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const brandId = req.params.brandId;
+      const sets = await db
+        .select()
+        .from(hashtagSets)
+        .where(eq(hashtagSets.brandId, brandId))
+        .orderBy(hashtagSets.createdAt);
+      res.json(sets);
+    } catch (err) {
+      res.status(500).json({ error: "Failed to fetch hashtag sets" });
+    }
+  });
+
+  app.post("/api/brands/:brandId/hashtag-sets", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const brandId = req.params.brandId;
+      const { name, hashtags } = req.body;
+      if (!name?.trim() || !hashtags?.trim()) {
+        return res.status(400).json({ error: "Name and hashtags are required" });
+      }
+      const [created] = await db
+        .insert(hashtagSets)
+        .values({ brandId, name: name.trim(), hashtags: hashtags.trim() })
+        .returning();
+      res.status(201).json(created);
+    } catch (err) {
+      res.status(500).json({ error: "Failed to create hashtag set" });
+    }
+  });
+
+  app.delete("/api/brands/:brandId/hashtag-sets/:setId", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const { setId } = req.params;
+      await db.delete(hashtagSets).where(eq(hashtagSets.id, setId));
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to delete hashtag set" });
     }
   });
 

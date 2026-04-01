@@ -11,6 +11,7 @@ import {
   MicOff,
   ShoppingBag,
   Upload,
+  Clock,
 } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import {
@@ -642,6 +643,52 @@ export default function BrandIdentity() {
                   </FormItem>
                 )}
               />
+
+              {/* Timezone */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
+                  {isSpanish ? "Zona horaria" : "Timezone"}
+                </label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  defaultValue={selectedBrand?.timezone || "UTC"}
+                  onChange={async (e) => {
+                    if (!selectedBrand?.id) return;
+                    try {
+                      await fetch(`/api/brands/${selectedBrand.id}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        credentials: "include",
+                        body: JSON.stringify({ timezone: e.target.value }),
+                      });
+                    } catch {}
+                  }}
+                >
+                  <option value="UTC">UTC</option>
+                  <option value="America/New_York">Eastern (New York)</option>
+                  <option value="America/Chicago">Central (Chicago)</option>
+                  <option value="America/Denver">Mountain (Denver)</option>
+                  <option value="America/Los_Angeles">Pacific (Los Angeles)</option>
+                  <option value="America/Mexico_City">Mexico City</option>
+                  <option value="America/Bogota">Bogota</option>
+                  <option value="America/Argentina/Buenos_Aires">Buenos Aires</option>
+                  <option value="America/Sao_Paulo">Sao Paulo</option>
+                  <option value="Europe/London">London</option>
+                  <option value="Europe/Madrid">Madrid</option>
+                  <option value="Europe/Paris">Paris</option>
+                  <option value="Europe/Berlin">Berlin</option>
+                  <option value="Asia/Dubai">Dubai</option>
+                  <option value="Asia/Kolkata">India (Kolkata)</option>
+                  <option value="Asia/Tokyo">Tokyo</option>
+                  <option value="Australia/Sydney">Sydney</option>
+                </select>
+                <p className="text-xs text-gray-500">
+                  {isSpanish
+                    ? "Se usa para programar publicaciones en tu hora local."
+                    : "Used for scheduling posts in your local time."}
+                </p>
+              </div>
 
               <FormField
                 control={createForm.control}

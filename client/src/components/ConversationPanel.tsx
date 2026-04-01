@@ -383,7 +383,11 @@ export default function ConversationPanel({
   });
 
   const sendMessageMutation = useMutation({
-    mutationFn: async (data: { content: string }) => {
+    mutationFn: async (data: {
+      content: string;
+      attachmentUrl?: string;
+      attachmentType?: string;
+    }) => {
       if (!activeBrandId) throw new Error("No active brand");
 
       // Use metaConversationId if available (for Facebook)
@@ -397,6 +401,8 @@ export default function ConversationPanel({
           body: JSON.stringify({
             content: data.content,
             conversationId: conversationId,
+            attachmentUrl: data.attachmentUrl,
+            attachmentType: data.attachmentType,
           }),
         },
       );
@@ -460,15 +466,49 @@ export default function ConversationPanel({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSendMessage = () => {
-    if (!messageText.trim()) return;
-    // The restriction only disables the button/input visually;
-    // the backend enforces the actual restriction.
-    // if (isFacebookConversation && !canSendFacebookMessage) {
-    //   toast({ ... });
-    //   return;
-    // }
-    sendMessageMutation.mutate({ content: messageText });
+  const handleSendMessage = async () => {
+    if (!messageText.trim() && attachments.length === 0) return;
+
+    // If there are attachments, upload them first then send URLs
+    let attachmentUrl: string | undefined;
+    let attachmentType: string | undefined;
+
+    if (attachments.length > 0) {
+      const file = attachments[0]; // Send first attachment
+      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+      const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+      if (cloudName && uploadPreset) {
+        try {
+          const fd = new FormData();
+          fd.append("file", file);
+          fd.append("upload_preset", uploadPreset);
+          const uploadRes = await fetch(
+            `https://api.cloudinary.com/v1_1/${cloudName}/upload`,
+            { method: "POST", body: fd },
+          );
+          const uploadData = await uploadRes.json();
+          if (uploadData.secure_url) {
+            attachmentUrl = uploadData.secure_url;
+            attachmentType = file.type.startsWith("image/")
+              ? "image"
+              : file.type.startsWith("audio/")
+                ? "audio"
+                : file.type.startsWith("video/")
+                  ? "video"
+                  : "file";
+          }
+        } catch (err) {
+          console.error("Attachment upload failed:", err);
+        }
+      }
+    }
+
+    sendMessageMutation.mutate({
+      content: messageText || (attachmentUrl ? "" : ""),
+      attachmentUrl,
+      attachmentType,
+    });
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

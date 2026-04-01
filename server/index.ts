@@ -7,6 +7,8 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { logStartup } from "./diagnostic";
 import { postScheduler } from "./services/postScheduler";
+import { instagramTokenRefresh } from "./services/instagramTokenRefresh";
+import { instagramInsights } from "./services/instagramInsights";
 import { getStripeSync } from './stripe/stripeClient';
 import { WebhookHandlers } from './stripe/webhookHandlers';
 import { startBillingCron } from './stripe/billingCron';
@@ -91,7 +93,15 @@ app.use(compression());
 // ============================================================
 // 6. BODY PARSING — with reasonable limits
 // ============================================================
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({
+  limit: '10mb',
+  verify: (req: any, _res, buf) => {
+    // Store raw body for webhook signature verification (Meta, etc.)
+    if (req.url?.startsWith('/api/webhooks/')) {
+      req.rawBody = buf;
+    }
+  },
+}));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 // ============================================================
@@ -205,6 +215,8 @@ async function initStripe() {
     log(`serving on port ${port}`);
     logStartup();
     postScheduler.start();
+    instagramTokenRefresh.start();
+    instagramInsights.start();
     startBillingCron();
   });
 

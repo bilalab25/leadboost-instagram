@@ -12,7 +12,11 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Wallet, User, Bell, Building2 } from "lucide-react";
+import { Wallet, User, Bell, Building2, Instagram, Sliders, Trash2, Plus, GripVertical, Loader2, Sparkles, CheckCircle, XCircle, Send, Clock } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useBrand } from "@/contexts/BrandContext";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import AccountTab from "@/components/settings/AccountTab";
 import PaymentMethodTab from "@/components/settings/PaymentMethodsTab";
 import HelpChatbot from "@/components/HelpChatbot";
@@ -503,13 +507,20 @@ export default function Settings() {
                     <Wallet className="mr-2 h-4 w-4" />
                     {isSpanish ? "Pagos" : "Payment Methods"}
                   </TabsTrigger>
-                  {/*  <TabsTrigger
-                    value="notifications"
-                    data-testid="tab-notifications"
+                  <TabsTrigger
+                    value="instagram"
+                    data-testid="tab-instagram"
                   >
-                    <Bell className="mr-2 h-4 w-4" />
-                    {isSpanish ? "Notificaciones" : "Notifications"}
-                  </TabsTrigger> */}
+                    <Instagram className="mr-2 h-4 w-4" />
+                    Instagram
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="ai-builder"
+                    data-testid="tab-ai-builder"
+                  >
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    {isSpanish ? "AI Builder" : "AI Builder"}
+                  </TabsTrigger>
                 </TabsList>
 
                 {/* Account Information Tab */}
@@ -784,6 +795,15 @@ export default function Settings() {
                     {isSpanish ? "Guardar Configuración" : "Save Settings"}
                   </Button>
                 </div> */}
+                {/* Instagram Settings Tab */}
+                <TabsContent value="instagram" className="space-y-6">
+                  <InstagramSettingsTab />
+                </TabsContent>
+
+                {/* AI Builder Tab */}
+                <TabsContent value="ai-builder" className="space-y-6">
+                  <AIBuilderTab />
+                </TabsContent>
               </Tabs>
             </div>
             {/* Help AI Chatbot */}
@@ -794,6 +814,493 @@ export default function Settings() {
           </main>
         </div>
       </div>
+    </div>
+  );
+}
+
+function InstagramSettingsTab() {
+  const { isSpanish } = useLanguage();
+  const { activeBrandId } = useBrand();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Feature flags
+  const { data: settings, isLoading: settingsLoading } = useQuery({
+    queryKey: [`/api/brands/${activeBrandId}/settings`],
+    enabled: !!activeBrandId,
+    queryFn: async () => {
+      const res = await fetch(`/api/brands/${activeBrandId}/settings`, { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
+  });
+
+  // Approval pipeline
+  const { data: pipeline, isLoading: pipelineLoading } = useQuery({
+    queryKey: [`/api/brands/${activeBrandId}/approval-pipeline`],
+    enabled: !!activeBrandId,
+    queryFn: async () => {
+      const res = await fetch(`/api/brands/${activeBrandId}/approval-pipeline`, { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
+  });
+
+  const [flags, setFlags] = useState<Record<string, boolean>>({});
+  const [stages, setStages] = useState<{ id: string; name: string; approverRole: string; order: number }[]>([]);
+  const [newStageName, setNewStageName] = useState("");
+  const [initialized, setInitialized] = useState(false);
+
+  if (settings && pipeline && !initialized) {
+    setFlags(settings.featureFlags || {});
+    setStages(pipeline.stages || []);
+    setInitialized(true);
+  }
+
+  const saveSettingsMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/brands/${activeBrandId}/settings`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ featureFlags: flags }),
+      });
+      if (!res.ok) throw new Error("Failed");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["brand-settings", activeBrandId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/brands/${activeBrandId}/settings`] });
+      toast({ title: isSpanish ? "Guardado" : "Saved", description: isSpanish ? "Módulos actualizados." : "Module visibility updated." });
+    },
+  });
+
+  const savePipelineMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/brands/${activeBrandId}/approval-pipeline`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ stages }),
+      });
+      if (!res.ok) throw new Error("Failed");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/brands/${activeBrandId}/approval-pipeline`] });
+      toast({ title: isSpanish ? "Guardado" : "Saved", description: isSpanish ? "Pipeline actualizado." : "Approval pipeline updated." });
+    },
+  });
+
+  if (settingsLoading || pipelineLoading) {
+    return (
+      <div className="flex items-center gap-2 py-8 justify-center text-gray-500">
+        <Loader2 className="w-5 h-5 animate-spin" />
+        {isSpanish ? "Cargando..." : "Loading..."}
+      </div>
+    );
+  }
+
+  const moduleOptions = [
+    { key: "calendar", label: isSpanish ? "Calendario de Contenido" : "Content Calendar" },
+    { key: "analytics", label: "Instagram Analytics" },
+    { key: "inbox", label: isSpanish ? "Inbox / Mensajes" : "Inbox / Messages" },
+    { key: "brandStudio", label: "Brand Studio" },
+    { key: "integrations", label: isSpanish ? "Integraciones" : "Integrations" },
+    { key: "campaigns", label: isSpanish ? "Campañas" : "Campaigns" },
+    { key: "customers", label: isSpanish ? "Clientes" : "Customers" },
+    { key: "team", label: isSpanish ? "Equipo" : "Team" },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Feature Flags */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sliders className="w-5 h-5 text-purple-500" />
+            {isSpanish ? "Módulos Visibles" : "Visible Modules"}
+          </CardTitle>
+          <CardDescription>
+            {isSpanish
+              ? "Controla qué secciones aparecen en el menú lateral para esta marca."
+              : "Control which sections appear in the sidebar for this brand."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {moduleOptions.map((mod) => (
+            <div key={mod.key} className="flex items-center justify-between py-2 border-b last:border-b-0">
+              <Label className="text-sm">{mod.label}</Label>
+              <Switch
+                checked={flags[mod.key] !== false}
+                onCheckedChange={(checked) =>
+                  setFlags((prev) => ({ ...prev, [mod.key]: checked }))
+                }
+              />
+            </div>
+          ))}
+          <div className="flex justify-end pt-2">
+            <Button
+              size="sm"
+              onClick={() => saveSettingsMutation.mutate()}
+              disabled={saveSettingsMutation.isPending}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              {saveSettingsMutation.isPending
+                ? isSpanish ? "Guardando..." : "Saving..."
+                : isSpanish ? "Guardar Módulos" : "Save Modules"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Approval Pipeline */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Instagram className="w-5 h-5 text-pink-500" />
+            {isSpanish ? "Pipeline de Aprobación" : "Approval Pipeline"}
+          </CardTitle>
+          <CardDescription>
+            {isSpanish
+              ? "Define los pasos de aprobación antes de publicar contenido en Instagram."
+              : "Define the approval steps before publishing content to Instagram."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {stages.map((stage, i) => (
+            <div key={stage.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <GripVertical className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              <div className="flex-1">
+                <span className="text-sm font-medium">{i + 1}. {stage.name}</span>
+                <span className="text-xs text-gray-500 ml-2">
+                  ({isSpanish ? "Rol" : "Role"}: {stage.approverRole})
+                </span>
+              </div>
+              <select
+                value={stage.approverRole}
+                onChange={(e) => {
+                  const updated = [...stages];
+                  updated[i] = { ...stage, approverRole: e.target.value };
+                  setStages(updated);
+                }}
+                className="text-xs border rounded px-2 py-1"
+              >
+                <option value="editor">Editor</option>
+                <option value="admin">Admin</option>
+                <option value="owner">Owner</option>
+              </select>
+              {stages.length > 1 && (
+                <button
+                  onClick={() => setStages(stages.filter((_, j) => j !== i))}
+                  className="text-red-400 hover:text-red-600"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          ))}
+          <div className="flex gap-2 items-center">
+            <input
+              type="text"
+              value={newStageName}
+              onChange={(e) => setNewStageName(e.target.value)}
+              placeholder={isSpanish ? "Nombre del paso..." : "Stage name..."}
+              className="flex-1 px-3 py-2 border rounded text-sm"
+            />
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={!newStageName.trim()}
+              onClick={() => {
+                setStages([
+                  ...stages,
+                  {
+                    id: `stage_${Date.now()}`,
+                    name: newStageName.trim(),
+                    approverRole: "editor",
+                    order: stages.length + 1,
+                  },
+                ]);
+                setNewStageName("");
+              }}
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              {isSpanish ? "Agregar" : "Add"}
+            </Button>
+          </div>
+          <div className="flex justify-end pt-2">
+            <Button
+              size="sm"
+              onClick={() => savePipelineMutation.mutate()}
+              disabled={savePipelineMutation.isPending || stages.length === 0}
+              className="bg-pink-600 hover:bg-pink-700 text-white"
+            >
+              {savePipelineMutation.isPending
+                ? isSpanish ? "Guardando..." : "Saving..."
+                : isSpanish ? "Guardar Pipeline" : "Save Pipeline"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function AIBuilderTab() {
+  const { isSpanish } = useLanguage();
+  const { activeBrandId } = useBrand();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [requestText, setRequestText] = useState("");
+  const [currentProposal, setCurrentProposal] = useState<{
+    id: string;
+    summary: string;
+    proposals: { type: string; description: string; changes: any }[];
+  } | null>(null);
+
+  // History
+  const { data: history } = useQuery<any[]>({
+    queryKey: [`/api/brands/${activeBrandId}/ai-customize/history`],
+    enabled: !!activeBrandId,
+  });
+
+  // Generate proposal
+  const generateMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/brands/${activeBrandId}/ai-customize`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ request: requestText }),
+      });
+      if (!res.ok) throw new Error("Failed to generate proposal");
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setCurrentProposal(data);
+      setRequestText("");
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: isSpanish ? "No se pudo generar la propuesta." : "Failed to generate proposal.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Apply proposal
+  const applyMutation = useMutation({
+    mutationFn: async (requestId: string) => {
+      const res = await fetch(
+        `/api/brands/${activeBrandId}/ai-customize/${requestId}/apply`,
+        { method: "POST", credentials: "include" },
+      );
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    onSuccess: () => {
+      setCurrentProposal(null);
+      queryClient.invalidateQueries({ queryKey: [`/api/brands/${activeBrandId}/ai-customize/history`] });
+      queryClient.invalidateQueries({ queryKey: ["brand-settings", activeBrandId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/brands/${activeBrandId}/settings`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/brands/${activeBrandId}/caption-templates`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/brands/${activeBrandId}/hashtag-sets`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/brands/${activeBrandId}/approval-pipeline`] });
+      toast({
+        title: isSpanish ? "Aplicado" : "Applied",
+        description: isSpanish ? "Los cambios han sido aplicados." : "Changes have been applied.",
+      });
+    },
+  });
+
+  // Reject proposal
+  const rejectMutation = useMutation({
+    mutationFn: async (requestId: string) => {
+      await fetch(
+        `/api/brands/${activeBrandId}/ai-customize/${requestId}/reject`,
+        { method: "POST", credentials: "include" },
+      );
+    },
+    onSuccess: () => {
+      setCurrentProposal(null);
+      queryClient.invalidateQueries({ queryKey: [`/api/brands/${activeBrandId}/ai-customize/history`] });
+    },
+  });
+
+  const suggestions = [
+    isSpanish ? "Crea plantillas de caption para promociones" : "Create caption templates for promotions",
+    isSpanish ? "Agrega sets de hashtags para belleza y skincare" : "Add hashtag sets for beauty and skincare",
+    isSpanish ? "Configura aprobación de 3 pasos: creador, editor, cliente" : "Set up 3-step approval: creator, editor, client",
+    isSpanish ? "Habilita Stories y Reels en mi configuración" : "Enable Stories and Reels in my config",
+    isSpanish ? "Activa el módulo de analytics y calendario" : "Enable the analytics and calendar modules",
+  ];
+
+  const proposalTypeLabels: Record<string, string> = {
+    feature_flags: isSpanish ? "Módulos" : "Modules",
+    caption_template: isSpanish ? "Plantilla de Caption" : "Caption Template",
+    hashtag_set: isSpanish ? "Set de Hashtags" : "Hashtag Set",
+    approval_pipeline: isSpanish ? "Pipeline de Aprobación" : "Approval Pipeline",
+    instagram_config: isSpanish ? "Config Instagram" : "Instagram Config",
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* AI Input */}
+      <Card className="border-2 border-purple-200 bg-gradient-to-br from-white to-purple-50/30">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-purple-500" />
+            {isSpanish ? "AI Builder para Instagram" : "AI Builder for Instagram"}
+          </CardTitle>
+          <CardDescription>
+            {isSpanish
+              ? "Describe lo que necesitas y la IA creará la configuración por ti."
+              : "Describe what you need and AI will create the configuration for you."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-2">
+            <textarea
+              value={requestText}
+              onChange={(e) => setRequestText(e.target.value)}
+              placeholder={
+                isSpanish
+                  ? "Ej: Crea plantillas de caption para mi marca de belleza..."
+                  : "E.g. Create caption templates for my beauty brand..."
+              }
+              className="flex-1 px-3 py-2 border rounded-lg text-sm resize-none min-h-[80px] focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey && requestText.trim()) {
+                  e.preventDefault();
+                  generateMutation.mutate();
+                }
+              }}
+            />
+          </div>
+          <div className="flex justify-between items-center">
+            <div className="flex flex-wrap gap-1.5">
+              {suggestions.map((s, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setRequestText(s)}
+                  className="px-2 py-1 rounded-full text-[11px] bg-purple-50 text-purple-600 border border-purple-200 hover:bg-purple-100 transition-colors"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+            <Button
+              onClick={() => generateMutation.mutate()}
+              disabled={!requestText.trim() || generateMutation.isPending}
+              className="bg-purple-600 hover:bg-purple-700 text-white gap-2 ml-3 flex-shrink-0"
+            >
+              {generateMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
+              {generateMutation.isPending
+                ? isSpanish ? "Generando..." : "Generating..."
+                : isSpanish ? "Generar" : "Generate"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Current Proposal */}
+      {currentProposal && (
+        <Card className="border-2 border-amber-200 bg-amber-50/30">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-amber-500" />
+              {isSpanish ? "Propuesta del AI" : "AI Proposal"}
+            </CardTitle>
+            <CardDescription>{currentProposal.summary}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {currentProposal.proposals.map((p, i) => (
+              <div key={i} className="p-3 bg-white rounded-lg border">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                    {proposalTypeLabels[p.type] || p.type}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-700">{p.description}</p>
+                <pre className="text-xs text-gray-500 mt-2 bg-gray-50 p-2 rounded overflow-x-auto">
+                  {JSON.stringify(p.changes, null, 2)}
+                </pre>
+              </div>
+            ))}
+            <div className="flex gap-3 justify-end pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => rejectMutation.mutate(currentProposal.id)}
+                disabled={rejectMutation.isPending}
+                className="text-red-600 border-red-200 hover:bg-red-50"
+              >
+                <XCircle className="w-4 h-4 mr-1" />
+                {isSpanish ? "Rechazar" : "Reject"}
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => applyMutation.mutate(currentProposal.id)}
+                disabled={applyMutation.isPending}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                {applyMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                ) : (
+                  <CheckCircle className="w-4 h-4 mr-1" />
+                )}
+                {isSpanish ? "Aprobar y Aplicar" : "Approve & Apply"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* History */}
+      {history && history.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Clock className="w-4 h-4 text-gray-500" />
+              {isSpanish ? "Historial" : "History"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {history.map((req: any) => (
+                <div key={req.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
+                  <div className="flex-1 mr-4">
+                    <p className="text-gray-700 line-clamp-1">{req.requestText}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {new Date(req.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      req.status === "applied"
+                        ? "bg-green-100 text-green-700"
+                        : req.status === "rejected"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-amber-100 text-amber-700"
+                    }`}
+                  >
+                    {req.status === "applied"
+                      ? isSpanish ? "Aplicado" : "Applied"
+                      : req.status === "rejected"
+                        ? isSpanish ? "Rechazado" : "Rejected"
+                        : isSpanish ? "Pendiente" : "Pending"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

@@ -91,51 +91,76 @@ export class SocialMediaService {
   }
 
   /**
-   * Post to Instagram via Content Publishing API (requires Facebook Page token)
+   * Post to Instagram via Content Publishing API
    */
   private async postToInstagram(
     content: PostContent,
-    pageAccessToken: string
+    pageAccessToken: string,
+    igAccountId?: string,
   ): Promise<{ success: boolean; postId?: string; error?: string }> {
     if (!content.images?.length) {
       return { success: false, error: 'Instagram requires at least one image to post' };
     }
 
-    // Get the Instagram Business Account ID via the page
-    const pagesRes = await fetch(`https://graph.facebook.com/v24.0/me/accounts?access_token=${pageAccessToken}`);
-    const pagesData = await pagesRes.json();
-    const page = pagesData.data?.[0];
-    if (!page) return { success: false, error: 'No Facebook Page found' };
+    let accessToken = pageAccessToken;
 
-    const igRes = await fetch(
-      `https://graph.facebook.com/v24.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`
-    );
-    const igData = await igRes.json();
-    const igAccountId = igData.instagram_business_account?.id;
-    if (!igAccountId) return { success: false, error: 'No Instagram Business Account linked to this page' };
+    // Only discover IG account ID if not provided
+    if (!igAccountId) {
+      const pagesRes = await fetch(`https://graph.facebook.com/v24.0/me/accounts?access_token=${pageAccessToken}`);
+      const pagesData = await pagesRes.json();
+      const page = pagesData.data?.[0];
+      if (!page) return { success: false, error: 'No Facebook Page found' };
+
+      accessToken = page.access_token;
+      const igRes = await fetch(
+        `https://graph.facebook.com/v24.0/${page.id}?fields=instagram_business_account&access_token=${accessToken}`
+      );
+      const igData = await igRes.json();
+      igAccountId = igData.instagram_business_account?.id;
+      if (!igAccountId) return { success: false, error: 'No Instagram Business Account linked to this page' };
+    }
 
     // Create media container
+    const containerParams = new URLSearchParams({
+      image_url: content.images[0],
+      caption: content.text || '',
+      access_token: accessToken,
+    });
+
     const containerRes = await fetch(`https://graph.facebook.com/v24.0/${igAccountId}/media`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        image_url: content.images[0],
-        caption: content.text,
-        access_token: page.access_token,
-      }),
+      body: containerParams,
     });
 
     const containerData = await containerRes.json();
     if (containerData.error) return { success: false, error: containerData.error.message };
 
+    // Poll for container readiness (10 attempts x 3s = 30s max)
+    for (let i = 0; i < 10; i++) {
+      await new Promise((res) => setTimeout(res, 3000));
+      try {
+        const statusRes = await fetch(
+          `https://graph.facebook.com/v24.0/${containerData.id}?fields=status_code&access_token=${accessToken}`
+        );
+        const statusData = await statusRes.json();
+        if (statusData.status_code === 'FINISHED') break;
+        if (statusData.status_code === 'ERROR') {
+          return { success: false, error: 'Instagram container processing failed' };
+        }
+      } catch {
+        // Continue polling
+      }
+    }
+
     // Publish the container
+    const publishParams = new URLSearchParams({
+      creation_id: containerData.id,
+      access_token: accessToken,
+    });
+
     const publishRes = await fetch(`https://graph.facebook.com/v24.0/${igAccountId}/media_publish`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        creation_id: containerData.id,
-        access_token: page.access_token,
-      }),
+      body: publishParams,
     });
 
     const publishData = await publishRes.json();

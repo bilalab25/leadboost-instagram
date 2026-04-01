@@ -81,7 +81,8 @@ export const brands = pgTable("brands", {
   logo: varchar("logo"),
   primaryColor: varchar("primary_color").default("#0066cc"),
   description: text("description"),
-  settings: jsonb("settings"), // brand-specific settings
+  settings: jsonb("settings"), // brand-specific settings (timezone, currency, etc.)
+  timezone: varchar("timezone").default("UTC"), // Brand timezone for scheduling (e.g., "America/Mexico_City")
   isActive: boolean("is_active").default(true),
   onboardingStep: integer("onboarding_step").default(1), // Current step in onboarding (1-5)
   onboardingCompleted: boolean("onboarding_completed").default(false), // Whether onboarding is finished
@@ -1625,6 +1626,8 @@ export const aiGeneratedPosts = pgTable("ai_generated_posts", {
   isSample: boolean("is_sample").default(false), // true for demo/sample posts generated during onboarding
   scheduledPublishTime: timestamp("scheduled_publish_time"),
   publishedAt: timestamp("published_at"),
+  publishedMediaId: text("published_media_id"), // Instagram/Facebook media ID returned after publish
+  publishError: text("publish_error"), // Error message if publish failed
   lockedAt: timestamp("locked_at"), // Lock timestamp for concurrent publish prevention
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -1854,5 +1857,112 @@ export const insertBrandProductSchema = createInsertSchema(brandProducts).omit({
   createdAt: true,
 });
 
+// Saved Hashtag Sets — reusable hashtag groups per brand
+export const hashtagSets = pgTable("hashtag_sets", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  brandId: uuid("brand_id")
+    .notNull()
+    .references(() => brands.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(), // e.g., "Beauty", "Promos", "Location"
+  hashtags: text("hashtags").notNull(), // e.g., "#beauty #skincare #luxury #selfcare"
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export type InsertBrandProduct = z.infer<typeof insertBrandProductSchema>;
 export type BrandProduct = typeof brandProducts.$inferSelect;
+
+// Brand Settings — per-brand configuration layer (customization foundation)
+export const brandSettings = pgTable("brand_settings", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  brandId: uuid("brand_id")
+    .notNull()
+    .unique()
+    .references(() => brands.id, { onDelete: "cascade" }),
+  // Feature flags — which modules are visible for this brand
+  featureFlags: jsonb("feature_flags").default({
+    calendar: true,
+    analytics: true,
+    inbox: true,
+    brandStudio: true,
+    integrations: true,
+    campaigns: false,
+    customers: false,
+    sales: false,
+    team: false,
+    automations: false,
+  }),
+  // UI configuration — navigation, theme, dashboard layout
+  uiConfig: jsonb("ui_config").default({}),
+  // Instagram-specific settings
+  instagramConfig: jsonb("instagram_config").default({
+    enabledPostTypes: ["image", "carousel", "story", "reel"],
+    defaultPostType: "image",
+    autoHashtags: true,
+    captionTemplatesEnabled: true,
+  }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type BrandSettings = typeof brandSettings.$inferSelect;
+
+// Caption Templates — reusable caption structures per brand
+export const captionTemplates = pgTable("caption_templates", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  brandId: uuid("brand_id")
+    .notNull()
+    .references(() => brands.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(), // e.g., "Product Launch", "Behind the Scenes"
+  template: text("template").notNull(), // e.g., "🚀 Introducing {product}!\n\n{description}\n\n{cta}\n\n{hashtags}"
+  category: varchar("category").default("general"), // general, promo, educational, engagement
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type CaptionTemplate = typeof captionTemplates.$inferSelect;
+
+// Approval Pipelines — configurable approval stages per brand
+export const approvalPipelines = pgTable("approval_pipelines", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  brandId: uuid("brand_id")
+    .notNull()
+    .unique()
+    .references(() => brands.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull().default("Default"),
+  // stages: array of {id, name, approverRole, order}
+  // e.g. [{id:"1",name:"Creator Review",approverRole:"editor",order:1},{id:"2",name:"Client Approval",approverRole:"owner",order:2}]
+  stages: jsonb("stages").notNull().default([
+    { id: "review", name: "Review", approverRole: "editor", order: 1 },
+    { id: "approve", name: "Approve", approverRole: "owner", order: 2 },
+  ]),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type ApprovalPipeline = typeof approvalPipelines.$inferSelect;
+
+// AI Customization Requests — tracks user requests and AI proposals
+export const customizationRequests = pgTable("customization_requests", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  brandId: uuid("brand_id")
+    .notNull()
+    .references(() => brands.id, { onDelete: "cascade" }),
+  requestedBy: varchar("requested_by").notNull(),
+  requestText: text("request_text").notNull(), // The user's natural language request
+  aiProposal: jsonb("ai_proposal"), // The structured proposal generated by AI
+  status: varchar("status").notNull().default("pending"), // pending, approved, applied, rejected
+  appliedAt: timestamp("applied_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type CustomizationRequest = typeof customizationRequests.$inferSelect;

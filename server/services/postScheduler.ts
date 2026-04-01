@@ -120,10 +120,22 @@ class PostSchedulerService {
 
   private async publishPost(post: typeof aiGeneratedPosts.$inferSelect) {
     try {
-      const providers =
-        post.platform === "instagram"
-          ? (["instagram_direct", "instagram"] as const)
-          : ([post.platform] as const);
+      // Normalize platform variants: instagram_story, instagram_reel → instagram
+      const isInstagramVariant = post.platform === "instagram" ||
+        post.platform === "instagram_story" ||
+        post.platform === "instagram_reel";
+
+      // Determine the post type from platform variant if not already set
+      let effectiveType = post.type || "image";
+      if (post.platform === "instagram_story" && effectiveType === "image") {
+        effectiveType = "story";
+      } else if (post.platform === "instagram_reel" && effectiveType === "image") {
+        effectiveType = "reel";
+      }
+
+      const providers = isInstagramVariant
+        ? (["instagram_direct", "instagram"] as const)
+        : ([post.platform] as const);
 
       const integrationsList = await db
         .select()
@@ -135,11 +147,10 @@ class PostSchedulerService {
           ),
         );
 
-      const integration =
-        post.platform === "instagram"
-          ? (integrationsList.find((i) => i.provider === "instagram_direct") ??
-            integrationsList.find((i) => i.provider === "instagram"))
-          : integrationsList[0];
+      const integration = isInstagramVariant
+        ? (integrationsList.find((i) => i.provider === "instagram_direct") ??
+          integrationsList.find((i) => i.provider === "instagram"))
+        : integrationsList[0];
 
       if (!integration || !integration.accessToken) {
         await db
@@ -155,6 +166,7 @@ class PostSchedulerService {
 
       const accessToken = integration.accessToken;
       let published = false;
+      let publishedMediaId: string | null = null;
 
       // Publish to Facebook (image)
       if (post.platform === "facebook" && post.type === "image") {
@@ -175,6 +187,7 @@ class PostSchedulerService {
         if (!response.ok || data.error) {
           throw new Error(data.error?.message || "Facebook publish failed");
         }
+        publishedMediaId = data.id || data.post_id || null;
         published = true;
       }
 
@@ -202,6 +215,7 @@ class PostSchedulerService {
         if (!response.ok || data.error) {
           throw new Error(data.error?.message || "Facebook video publish failed");
         }
+        publishedMediaId = data.id || null;
         published = true;
       }
 
@@ -222,11 +236,12 @@ class PostSchedulerService {
         if (!response.ok || data.error) {
           throw new Error(data.error?.message || "Facebook text post failed");
         }
+        publishedMediaId = data.id || null;
         published = true;
       }
 
       // Publish to Instagram (image, carousel, story, reel)
-      if (post.platform === "instagram") {
+      if (isInstagramVariant) {
         const isDirect = integration.provider === "instagram_direct";
         const baseUrl = isDirect
           ? "https://graph.instagram.com"
@@ -237,7 +252,7 @@ class PostSchedulerService {
           : "";
 
         const finalCaption = (post.content ?? "") + hashtagsString;
-        const postType = post.type || "image";
+        const postType = effectiveType;
 
         let containerId: string;
 
@@ -343,18 +358,18 @@ class PostSchedulerService {
           containerId = containerData.id;
         }
 
-        // Poll for container readiness (10 attempts, 3s interval = 30s max)
+        // Poll for container readiness
+        // Images: 10 attempts x 3s = 30s. Videos/Reels: 40 attempts x 5s = 200s (~3 min)
+        const isVideoContent = postType === "reel" || postType === "video" || postType === "story";
+        const maxAttempts = isVideoContent ? 40 : 10;
+        const pollInterval = isVideoContent ? 5000 : 3000;
+
         let containerReady = false;
-        for (let i = 0; i < 10; i++) {
-          await new Promise((res) => setTimeout(res, 3000));
+        for (let i = 0; i < maxAttempts; i++) {
+          await new Promise((res) => setTimeout(res, pollInterval));
           try {
-            const statusParams = new URLSearchParams({
-              fields: "status_code",
-              access_token: accessToken,
-            });
             const statusRes = await fetch(
-              `${baseUrl}/v24.0/${containerId}`,
-              { method: "POST", body: statusParams },
+              `${baseUrl}/v24.0/${containerId}?fields=status_code&access_token=${accessToken}`,
             );
             const statusData = await statusRes.json();
             if (statusData.status_code === "FINISHED") {
@@ -392,6 +407,7 @@ class PostSchedulerService {
             publishData.error?.message || `Instagram ${postType} publish failed`,
           );
         }
+        publishedMediaId = publishData.id || null;
         published = true;
       }
 
@@ -416,12 +432,14 @@ class PostSchedulerService {
         .set({
           status: "published",
           publishedAt: new Date(),
+          publishedMediaId: publishedMediaId,
+          publishError: null,
           lockedAt: null,
           updatedAt: new Date(),
         })
         .where(eq(aiGeneratedPosts.id, post.id));
 
-      console.log(`[PostScheduler] Post ${post.id} published successfully`);
+      console.log(`[PostScheduler] Post ${post.id} published successfully (mediaId: ${publishedMediaId})`);
     } catch (error: any) {
       // Bug 44: Sanitize error message to avoid logging access tokens
       const safeMessage = error?.message?.replace(/access_token=[^&\s]+/gi, "access_token=[REDACTED]") || "Unknown error";
@@ -431,6 +449,7 @@ class PostSchedulerService {
         .update(aiGeneratedPosts)
         .set({
           status: "publish_failed",
+          publishError: safeMessage,
           lockedAt: null,
           updatedAt: new Date(),
         })
