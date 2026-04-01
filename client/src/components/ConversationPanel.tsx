@@ -20,6 +20,7 @@ import {
   Eye,
   Paperclip,
   Mic,
+  MicOff,
   StopCircle,
   Trash2,
   Image as ImageIcon,
@@ -313,15 +314,21 @@ export default function ConversationPanel({
       const { provider, conversationId: msgConvoId, message } = event;
 
       // Only add message if it belongs to this conversation
-      if (provider === platform && msgConvoId === conversationId) {
+      // Match by either metaConversationId OR database conversation ID
+      const matchesConversation =
+        (msgConvoId === conversationId) ||
+        (event.dbConversationId === conversationId) ||
+        (event.metaConversationId === conversationId);
+
+      if (matchesConversation) {
         const formattedMessage: Message = {
           id: message.id,
           conversationId: conversationId,
           senderId: message.senderId,
-          senderName: message.contactName || "Unknown User",
+          senderName: message.direction === "outbound" ? "You" : (message.contactName || "Unknown User"),
           content: message.textContent || "(no message)",
           attachments: message.attachments || [],
-          direction: "inbound",
+          direction: message.direction || "inbound",
           status: "read",
           createdAt: message.timestamp || new Date().toISOString(),
         };
@@ -450,7 +457,8 @@ export default function ConversationPanel({
     },
 
     onError: (error: Error) => {
-      // Optionally handle 24h restriction error specifically here
+      // Remove optimistic message that failed to send
+      setMessages((prev: any) => prev.filter((m: any) => !m.id?.startsWith("temp_")));
       toast({
         title: "Error sending message",
         description: error.message,
@@ -835,7 +843,7 @@ export default function ConversationPanel({
                             }
 
                             // file
-                            return (
+                            return isSafeUrl(att.url) ? (
                               <a
                                 key={att.id}
                                 href={att.url}
@@ -845,7 +853,7 @@ export default function ConversationPanel({
                               >
                                 <Paperclip className="h-3 w-3 inline-block mr-1" />{att.fileName || "Attachment"}
                               </a>
-                            );
+                            ) : null;
                           })}
                         </div>
                       )}
@@ -958,7 +966,12 @@ export default function ConversationPanel({
             <div className="flex-1 bg-gray-100 rounded-2xl px-4 py-2">
               <textarea
                 value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
+                onChange={(e) => {
+                  setMessageText(e.target.value);
+                  // Auto-resize textarea
+                  e.target.style.height = "auto";
+                  e.target.style.height = Math.min(e.target.scrollHeight, 128) + "px";
+                }}
                 onKeyDown={handleKeyPress}
                 placeholder={
                   isMetaConversation && !canSendFacebookMessage

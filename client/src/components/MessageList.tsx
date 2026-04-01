@@ -12,6 +12,7 @@ import { SiWhatsapp, SiTiktok, SiFacebook } from "react-icons/si";
 import { cn } from "@/lib/utils";
 import ConversationPanel from "@/components/ConversationPanel";
 import { useBrand } from "@/contexts/BrandContext";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const MESSAGE_PREVIEW_MAX_LENGTH = 50;
 
@@ -81,6 +82,8 @@ export default function MessageList({
     platform: string;
     profilePicture: string | null;
   } | null>(null);
+
+  const { isSpanish } = useLanguage();
 
   // Fetch conversations using TanStack Query (brand-scoped)
   const { data: conversationsData, isLoading, error } = useQuery({
@@ -218,7 +221,7 @@ export default function MessageList({
         activeConversation && "hidden md:flex"
       )}>
         <div className="flex-1 overflow-y-auto">
-          {error && <div className="p-4 text-center text-red-500 text-sm">Failed to load conversations</div>}
+          {error && <div className="p-4 text-center text-red-500 text-sm">{isSpanish ? "Error al cargar conversaciones" : "Failed to load conversations"}</div>}
           {isLoading ? (
             // Loading skeleton
             <div className="divide-y divide-gray-100 animate-pulse">
@@ -237,7 +240,7 @@ export default function MessageList({
             <div className="flex items-center justify-center h-full p-6">
               <div className="text-center">
                 <Mail className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500 text-sm">No conversations found</p>
+                <p className="text-gray-500 text-sm">{isSpanish ? "No se encontraron conversaciones" : "No conversations found"}</p>
               </div>
             </div>
           ) : (
@@ -409,10 +412,10 @@ export default function MessageList({
               <Mail className="h-10 w-10 text-gray-400" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Select a conversation
+              {isSpanish ? "Selecciona una conversación" : "Select a conversation"}
             </h3>
             <p className="text-sm text-gray-500">
-              Choose a conversation from the list to view messages
+              {isSpanish ? "Elige una conversación de la lista para ver los mensajes" : "Choose a conversation from the list to view messages"}
             </p>
           </div>
         )}

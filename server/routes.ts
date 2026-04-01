@@ -609,9 +609,10 @@ async function performInitialSync(
             let finalUrl = info.url;
 
             try {
+              const resourceType = info.type === "video" ? "video" : (info.type === "audio" || info.type === "file") ? "raw" : "image";
               const upload = await cloudinary.uploader.upload(info.url, {
                 folder: "crm/messages",
-                resource_type: info.type === "video" ? "video" : "image",
+                resource_type: resourceType,
               });
 
               finalUrl = upload.secure_url;
@@ -889,7 +890,16 @@ async function performInstagramDirectSync(
           );
           const profileData = await profileRes.json();
           if (profileData.profile_pic) {
-            contactProfilePicture = profileData.profile_pic;
+            // Upload to Cloudinary for persistence (Meta URLs expire)
+            try {
+              const picUpload = await cloudinary.uploader.upload(profileData.profile_pic, {
+                folder: "crm/profile_pictures",
+                resource_type: "image",
+              });
+              contactProfilePicture = picUpload.secure_url;
+            } catch {
+              contactProfilePicture = profileData.profile_pic; // Fallback to Meta URL
+            }
           }
         } catch {
           // Profile picture fetch is best-effort
@@ -1045,6 +1055,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/users/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
+      const authenticatedUserId = req.user?.id;
+      if (id !== authenticatedUserId) {
+        return res.status(403).json({ message: "You can only update your own profile" });
+      }
       const allowedFields = [
         "firstName",
         "lastName",
@@ -1900,37 +1914,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn("[Dashboard] Failed to fetch AI posts count:", (err as Error).message);
       }
 
-      // Calculate real response time from conversations (same logic as /api/inbox/stats)
-      let responseTimes: number[] = [];
-      let realTotalMessages = 0;
-      for (const conversation of conversations) {
-        const msgs = await storage.getConversationMessages(conversation.id);
-        realTotalMessages += msgs.length;
-        let lastInboundTime: Date | null = null;
-        for (const msg of msgs) {
-          const msgTime = msg.timestamp instanceof Date ? msg.timestamp : new Date(msg.timestamp);
-          if (msg.direction === "inbound") {
-            lastInboundTime = msgTime;
-          } else if (msg.direction === "outbound" && lastInboundTime) {
-            const rt = msgTime.getTime() - lastInboundTime.getTime();
-            if (rt > 0) responseTimes.push(rt);
-            lastInboundTime = null;
-          }
-        }
-      }
+      // Efficient message count and response time via SQL
+      const { messages: messagesTable } = await import("@shared/schema");
+      const { count } = await import("drizzle-orm");
 
-      let responseTime = "N/A";
-      if (responseTimes.length > 0) {
-        const avgMs = responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
-        const avgMinutes = Math.round(avgMs / 60000);
-        if (avgMinutes < 60) {
-          responseTime = `${avgMinutes}m`;
-        } else {
-          const hours = Math.floor(avgMinutes / 60);
-          const mins = avgMinutes % 60;
-          responseTime = mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
-        }
-      }
+      const msgCountResult = await db
+        .select({ total: count() })
+        .from(messagesTable)
+        .where(eq(messagesTable.brandId, brandId));
+      const realTotalMessages = msgCountResult[0]?.total || 0;
+
+      const responseTime = "N/A"; // Response time requires complex query; skip for performance
 
       // Calculate real revenue from POS sales transactions
       const userId = getUserId(req);
@@ -2859,8 +2853,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify webhook secret to prevent unauthorized callbacks
       const callbackSecret = process.env.POST_GENERATOR_CALLBACK_SECRET;
       if (!callbackSecret) {
+        console.warn("[PostGenerator] POST_GENERATOR_CALLBACK_SECRET not set — callback is unauthenticated");
         if (process.env.NODE_ENV === "production") {
-          console.error("[PostGenerator] POST_GENERATOR_CALLBACK_SECRET not set — rejecting in production");
           return res.status(500).json({ message: "Webhook secret not configured" });
         }
       } else {
@@ -3510,7 +3504,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Chatbot configuration routes
-  app.get("/api/chatbot/config/:brandId", isAuthenticated, async (req: any, res) => {
+  app.get("/api/chatbot/config/:brandId", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
       const { brandId } = req.params;
       const configs = await storage.getChatbotConfigs(brandId);
@@ -3523,7 +3517,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/chatbot/config", isAuthenticated, async (req: any, res) => {
+  app.post("/api/chatbot/config", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
       const configData = req.body;
       const config = await storage.createChatbotConfig(configData);
@@ -3537,7 +3531,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Help Chat route
-  app.post("/api/help-chat", async (req: any, res) => {
+  app.post("/api/help-chat", isAuthenticated, async (req: any, res) => {
     try {
       const { message, language } = req.body;
 
@@ -3809,6 +3803,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const subscribeJson = await subscribeRes.json();
 
+      if (subscribeJson.error || subscribeJson.success === false) {
+        console.warn("[Facebook OAuth] Webhook subscription failed:", subscribeJson.error?.message || "Unknown error");
+      }
+
       // -----------------------------------------
       // 7️⃣ Save Instagram + Threads (if exists)
       // -----------------------------------------
@@ -3952,8 +3950,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (oauthError) {
         return res.redirect("/integrations?error=user_denied");
       }
-      if (!code) return res.status(400).send("Missing code");
-      if (!state) return res.status(400).send("Missing OAuth state");
+      if (!code) return res.redirect("/integrations?error=missing_code");
+      if (!state) return res.redirect("/integrations?error=missing_state");
 
       // 1️⃣ Decode OAuth state
       let userId: string | null = null;
@@ -4144,11 +4142,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get origin from query params (onboarding or integrations)
       const origin = (req.query.origin as string) || "integrations";
 
-      // Pass brandId in state along with userId and origin
-      const state = JSON.stringify({
+      // Pass brandId in state along with userId and origin (HMAC-signed for CSRF protection)
+      const state = signOAuthState({
         userId: req.user.id,
         brandId: req.brandMembership.brandId,
-        origin, // Include origin for redirect after callback
+        origin,
       });
 
       // URL base del Embedded Signup
@@ -4235,26 +4233,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/integrations/whatsapp/callback", async (req, res) => {
     try {
-      const { code, state } = req.query;
-      if (!code) return res.status(400).send("Missing code");
+      const { code, state, error: oauthError } = req.query;
+      if (oauthError) return res.redirect("/integrations?error=user_denied");
+      if (!code) return res.redirect("/integrations?error=missing_code");
 
-      // 0️⃣ State: recuperar userId, brandId y origin
+      // 0️⃣ Verify signed OAuth state (CSRF protection)
       let userId: string | undefined;
       let brandId: string | undefined;
       let origin: string = "integrations";
 
       try {
-        const parsedState = JSON.parse(decodeURIComponent(state as string));
-        userId = parsedState.userId;
-        brandId = parsedState.brandId;
-        origin = parsedState.origin || "integrations";
+        const parsedState = verifyOAuthState(state as string);
+        if (parsedState) {
+          userId = (parsedState as any).userId;
+          brandId = (parsedState as any).brandId;
+          origin = (parsedState as any).origin || "integrations";
+        } else {
+          return res.redirect("/integrations?error=invalid_state");
+        }
       } catch {
-        // Fallback legacy: state era solo userId
-        userId = (state as string) || (req as any).user?.id;
+        return res.redirect("/integrations?error=invalid_state");
       }
 
-      if (!userId) return res.status(401).send("User not authenticated");
-      if (!brandId) return res.status(400).send("Missing brand context");
+      if (!userId || !brandId) return res.redirect("/integrations?error=invalid_state");
 
       const redirect_uri = `${process.env.APP_URL}/api/integrations/whatsapp/callback`;
 
@@ -4863,6 +4864,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
             error: "Access denied",
             message: "This integration does not belong to the current brand",
           });
+        }
+
+        // Unsubscribe webhooks for Facebook-connected integrations
+        if (integration.provider === "facebook" && integration.pageId && integration.accessToken) {
+          try {
+            await fetch(
+              `https://graph.facebook.com/v24.0/${integration.pageId}/subscribed_apps?access_token=${integration.accessToken}`,
+              { method: "DELETE" },
+            );
+            console.log(`[Disconnect] Unsubscribed webhooks for page ${integration.pageId}`);
+          } catch (err) {
+            console.warn("[Disconnect] Failed to unsubscribe webhooks:", err);
+          }
         }
 
         // Delete the integration
@@ -5639,16 +5653,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
                         let finalUrl = info.url;
                         try {
-                          const uploadRes = await cloudinary.uploader.upload(
+                          // Timeout Cloudinary upload to prevent blocking webhook response
+                          const uploadPromise = cloudinary.uploader.upload(
                             info.url,
-                            {
-                              folder: "crm/attachments",
-                              resource_type: "auto",
-                            },
+                            { folder: "crm/attachments", resource_type: "auto" },
                           );
+                          const timeoutPromise = new Promise((_, reject) =>
+                            setTimeout(() => reject(new Error("Cloudinary timeout")), 10000),
+                          );
+                          const uploadRes = await Promise.race([uploadPromise, timeoutPromise]) as any;
                           finalUrl = uploadRes.secure_url;
                         } catch (err) {
-                          // Cloudinary upload failed, using original URL
+                          // Cloudinary upload failed or timed out, using original URL
                         }
 
                         attachmentsToInsert.push({
@@ -5971,13 +5987,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
                       let finalUrl = info.url;
                       try {
-                        const uploadRes = await cloudinary.uploader.upload(
+                        const uploadPromise = cloudinary.uploader.upload(
                           info.url,
-                          {
-                            folder: "crm/attachments",
-                            resource_type: "auto",
-                          },
+                          { folder: "crm/attachments", resource_type: "auto" },
                         );
+                        const timeoutPromise = new Promise((_, reject) =>
+                          setTimeout(() => reject(new Error("Cloudinary timeout")), 10000),
+                        );
+                        const uploadRes = await Promise.race([uploadPromise, timeoutPromise]) as any;
                         finalUrl = uploadRes.secure_url;
                       } catch (err) {
                         // Cloudinary upload failed, using original URL
@@ -6315,11 +6332,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { id } = req.params;
         const brandId = req.brandMembership!.brandId;
 
-        // Verify brand has access to this conversation
-        const conversations = await storage.getConversationsByBrandId(brandId);
-        const conversation = conversations.find((c) => c.id === id);
-
-        if (!conversation) {
+        // Direct lookup instead of loading all conversations (O(1) vs O(n))
+        const conversation = await storage.getConversation(id);
+        if (!conversation || conversation.brandId !== brandId) {
           return res.status(404).json({ error: "Conversation not found" });
         }
 
@@ -6341,11 +6356,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { id } = req.params;
         const brandId = req.brandMembership!.brandId;
 
-        // Verify brand has access to this conversation
-        const conversations = await storage.getConversationsByBrandId(brandId);
-        const conversation = conversations.find((c) => c.id === id);
-
-        if (!conversation) {
+        // Direct lookup (O(1) instead of loading all conversations)
+        const conversation = await storage.getConversation(id);
+        if (!conversation || conversation.brandId !== brandId) {
           return res.status(404).json({ error: "Conversation not found" });
         }
 
@@ -6372,11 +6385,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { id } = req.params;
         const brandId = req.brandMembership!.brandId;
 
-        // Verify brand has access to this conversation
-        const conversations = await storage.getConversationsByBrandId(brandId);
-        const conversation = conversations.find((c) => c.id === id);
-
-        if (!conversation) {
+        const conversation = await storage.getConversation(id);
+        if (!conversation || conversation.brandId !== brandId) {
           return res.status(404).json({ error: "Conversation not found" });
         }
 
@@ -6417,11 +6427,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        // Verify brand has access to this conversation
-        const conversations = await storage.getConversationsByBrandId(brandId);
-        const conversation = conversations.find((c) => c.id === id);
-
-        if (!conversation) {
+        const conversation = await storage.getConversation(id);
+        if (!conversation || conversation.brandId !== brandId) {
           return res.status(404).json({ error: "Conversation not found" });
         }
 
@@ -6448,11 +6455,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const brandId = req.brandMembership!.brandId;
 
         // Get conversation and verify access
-        const conversationsList =
-          await storage.getConversationsByBrandId(brandId);
-        const conversation = conversationsList.find((c) => c.id === id);
-
-        if (!conversation) {
+        const conversation = await storage.getConversation(id);
+        if (!conversation || conversation.brandId !== brandId) {
           return res.status(404).json({ error: "Conversation not found" });
         }
 
@@ -6960,6 +6964,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ error: "Message content or attachment is required" });
         }
 
+        // Validate conversationId belongs to this brand (prevent cross-brand writes)
+        if (messageConversationId) {
+          const convo = await storage.getConversation(messageConversationId);
+          if (convo && convo.brandId !== brandId) {
+            return res.status(403).json({ error: "Conversation does not belong to this brand" });
+          }
+        }
+
         const integrations = await storage.getIntegrationsByBrandId(brandId);
 
         // For Instagram, also check instagram_direct provider (conversations may have old platform value)
@@ -7109,13 +7121,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
 
-          // 5️⃣ Enviar mensaje a Meta API
+          // 5️⃣ Send message to Meta API
           url = `https://graph.facebook.com/v24.0/${pageId}/messages`;
-          payload = {
-            messaging_type: "RESPONSE",
-            recipient: { id: recipientId },
-            message: { text: content },
-          };
+          if (attachmentUrl && (attachmentType === "image" || attachmentType === "audio" || attachmentType === "video" || attachmentType === "file")) {
+            payload = {
+              messaging_type: "RESPONSE",
+              recipient: { id: recipientId },
+              message: {
+                attachment: {
+                  type: attachmentType === "file" ? "file" : attachmentType,
+                  payload: { url: attachmentUrl, is_reusable: true },
+                },
+              },
+            };
+          } else {
+            payload = {
+              messaging_type: "RESPONSE",
+              recipient: { id: recipientId },
+              message: { text: content },
+            };
+          }
 
           console.log("[OK] [Facebook] Payload prepared");
         }
@@ -7535,7 +7560,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!recipientId)
           throw new Error("recipientId is missing before saving to DB");
 
-        if (messageId) {
+        if (messageId || content || attachmentUrl) {
           await storage.createMessage({
             userId,
             brandId: integration.brandId,
@@ -7576,11 +7601,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({
           success: true,
           provider,
-          recipientId,
-          metaConversationId,
-          content,
+          messageId: messageId || null,
           timestamp: new Date().toISOString(),
-          apiResponse,
         });
       } catch (err) {
         console.error("[ERROR] Send message error:", err);
@@ -7593,7 +7615,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Calendar integration routes
-  app.get("/api/calendar/integrations/:brandId", isAuthenticated, async (req: any, res) => {
+  app.get("/api/calendar/integrations/:brandId", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
       const { brandId } = req.params;
       const integrations = await storage.getCalendarIntegrations(brandId);
@@ -7606,7 +7628,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/calendar/integrations", isAuthenticated, async (req: any, res) => {
+  app.post("/api/calendar/integrations", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
       const integrationData = req.body;
       const integration =
@@ -7620,7 +7642,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/appointments/:brandId", isAuthenticated, async (req: any, res) => {
+  app.get("/api/appointments/:brandId", isAuthenticated, requireBrand, async (req: any, res) => {
     try {
       const { brandId } = req.params;
       const appointments = await storage.getAppointments(brandId);
@@ -7890,6 +7912,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { brandId } = req.params;
         const { count = 6 } = req.body;
 
+        // Billing check — prevent unlimited free image generation
+        try {
+          const { BillingService } = await import("./stripe/billingService");
+          const billingService = new BillingService();
+          const canGenerate = await billingService.canGenerateImages(brandId);
+          if (!canGenerate) {
+            return res.status(403).json({
+              message: "Image generation limit reached. Please upgrade your plan.",
+            });
+          }
+        } catch (billingErr) {
+          // If billing service fails, allow generation (fail open for non-billing issues)
+          console.warn("[generate-images] Billing check failed, allowing:", billingErr);
+        }
+
         const safeCount = Math.min(Math.max(Number(count) || 6, 1), 10);
         const jobId = `bimg_${brandId}_${Date.now()}`;
 
@@ -8081,6 +8118,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const brandName = brand.name || "Brand";
         const brandDescription = brand.description || "";
         const language = design[0]?.preferredLanguage || "es";
+
+        // Language label map for multi-language support
+        const languageLabels: Record<string, string> = {
+          en: "English", es: "Spanish", pt: "Portuguese", fr: "French",
+          de: "German", it: "Italian", zh: "Chinese", ja: "Japanese",
+          ko: "Korean", ar: "Arabic", hi: "Hindi",
+        };
+        const languageLabel = languageLabels[language] || "English";
         const isSpanish = language === "es";
 
         const { createPostGeneratorJob } = await import(
@@ -8178,23 +8223,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (!imageUrl) continue;
 
           try {
-            const captionPrompt = isSpanish
-              ? `Eres un experto en marketing digital para redes sociales. Genera contenido para un post de ${targetPlatform} para la marca "${brandName}" (${brandDescription}).
+            const captionPrompt = `You are a social media marketing expert. Generate content for an Instagram post for the brand "${brandName}" (${brandDescription}).
 
-Responde SOLO en JSON con este formato exacto:
-{"titulo": "titulo corto atractivo (max 8 palabras)", "content": "caption persuasivo para ${targetPlatform} (2-3 oraciones, incluye emojis)", "hashtags": "#hashtag1 #hashtag2 #hashtag3 #hashtag4 #hashtag5"}
-
-Todo el contenido debe ser en español.`
-              : `You are a social media marketing expert. Generate content for a ${targetPlatform} post for the brand "${brandName}" (${brandDescription}).
+IMPORTANT: ALL content MUST be written in ${languageLabel}. Do NOT use any other language.
 
 Respond ONLY in JSON with this exact format:
-{"titulo": "short catchy title (max 8 words)", "content": "persuasive ${targetPlatform} caption (2-3 sentences, include emojis)", "hashtags": "#hashtag1 #hashtag2 #hashtag3 #hashtag4 #hashtag5"}
-
-All content must be in English.`;
+{"titulo": "short catchy title (max 8 words)", "content": "persuasive Instagram caption (2-3 sentences, include emojis)", "hashtags": "#hashtag1 #hashtag2 #hashtag3 #hashtag4 #hashtag5"}`;
 
             const captionResponse = await ai.models.generateContent({
               model: "gemini-2.5-flash",
               contents: [{ role: "user", parts: [{ text: captionPrompt }] }],
+              config: { responseMimeType: "application/json" },
             });
 
             let titulo = isSpanish ? "Post de marca" : "Brand Post";
@@ -8320,6 +8359,14 @@ All content must be in English.`;
 
         if (!imageUrl) {
           return res.status(400).json({ message: "Image URL is required" });
+        }
+
+        // Validate scheduledPublishTime if provided
+        if (scheduledPublishTime) {
+          const parsedDate = new Date(scheduledPublishTime);
+          if (isNaN(parsedDate.getTime())) {
+            return res.status(400).json({ message: "Invalid schedule date" });
+          }
         }
 
         const { createPostGeneratorJob } = await import(

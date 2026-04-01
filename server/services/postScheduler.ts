@@ -84,10 +84,14 @@ class PostSchedulerService {
       );
 
       for (const post of postsToPublish) {
-        // Safety log: record what date the post was scheduled for vs when we're publishing
+        // Lock first to prevent concurrent processing
+        const locked = await this.lockPost(post.id);
+        if (!locked) continue;
+
         console.log(
           `[PostScheduler] Publishing post ${post.id} | platform=${post.platform} | type=${post.type || "image"} | scheduledFor=${post.scheduledPublishTime?.toISOString()} | now=${now.toISOString()}`,
         );
+
         const brand = await db
           .select()
           .from(brands)
@@ -102,14 +106,12 @@ class PostSchedulerService {
             .update(aiGeneratedPosts)
             .set({
               status: "skipped_auto_post_disabled",
+              lockedAt: null,
               updatedAt: new Date(),
             })
             .where(eq(aiGeneratedPosts.id, post.id));
           continue;
         }
-
-        const locked = await this.lockPost(post.id);
-        if (!locked) continue;
 
         await this.publishPost(post);
       }
@@ -274,8 +276,11 @@ class PostSchedulerService {
           // Step 1: Create individual item containers
           const childIds: string[] = [];
           for (const imgUrl of imageUrls) {
+            const isVideoItem = /\.(mp4|mov|avi|webm)(\?|$)/i.test(imgUrl);
             const itemParams = new URLSearchParams({
-              image_url: imgUrl,
+              ...(isVideoItem
+                ? { video_url: imgUrl, media_type: "VIDEO" }
+                : { image_url: imgUrl }),
               is_carousel_item: "true",
               access_token: accessToken,
             });
@@ -317,6 +322,7 @@ class PostSchedulerService {
             ...(isVideo
               ? { video_url: post.imageUrl! }
               : { image_url: post.imageUrl! }),
+            ...(finalCaption ? { caption: finalCaption } : {}),
             access_token: accessToken,
           });
           const storyRes = await fetch(
@@ -396,7 +402,7 @@ class PostSchedulerService {
         }
 
         if (!containerReady) {
-          console.log(`[PostScheduler] ${postType} container polling timed out, attempting publish`);
+          throw new Error(`Instagram ${postType} container processing timed out after polling`);
         }
 
         // Publish the container
@@ -451,19 +457,43 @@ class PostSchedulerService {
 
       console.log(`[PostScheduler] Post ${post.id} published successfully (mediaId: ${publishedMediaId})`);
     } catch (error: any) {
-      // Bug 44: Sanitize error message to avoid logging access tokens
       const safeMessage = error?.message?.replace(/access_token=[^&\s]+/gi, "access_token=[REDACTED]") || "Unknown error";
       console.error(`[PostScheduler] Failed to publish post ${post.id}: ${safeMessage}`);
 
-      await db
-        .update(aiGeneratedPosts)
-        .set({
-          status: "publish_failed",
-          publishError: safeMessage,
-          lockedAt: null,
-          updatedAt: new Date(),
-        })
-        .where(eq(aiGeneratedPosts.id, post.id));
+      // Determine if the error is transient (retryable) or permanent
+      const isTransient =
+        safeMessage.includes("rate limit") ||
+        safeMessage.includes("429") ||
+        safeMessage.includes("500") ||
+        safeMessage.includes("503") ||
+        safeMessage.includes("ETIMEDOUT") ||
+        safeMessage.includes("ECONNRESET") ||
+        safeMessage.includes("fetch failed") ||
+        safeMessage.includes("network");
+
+      if (isTransient) {
+        // Reset to accepted so scheduler retries on next cycle
+        console.log(`[PostScheduler] Transient error for post ${post.id}, will retry on next cycle`);
+        await db
+          .update(aiGeneratedPosts)
+          .set({
+            lockedAt: null,
+            publishError: `Retry pending: ${safeMessage}`,
+            updatedAt: new Date(),
+          })
+          .where(eq(aiGeneratedPosts.id, post.id));
+      } else {
+        // Permanent failure
+        await db
+          .update(aiGeneratedPosts)
+          .set({
+            status: "publish_failed",
+            publishError: safeMessage,
+            lockedAt: null,
+            updatedAt: new Date(),
+          })
+          .where(eq(aiGeneratedPosts.id, post.id));
+      }
     }
   }
 }

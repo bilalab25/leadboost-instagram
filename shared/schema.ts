@@ -1461,7 +1461,7 @@ export const integrations = pgTable(
     id: uuid("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
-    userId: varchar("user_id").notNull(), // Maps to: user_id
+    userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
     brandId: uuid("brand_id")
       .notNull()
       .references(() => brands.id, { onDelete: "cascade" }),
@@ -1487,6 +1487,7 @@ export const integrations = pgTable(
   (table) => [
     index("integrations_brand_idx").on(table.brandId),
     index("integrations_user_idx").on(table.userId),
+    unique("integrations_provider_brand_unique").on(table.provider, table.brandId),
   ],
 );
 

@@ -556,7 +556,7 @@ export default function ContentCalendar() {
       return response.json();
     },
     enabled: !!activeBrandId,
-    refetchInterval: 5000, // Check every 5 seconds to detect when job finishes
+    refetchInterval: 30000, // Check every 30 seconds (reduced from 5s to save server load)
   });
 
   // If there's an active job found on page load, start tracking it

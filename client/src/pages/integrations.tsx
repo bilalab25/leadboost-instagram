@@ -420,6 +420,7 @@ export default function IntegrationsPage() {
   // State
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [integrationsLoading, setIntegrationsLoading] = useState(false);
+  const [connectingProvider, setConnectingProvider] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>("social_media");
   const [isAddIntegrationDialogOpen, setIsAddIntegrationDialogOpen] =
     useState(false);
@@ -561,7 +562,7 @@ export default function IntegrationsPage() {
     }
 
     // Handle errors
-    if (error && provider) {
+    if (error) {
       // Map error codes to user-friendly messages
       const errorMessages: { [key: string]: { en: string; es: string } } = {
         missing_code: {
@@ -771,9 +772,11 @@ export default function IntegrationsPage() {
       return;
     }
 
+    setConnectingProvider(provider);
     const popup = window.open(url, "_blank", "width=600,height=700");
 
     if (!popup || popup.closed) {
+      setConnectingProvider(null);
       // Popup was blocked — fall back to direct navigation
       toast({
         title: isSpanish ? "Popup bloqueado" : "Popup blocked",
@@ -788,6 +791,7 @@ export default function IntegrationsPage() {
     const timer = setInterval(() => {
       if (popup.closed) {
         clearInterval(timer);
+        setConnectingProvider(null);
         window.location.reload();
       }
     }, 1000);

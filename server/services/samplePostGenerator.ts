@@ -496,21 +496,22 @@ Brand Information:
 
 ${productContext}
 
-Create 3 sample posts (one for Instagram, one for Facebook, one for WhatsApp) that showcase what kind of content this brand could share. These are DEMO posts to show the user how the platform works.
+Create 3 sample Instagram posts that showcase what kind of content this brand could share on Instagram. These are DEMO posts to show the user how the platform works.
 
 LANGUAGE REQUIREMENT (MANDATORY):
 - All post content, titles, and hashtags MUST be written in ${languageLabel}.
 - Do NOT use English unless the specified language is English.
 
-For Instagram: Create a visually-focused post with engaging caption and relevant hashtags
-For Facebook: Create an informative post that encourages engagement and discussion  
-For WhatsApp: Create a promotional message suitable for broadcast to customers
+Create 3 different Instagram posts:
+1. A visually-focused post with engaging caption and relevant hashtags
+2. A promotional post highlighting brand value or a product
+3. An educational or behind-the-scenes post that builds brand authenticity
 
 Return a JSON object with posts array containing objects with these fields:
-- platform: "instagram" | "facebook" | "whatsapp"
+- platform: "instagram" (always instagram)
 - titulo: Short engaging title for the post
 - content: The main post content/caption
-- hashtags: Relevant hashtags (for Instagram/Facebook only, leave empty for WhatsApp)
+- hashtags: Relevant hashtags
 - imagePrompt: A detailed description for generating a professional marketing image that matches this post. ${hasProducts ? "Include the brand products in the scene." : "Focus on brand lifestyle and atmosphere."}`;
 
   try {

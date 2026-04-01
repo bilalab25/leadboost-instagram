@@ -574,7 +574,8 @@ export default function Inbox() {
                                     {isSpanish ? "Todos" : "All"}
                                   </Button>
 
-                                  {integrations?.map((integration) => {
+                                  {/* Deduplicate by provider to avoid duplicate filter buttons */}
+                                  {integrations?.filter((intg, idx, arr) => arr.findIndex(i => i.provider === intg.provider) === idx).map((integration) => {
                                     const provider = integration.provider;
                                     const isActive =
                                       selectedPlatform === provider;

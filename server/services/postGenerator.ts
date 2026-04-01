@@ -16,25 +16,40 @@ interface CategoryUsageTracker {
 }
 
 // Module-level caches for asset rotation (per brand)
+// Evict entries older than 1 hour to prevent unbounded memory growth
 const assetUsageCache = new Map<string, AssetUsageTracker>();
 const categoryUsageCache = new Map<string, CategoryUsageTracker>();
+const CACHE_MAX_SIZE = 100;
+
+function evictOldCacheEntries() {
+  if (assetUsageCache.size > CACHE_MAX_SIZE) {
+    const keysToDelete = Array.from(assetUsageCache.keys()).slice(0, assetUsageCache.size - CACHE_MAX_SIZE);
+    keysToDelete.forEach((k) => assetUsageCache.delete(k));
+  }
+  if (categoryUsageCache.size > CACHE_MAX_SIZE) {
+    const keysToDelete = Array.from(categoryUsageCache.keys()).slice(0, categoryUsageCache.size - CACHE_MAX_SIZE);
+    keysToDelete.forEach((k) => categoryUsageCache.delete(k));
+  }
+}
 
 function enforceLanguage(
   posts: GeneratedPost[],
   lang: string,
 ): GeneratedPost[] {
+  // Skip for English (all content is acceptable) and any language we can't reliably detect
   if (lang === "en") return posts;
 
-  // Only filter posts where the majority of content words are common English.
-  // Check titulo + content only — hashtags often contain English loan words.
-  const commonEnglishWords = /\b(the|and|with|for|your|you|from|this|that|have|are|was|were|will|been|about|would|could|should|their|which|there|these|those|other|into|some|than|them|each|make|like|just|over|such|take|also|back|after|only|come|made|find|here|know|want|give|most|very)\b/gi;
+  // Only filter posts where a VERY high proportion of content words are common English.
+  // Threshold raised from 40% to 65% to reduce false positives for languages with English loanwords
+  // (German, French, Portuguese, etc. frequently use words like "design", "content", "marketing")
+  const commonEnglishWords = /\b(the|and|with|for|your|you|from|this|that|have|are|was|were|will|been|about|would|could|should|their|which|there|these|those|into|some|than|them|each|make|like|just|over|such|take|also|back|after|only|come|made|find|here|know|want|give|most|very)\b/gi;
 
   const filtered = posts.filter((p) => {
     const text = `${p.titulo} ${p.content}`.toLowerCase();
     const words = text.split(/\s+/).filter((w) => w.length > 2);
-    if (words.length === 0) return true;
+    if (words.length < 5) return true; // Too few words to judge
     const matches = text.match(commonEnglishWords) || [];
-    return matches.length / words.length < 0.4;
+    return matches.length / words.length < 0.65;
   });
 
   if (filtered.length === 0) {
@@ -335,7 +350,10 @@ async function fetchMetaInsights(
               .slice(0, 3)
               .map(([hour]) => {
                 const h = parseInt(hour);
-                return h > 12 ? `${h - 12}:00 PM` : `${h}:00 AM`;
+                if (h === 0) return "12:00 AM";
+                if (h < 12) return `${h}:00 AM`;
+                if (h === 12) return "12:00 PM";
+                return `${h - 12}:00 PM`;
               });
             insights.bestPostingTimes = sortedHours;
           }
@@ -1132,8 +1150,10 @@ export async function generatePostsWithGemini(
 
       const prompt = buildTextFromImageVisionPrompt(context);
 
-      // Detect mimeType from data URL prefix or default to image/png
-      const visionMimeType = context.imageDataUrl.match(/^data:([^;]+);base64,/)?.[1] || "image/png";
+      // Detect mimeType and extract raw base64 from data URL
+      const dataUrlMatch = context.imageDataUrl.match(/^data:([^;]+);base64,(.+)$/s);
+      const visionMimeType = dataUrlMatch?.[1] || "image/png";
+      const visionBase64 = dataUrlMatch?.[2] || context.imageDataUrl;
 
       const response = await getAI().models.generateContent({
         model: "gemini-2.5-flash",
@@ -1144,7 +1164,7 @@ export async function generatePostsWithGemini(
               {
                 inlineData: {
                   mimeType: visionMimeType,
-                  data: context.imageDataUrl,
+                  data: visionBase64,
                 },
               },
               { text: prompt },
@@ -1821,13 +1841,7 @@ If ANY item is ❌, DO NOT generate. Adjust and verify again.
       contentParts.push({ text: ref.instruction });
     }
 
-    // Agregar el prompt principal al final
-    contentParts.push({ text: structuredPrompt });
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // PASO 4: GENERACIÓN CON GEMINI
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+    // Add the main prompt (once — previously was duplicated)
     contentParts.push({ text: structuredPrompt });
 
     const response = await getAI().models.generateContent({
@@ -2015,8 +2029,9 @@ ${logoPlacementBlock}
 
     const contentParts: any[] = [];
 
-    if (brandDesign.logoUrl) {
-      const logoImage = await fetchImageAsBase64(brandDesign.logoUrl);
+    const logoUrl = brandDesign.whiteLogoUrl || brandDesign.blackLogoUrl || brandDesign.logoUrl;
+    if (logoUrl) {
+      const logoImage = await fetchImageAsBase64(logoUrl);
       if (logoImage) {
         contentParts.push({
           inlineData: {
@@ -2407,13 +2422,17 @@ RETURN VALID JSON WITH:
     }
     const combined = `${result.titulo} ${result.content} ${result.hashtags}`;
 
-    if (!containsForbiddenEnglish(combined) && result.titulo) {
+    // Skip English check if the target language IS English
+    const isEnglishBrand = preferredLanguage === "en";
+    if ((isEnglishBrand || !containsForbiddenEnglish(combined)) && result.titulo) {
       return result;
     }
 
-    console.warn(
-      `[RefineCopy] Language violation detected (attempt ${attempt}). Retrying...`,
-    );
+    if (!isEnglishBrand) {
+      console.warn(
+        `[RefineCopy] Language violation detected (attempt ${attempt}). Retrying...`,
+      );
+    }
   }
 
   // 🔥 FALLBACK DURO: traducir sí o sí
@@ -2440,6 +2459,9 @@ Return valid JSON with titulo, content, hashtags.
 `,
       },
     ],
+    config: {
+      responseMimeType: "application/json",
+    },
   });
 
   let fallbackParsed: { titulo: string; content: string; hashtags: string };
@@ -2458,6 +2480,8 @@ export async function processPostGeneration(
   month: number,
   year: number,
 ): Promise<{ postsGenerated: number; paymentRequired: boolean }> {
+  evictOldCacheEntries(); // Prevent unbounded memory growth
+
   const { updatePostGeneratorJob } = await import(
     "../storage/postGeneratorJobs"
   );
@@ -2769,19 +2793,24 @@ export async function processPostGeneration(
           }
         }
 
-        await createAiGeneratedPost({
-          jobId,
-          brandId,
-          platform: post.platform,
-          titulo: finalTitulo,
-          content: finalContent,
-          hashtags: finalHashtags,
-          imageUrl: finalUrl,
-          cloudinaryPublicId,
-          dia: post.dia,
-          status: "pending",
-          isSample: false,
-        });
+        // Only save post if image was successfully generated
+        if (!finalUrl) {
+          console.warn(`[PostGenerator] Skipping post for ${post.platform} on ${post.dia} — no image generated`);
+        } else {
+          await createAiGeneratedPost({
+            jobId,
+            brandId,
+            platform: post.platform,
+            titulo: finalTitulo,
+            content: finalContent,
+            hashtags: finalHashtags,
+            imageUrl: finalUrl,
+            cloudinaryPublicId,
+            dia: post.dia,
+            status: "pending",
+            isSample: false,
+          });
+        }
       } catch (postError) {
         console.error(
           `[PostGenerator] Failed to generate post for ${post.platform}:`,
