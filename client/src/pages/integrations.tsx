@@ -1749,8 +1749,8 @@ export default function IntegrationsPage() {
                                             </p>
                                           )}
                                           {/* Token expiry warning */}
-                                          {connectedIntegration?.expiresAt && (() => {
-                                            const expiresAt = new Date(connectedIntegration.expiresAt);
+                                          {(connectedIntegration as any)?.expiresAt && (() => {
+                                            const expiresAt = new Date((connectedIntegration as any).expiresAt);
                                             const now = new Date();
                                             const daysLeft = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
                                             if (daysLeft < 0) {
@@ -1761,7 +1761,7 @@ export default function IntegrationsPage() {
                                             }
                                             return null;
                                           })()}
-                                          {connectedIntegration && !connectedIntegration?.expiresAt && !(connectedIntegration as any)?.lightspeedStoreName && (
+                                          {connectedIntegration && !(connectedIntegration as any)?.expiresAt && !(connectedIntegration as any)?.lightspeedStoreName && (
                                             <div className="mb-2" />
                                           )}
 

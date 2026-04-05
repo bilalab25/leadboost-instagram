@@ -640,6 +640,30 @@ CRITICAL REQUIREMENTS:
 ${productAssets.length > 0 ? "7. If product assets are provided, feature them naturally in the scene" : ""}
 ${locationAssets.length > 0 ? "7. If location assets are provided, use them as the setting/backdrop" : ""}
 
+PHOTOREALISM REQUIREMENTS (CRITICAL):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Shot on professional DSLR camera with 35mm or 50mm lens
+- Natural lighting with soft shadows and realistic highlights
+- Real textures with natural imperfections — NOT over-smoothed or plastic
+- Proper depth of field with natural bokeh
+- Editorial/campaign-level photography quality
+- Believable real-world environments, NOT studio renders
+- AVOID: beauty filter effects, overly perfect gradients, CGI look, synthetic lighting, stock photo feel
+
+BUSINESS NICHE CONTEXT:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+This brand's business: "${brand.description || "general brand"}".
+ALL imagery MUST match this exact business niche semantically.
+DO NOT include: laptops, coding screens, circuit boards, generic startup/office imagery, unrelated tech hardware, random stock photography, or generic corporate imagery — unless directly relevant to the brand's actual business.
+
+CREATIVE QUALITY STANDARD:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- ELEGANT: Clean compositions with intentional whitespace
+- MINIMAL: Avoid clutter or competing elements
+- MODERN: Contemporary aesthetic, refined typography, color restraint
+- PREMIUM: Agency-level brand quality
+- TASTEFUL: Sophisticated, never tacky or visually noisy
+
 REMEMBER: This should look like content a brand would actually post on social media,
 NOT like an advertisement or brand poster. Think Instagram feed, not billboard.`;
 

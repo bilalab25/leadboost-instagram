@@ -15,9 +15,9 @@ export const pool = new pg.Pool({
   max: isProduction ? 20 : 5, // Max connections in the pool
   idleTimeoutMillis: 30_000, // Close idle connections after 30s
   connectionTimeoutMillis: 5_000, // Timeout connecting after 5s
-  ssl: isProduction && !process.env.DATABASE_URL.includes("localhost")
-    ? { rejectUnauthorized: false } // Required for most cloud PostgreSQL providers (Neon, Supabase, etc.)
-    : undefined,
+  ssl: process.env.DATABASE_URL.includes("localhost")
+    ? undefined
+    : { rejectUnauthorized: false }, // Required for cloud PostgreSQL (Neon, Supabase, etc.)
 });
 
 // Log pool errors (don't crash the server)

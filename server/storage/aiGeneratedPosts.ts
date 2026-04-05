@@ -16,8 +16,8 @@ export interface AiGeneratedPost {
   status: "pending" | "accepted" | "rejected" | "published";
   type?: string | null;
   isSample: boolean | null;
-  scheduledPublishTime: string | null;
-  publishedAt: string | null;
+  scheduledPublishTime?: string | null;
+  publishedAt?: string | null;
   lockedAt?: string | null;
   createdAt: string;
   updatedAt: string;

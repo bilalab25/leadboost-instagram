@@ -915,7 +915,7 @@ async function performInstagramDirectSync(
         contactName: metadata.contactName,
         lastMessage: metadata.latestMessage,
         lastMessageAt: metadata.latestTimestamp,
-        contactProfilePicture,
+        contactProfilePicture: contactProfilePicture ?? undefined,
       });
 
       conversationMap.set(metaConversationId, conversation.id);
@@ -8278,7 +8278,7 @@ Respond ONLY in JSON with this exact format:
               hashtags,
               status: "pending",
               isSample: false,
-              ...(scheduledPublishTime && { scheduledPublishTime }),
+              ...(scheduledPublishTime && { scheduledPublishTime: scheduledPublishTime.toISOString() }),
             });
 
             createdPosts.push(post);
@@ -8310,7 +8310,7 @@ Respond ONLY in JSON with this exact format:
               hashtags: "",
               status: "pending",
               isSample: false,
-              ...(fallbackScheduledTime && { scheduledPublishTime: fallbackScheduledTime }),
+              ...(fallbackScheduledTime && { scheduledPublishTime: fallbackScheduledTime.toISOString() }),
             });
             createdPosts.push(post);
           }
@@ -9926,6 +9926,65 @@ Respond ONLY in JSON with this exact format:
       }
     },
   );
+  // Auto-remove background from uploaded logo
+  app.post(
+    "/api/brand-design/remove-background",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const { imageUrl } = req.body;
+        if (!imageUrl) {
+          return res.status(400).json({ message: "imageUrl is required" });
+        }
+
+        console.log(`[LogoBG] Processing background removal for: ${imageUrl}`);
+
+        // Check if the image already has transparency by checking file extension
+        const hasTransparency = imageUrl.includes('.png') && !imageUrl.includes('background');
+
+        // Use Cloudinary's background removal transformation
+        // Upload with background_removal effect and force PNG output
+        const result = await cloudinary.uploader.upload(imageUrl, {
+          folder: "brands/logos/transparent",
+          format: "png",
+          background_removal: "cloudinary_ai",
+        });
+
+        if (result?.secure_url) {
+          console.log(`[LogoBG] Background removed successfully: ${result.secure_url}`);
+          res.json({
+            originalUrl: imageUrl,
+            transparentUrl: result.secure_url,
+            backgroundRemoved: true,
+          });
+        } else {
+          // Fallback: if bg removal fails, return original
+          console.warn(`[LogoBG] Background removal did not produce result, returning original`);
+          res.json({
+            originalUrl: imageUrl,
+            transparentUrl: imageUrl,
+            backgroundRemoved: false,
+          });
+        }
+      } catch (error: any) {
+        console.error("[LogoBG] Error removing background:", error);
+        // If Cloudinary bg removal is not available on the plan, return original
+        if (error?.message?.includes("background_removal") || error?.http_code === 400) {
+          console.warn("[LogoBG] Background removal not available on current Cloudinary plan, returning original");
+          res.json({
+            originalUrl: req.body.imageUrl,
+            transparentUrl: req.body.imageUrl,
+            backgroundRemoved: false,
+            warning: "Background removal requires Cloudinary AI add-on. Logo saved as-is.",
+          });
+        } else {
+          res.status(500).json({ message: "Failed to remove background" });
+        }
+      }
+    },
+  );
+
   app.post(
     "/api/brand-design/connect-canva",
     isAuthenticated,
@@ -11123,7 +11182,7 @@ Respond ONLY in JSON with this exact format:
       if (!toneOfVoice?.trim()) {
         return res.status(400).json({ error: "Tone of voice is required" });
       }
-      const essence = await storage.createOrUpdateBrandEssence(brandId, {
+      const essence = await storage.upsertBrandEssence(brandId, {
         toneOfVoice: toneOfVoice.trim(),
         personality: personality?.trim() || "",
         emotionalFeel: emotionalFeel?.trim() || "",
@@ -11134,6 +11193,97 @@ Respond ONLY in JSON with this exact format:
     } catch (err) {
       console.error("PUT /api/brands/:brandId/essence error:", err);
       res.status(500).json({ error: "Failed to save brand essence" });
+    }
+  });
+
+  // Brand DNA Learning System — Content Preferences (aggregates accept/reject/publish stats)
+  app.get("/api/brands/:brandId/content-preferences", isAuthenticated, requireBrand, async (req: any, res) => {
+    try {
+      const brandId = req.brandMembership!.brandId;
+      const { sql, count, inArray } = await import("drizzle-orm");
+
+      // Count posts grouped by status
+      const statusCounts = await db
+        .select({
+          status: aiGeneratedPosts.status,
+          count: count(),
+        })
+        .from(aiGeneratedPosts)
+        .where(eq(aiGeneratedPosts.brandId, brandId))
+        .groupBy(aiGeneratedPosts.status);
+
+      const counts: Record<string, number> = {};
+      for (const row of statusCounts) {
+        counts[row.status] = Number(row.count);
+      }
+
+      const accepted = counts["accepted"] || 0;
+      const rejected = counts["rejected"] || 0;
+      const published = counts["published"] || 0;
+      const pending = counts["pending"] || 0;
+      const totalGenerated = Object.values(counts).reduce((s, v) => s + v, 0);
+      const acceptedAndPublished = accepted + published;
+      const acceptanceRate = totalGenerated > 0 ? acceptedAndPublished / totalGenerated : 0;
+
+      // Aggregate hashtags from accepted/published posts
+      const hashtagRows = await db
+        .select({ hashtags: aiGeneratedPosts.hashtags })
+        .from(aiGeneratedPosts)
+        .where(
+          and(
+            eq(aiGeneratedPosts.brandId, brandId),
+            inArray(aiGeneratedPosts.status, ["accepted", "published"]),
+            sql`${aiGeneratedPosts.hashtags} IS NOT NULL`,
+          ),
+        );
+
+      // Count hashtag frequency
+      const hashtagFreq: Record<string, number> = {};
+      for (const row of hashtagRows) {
+        if (!row.hashtags) continue;
+        const tags = row.hashtags.match(/#[\w\u00C0-\u024F\u1E00-\u1EFF]+/g) || [];
+        for (const tag of tags) {
+          const lower = tag.toLowerCase();
+          hashtagFreq[lower] = (hashtagFreq[lower] || 0) + 1;
+        }
+      }
+      const topHashtags = Object.entries(hashtagFreq)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 15)
+        .map(([tag]) => tag);
+
+      // Aggregate preferred post types from accepted/published posts
+      const typeRows = await db
+        .select({
+          type: aiGeneratedPosts.type,
+          count: count(),
+        })
+        .from(aiGeneratedPosts)
+        .where(
+          and(
+            eq(aiGeneratedPosts.brandId, brandId),
+            inArray(aiGeneratedPosts.status, ["accepted", "published"]),
+          ),
+        )
+        .groupBy(aiGeneratedPosts.type);
+
+      const preferredTypes = typeRows
+        .sort((a, b) => Number(b.count) - Number(a.count))
+        .map((r) => r.type || "image");
+
+      res.json({
+        totalGenerated,
+        accepted,
+        rejected,
+        published,
+        pending,
+        acceptanceRate: Math.round(acceptanceRate * 100) / 100,
+        topHashtags,
+        preferredTypes,
+      });
+    } catch (err) {
+      console.error("GET /api/brands/:brandId/content-preferences error:", err);
+      res.status(500).json({ error: "Failed to fetch content preferences" });
     }
   });
 

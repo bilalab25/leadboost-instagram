@@ -583,6 +583,7 @@ export default function Onboarding() {
   const [customIndustry, setCustomIndustry] = useState("");
   const [isGeneratingAIPosts, setIsGeneratingAIPosts] = useState(false);
   const [aiGenerationMessage, setAiGenerationMessage] = useState("");
+  const [aiGenerationProgress, setAiGenerationProgress] = useState(0);
   const [isSkipping, setIsSkipping] = useState(false);
 
   const INDUSTRY_OPTIONS = [
@@ -2059,22 +2060,28 @@ export default function Onboarding() {
 
               let attempts = 0;
               const maxAttempts = 60;
+              setAiGenerationProgress(5);
 
               const pollJobStatus = async (): Promise<boolean> => {
                 while (attempts < maxAttempts) {
                   attempts++;
                   await new Promise((resolve) => setTimeout(resolve, 5000));
 
+                  // Simulated progress: fast at start, slows down approaching 90%
+                  const simulated = Math.min(5 + (attempts / maxAttempts) * 85, 90);
+                  setAiGenerationProgress(Math.round(simulated));
+
                   try {
                     const statusResponse = await apiRequest(
                       "GET",
-                      `/api/post-generator/jobs/${data.jobId}`,
+                      `/api/post-generator/jobs/${data.jobId}?brandId=${effectiveBrandId}`,
                     );
 
                     if (statusResponse.ok) {
                       const statusData = await statusResponse.json();
 
                       if (statusData.status === "completed") {
+                        setAiGenerationProgress(100);
                         return true;
                       } else if (statusData.status === "failed") {
                         console.error(
@@ -2125,6 +2132,12 @@ export default function Onboarding() {
                     ? "¡Listo! Redirigiendo..."
                     : "Done! Redirecting...",
                 );
+                // Play completion sound
+                try {
+                  const audio = new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdGOAn5+YkIJ2bHR8hZCdoZ2WjYF2bHF7hpKdoZ2XjYB1bHB7hpGcoZyWjH91a3B6hZCbn5uVi35za296hI+anpqUin1yaW54g46ZnZmTiXxwaGx3go2YnJiSiHtvaGt2gYyXm5eRh3puZ2p1gIuWmpaShnluZml0f4qVmZWQhXhtZmhzfoiUmJSPhHdsZWdyfoeSmJOOg3VrZGZxfYaRlpKNgnRqY2VwfIWQlZGMgHNpYmRvfISPk5CLf3JoYWNue4OOkpCJfnFnYGJteYKMkI+IfnBmX2FseIGLj46HeG9lXmBrd4CKjo2GdW5kXV9qdX+JjYyFdG1jXF5pdH6IjIuDc2xiW11odH2HiomCcWtgWlxndHyGiYmAb2pfWVtmc3uFiIh/bmlcV1pjcnqEh4Z+bGdbVllidHmDhoV8amZZVVdlcnmChYR7aGRYVFZlcXmBhIN6Z2JWVF5kcHiAg4J5ZWFUU15jb3d/goF4ZF9TUl1ib3Z+gYB3Y11SUVxhbnV9f393Yl1RUFtgbXR8fn92YVxQT1pfbHR7fn91YFtOTllebHN6fX50X1pNTVlda3J5fH1zXllMTFhca3F4e3xyXVhLS1dcaXB3entwXFdKSlVbZ295eXpuW1ZJSVRaZm54eHlsWlVISFNZZW13eHhrWVRHR1JYZG12d3dqWFNGRlFXY2x1dnZpV1JFRFBWY2t0dXVoVlFERE9VYmp0dHRnVVBDQ09UYGlzc3NmVE9CQk1TYEZ2cnJlU05BQUxSXmhycXFjUk1AQEtRXWdxcHBiUUw/P0pQXGZwb29hUEw+PklPW2VvbnBgT0s9PUhOWmRubW5fTko9PEdNWWNtbG1eS0k8O0ZMV2JsbGxdSkk7OkVLV2FrbGtcSUg6OkRKVmBqa2pbSEc5OUNJVWBpamlaR0Y4OEJIVFluampZRkU3N0FIU1hpampYRUU2NkBHUldoaGlXREM2NkBGUVdnZ2hWQ0M1NT9FUFZmZ2dVQkI0ND5EUFVlZmZUQUEzMz1DT1RkZmVTQEAzMz1DT1NkZGVTQD8yMjxCTlJjZGRSPz8xMTtBTlFiY2NRQD4xMTtBTVFiY2NQQD0wMDpAS1BiYmJQPz0wMDlAS1BhYmJPPjwvLzk/Sk9gYWFPPTsvLzg+SU9fYWFOPTsuLjc+SE5eYGBOPDotLjc9R01dX19NPDksLTY8Rk1cX15MOwA=");
+                  audio.volume = 0.4;
+                  audio.play().catch(() => {});
+                } catch {}
                 await new Promise((resolve) => setTimeout(resolve, 1000));
 
                 clearOnboardingState();
@@ -2306,7 +2319,7 @@ export default function Onboarding() {
               try {
                 const statusResponse = await apiRequest(
                   "GET",
-                  `/api/post-generator/jobs/${jobId}`,
+                  `/api/post-generator/jobs/${jobId}?brandId=${effectiveBrandId}`,
                 );
 
                 if (statusResponse.ok) {
@@ -2425,26 +2438,27 @@ export default function Onboarding() {
             </div>
           </div>
           <h1 className="text-3xl md:text-4xl font-bold mb-4 animate-pulse">
-            {isSpanish ? "✨ Magia en proceso..." : "✨ Magic in progress..."}
+            {aiGenerationProgress >= 100
+              ? (isSpanish ? "✨ ¡Listo!" : "✨ All done!")
+              : (isSpanish ? "✨ Magia en proceso..." : "✨ Magic in progress...")}
           </h1>
-          <p className="text-xl md:text-2xl text-white/90 mb-6">
+          <p className="text-xl md:text-2xl text-white/90 mb-4">
             {aiGenerationMessage}
           </p>
-          <div className="flex justify-center gap-2">
-            <div
-              className="w-3 h-3 rounded-full bg-white/60 animate-bounce"
-              style={{ animationDelay: "0ms" }}
-            ></div>
-            <div
-              className="w-3 h-3 rounded-full bg-white/60 animate-bounce"
-              style={{ animationDelay: "150ms" }}
-            ></div>
-            <div
-              className="w-3 h-3 rounded-full bg-white/60 animate-bounce"
-              style={{ animationDelay: "300ms" }}
-            ></div>
+          {/* Progress bar */}
+          <div className="w-full max-w-xs mx-auto mb-6">
+            <div className="flex justify-between text-sm text-white/70 mb-1.5">
+              <span>{isSpanish ? "Progreso" : "Progress"}</span>
+              <span>{aiGenerationProgress}%</span>
+            </div>
+            <div className="w-full h-2.5 bg-white/20 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-white rounded-full transition-all duration-1000 ease-out"
+                style={{ width: `${aiGenerationProgress}%` }}
+              />
+            </div>
           </div>
-          <p className="text-sm text-white/60 mt-8">
+          <p className="text-sm text-white/60 mt-6">
             {isSpanish
               ? "Esto puede tomar unos minutos. No cierres esta página."
               : "This may take a few minutes. Please don't close this page."}

@@ -132,6 +132,19 @@ export interface SalesInsights {
   }>;
 }
 
+export interface CarouselSlide {
+  slideTitle: string;
+  slideContent: string;
+  slideImageDirection: string;
+}
+
+export interface ReelScript {
+  hook: string;
+  script: string;
+  scenes: string[];
+  duration: number;
+}
+
 export interface GeneratedPost {
   platform: string;
   titulo: string;
@@ -141,6 +154,9 @@ export interface GeneratedPost {
   optimalTime: string;
   imagePrompt: string;
   imageUrl?: string;
+  type?: "image" | "carousel" | "story" | "reel";
+  carouselSlides?: CarouselSlide[];
+  reelScript?: ReelScript;
 }
 
 export interface PlatformPostingSchedule {
@@ -171,6 +187,12 @@ export interface PostGenerationContext {
     emotion: string | null;
     visualKeywords: string | null;
     promise: string | null;
+  };
+  contentLearning?: {
+    acceptanceRate: number;
+    topHashtags: string[];
+    preferredTypes: string[];
+    totalGenerated: number;
   };
   imageDataUrl?: string;
 }
@@ -222,6 +244,34 @@ function skeletonPostsSchema() {
             hashtags: { type: Type.STRING },
             dia: { type: Type.STRING },
             optimalTime: { type: Type.STRING },
+            type: { type: Type.STRING },
+            carouselSlides: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  slideTitle: { type: Type.STRING },
+                  slideContent: { type: Type.STRING },
+                  slideImageDirection: { type: Type.STRING },
+                },
+                required: ["slideTitle", "slideContent", "slideImageDirection"],
+              },
+              nullable: true,
+            },
+            reelScript: {
+              type: Type.OBJECT,
+              properties: {
+                hook: { type: Type.STRING },
+                script: { type: Type.STRING },
+                scenes: {
+                  type: Type.ARRAY,
+                  items: { type: Type.STRING },
+                },
+                duration: { type: Type.NUMBER },
+              },
+              required: ["hook", "script", "scenes", "duration"],
+              nullable: true,
+            },
           },
           required: [
             "platform",
@@ -230,6 +280,7 @@ function skeletonPostsSchema() {
             "hashtags",
             "dia",
             "optimalTime",
+            "type",
           ],
         },
       },
@@ -671,6 +722,23 @@ POSTING SCHEDULE:
     totalPosts = 15; // Fallback default
   }
 
+  // Build learning data section from content preferences (accept/reject history)
+  let learningDataSection = "";
+  if (context.contentLearning && context.contentLearning.totalGenerated >= 5) {
+    const cl = context.contentLearning;
+    const ratePercent = Math.round(cl.acceptanceRate * 100);
+    const hashtagList = cl.topHashtags.length > 0 ? cl.topHashtags.join(", ") : "none yet";
+    const typeList = cl.preferredTypes.length > 0 ? cl.preferredTypes.join(", ") : "mixed";
+    learningDataSection = `
+BRAND LEARNING DATA (use to improve content — based on ${cl.totalGenerated} previously generated posts):
+- Acceptance rate: ${ratePercent}%
+- Most successful hashtags: ${hashtagList}
+- Preferred content types: ${typeList}
+- Generate more content similar to what was accepted. Avoid patterns from rejected content.
+- Prioritize the successful hashtags above when relevant to the post topic.
+`;
+  }
+
   return `You are an expert social media strategist and content creator. Generate a comprehensive content calendar for ${monthName} ${year}.
 
 BRAND IDENTITY:
@@ -688,7 +756,7 @@ BRAND ESSENCE (use this to define all copywriting, tone, emotional feel, and con
 - Emotional Feel: ${context.brandEssence?.emotion ?? "Not specified"}
 - Visual Keywords: ${context.brandEssence?.visualKeywords ?? "Not specified"}
 - Brand Promise: ${context.brandEssence?.promise ?? "Not specified"}
-
+${learningDataSection}
 PRODUCT AWARENESS:
 ${productContext}
 
@@ -849,6 +917,14 @@ export function buildPostsSkeletonPrompt(
   const bestTimes =
     metaInsights?.bestPostingTimes?.join(", ") || "9:00 AM, 12:00 PM, 6:00 PM";
 
+  const performanceBlock = `
+PERFORMANCE-INFORMED CONTENT STRATEGY:
+${metaInsights?.engagement ? `Current engagement rate: ${metaInsights.engagement}. Focus on content types and topics that drive higher engagement.` : ''}
+${metaInsights?.topContentTypes?.length ? `Top performing content types: ${metaInsights.topContentTypes.join(', ')}. Prioritize these formats.` : ''}
+${metaInsights?.reach ? `Current reach: ${metaInsights.reach}. Optimize for discovery and shareability.` : ''}
+Generate content that maximizes engagement based on these real performance signals.
+`;
+
   return `
 You are an expert social media planner.
 
@@ -872,10 +948,28 @@ ${postingScheduleInstructions}
 
 TOTAL POSTS: ${totalPosts}
 
+${performanceBlock}
+
 FOR EACH POST:
 - platform (exact value)
 - dia (YYYY-MM-DD)
 - optimalTime (choose from: ${bestTimes})
+- "type": one of "image", "carousel", "story", "reel" - choose the best format for each post idea:
+  * "image" — single static post, best for announcements, quotes, product shots
+  * "carousel" — multi-slide educational or storytelling content (2-10 slides), best for tutorials, tips, before/after, product collections
+  * "story" — vertical ephemeral content, best for behind-the-scenes, polls, quick updates, daily engagement
+  * "reel" — short video concept with hook + script, best for trending topics, demonstrations, entertainment
+  Mix formats throughout the month for variety. Aim for roughly: 40% image, 25% carousel, 20% story, 15% reel.
+
+- For "carousel" type posts, include a "carouselSlides" field: an array of 3-8 objects, each with:
+  * "slideTitle": short title for the slide
+  * "slideContent": the text/message for that slide
+  * "slideImageDirection": brief image description for that slide
+- For "reel" type posts, include a "reelScript" field with:
+  * "hook": the first 3 seconds hook text
+  * "script": full script/narration
+  * "scenes": array of scene descriptions
+  * "duration": suggested duration in seconds (15, 30, 60, or 90)
 
 TEXT FIELDS MUST BE EMPTY STRINGS:
 - titulo: ""
@@ -885,7 +979,7 @@ TEXT FIELDS MUST BE EMPTY STRINGS:
 IMPORTANT:
 - DO NOT generate imagePrompt
 - DO NOT generate any text content
-- DO NOT invent extra fields
+- DO NOT invent extra fields beyond the ones specified above
 
 Return ONLY valid JSON in this format:
 
@@ -897,7 +991,35 @@ Return ONLY valid JSON in this format:
       "content": "",
       "hashtags": "",
       "dia": "${year}-${String(month).padStart(2, "0")}-01",
-      "optimalTime": "6:00 PM"
+      "optimalTime": "6:00 PM",
+      "type": "image"
+    },
+    {
+      "platform": "instagram",
+      "titulo": "",
+      "content": "",
+      "hashtags": "",
+      "dia": "${year}-${String(month).padStart(2, "0")}-03",
+      "optimalTime": "9:00 AM",
+      "type": "carousel",
+      "carouselSlides": [
+        { "slideTitle": "", "slideContent": "", "slideImageDirection": "" }
+      ]
+    },
+    {
+      "platform": "instagram",
+      "titulo": "",
+      "content": "",
+      "hashtags": "",
+      "dia": "${year}-${String(month).padStart(2, "0")}-05",
+      "optimalTime": "12:00 PM",
+      "type": "reel",
+      "reelScript": {
+        "hook": "",
+        "script": "",
+        "scenes": [],
+        "duration": 30
+      }
     }
   ]
 }
@@ -1232,6 +1354,7 @@ interface BrandAssetForImage {
   name: string;
   category?: string;
   description?: string;
+  createdAt?: Date | string | null;
 }
 
 function pickAssetsForMode(
@@ -1265,7 +1388,43 @@ function pickAssetsForMode(
   const usageTracker = assetUsageCache.get(cacheKey) || {};
   const categoryTracker = categoryUsageCache.get(cacheKey) || {};
 
-  // ✅ NUEVA ESTRATEGIA: 90% individual usage, 10% category usage
+  // Compute a quality score for an asset based on description detail and recency.
+  // Higher score = better quality candidate. Used as tiebreaker when usage counts are equal.
+  const computeQualityScore = (asset: BrandAssetForImage): number => {
+    let score = 0;
+
+    // Description richness: longer/more detailed descriptions rank higher
+    if (asset.description) {
+      const descLen = asset.description.trim().length;
+      if (descLen > 200) score += 3;       // Very detailed description
+      else if (descLen > 50) score += 2;   // Moderate description
+      else if (descLen > 0) score += 1;    // Has some description
+    }
+    // No description = score stays 0 for this factor
+
+    // Recency bonus: more recently uploaded assets rank higher
+    if (asset.createdAt) {
+      const createdDate = asset.createdAt instanceof Date
+        ? asset.createdAt
+        : new Date(asset.createdAt);
+      const ageMs = Date.now() - createdDate.getTime();
+      const ageDays = ageMs / (1000 * 60 * 60 * 24);
+      if (ageDays < 7) score += 3;         // Uploaded in last week
+      else if (ageDays < 30) score += 2;   // Uploaded in last month
+      else if (ageDays < 90) score += 1;   // Uploaded in last 3 months
+    }
+
+    // Inspiration templates: those with descriptions rank higher than those without
+    if (asset.category && TEMPLATE_CATEGORIES.includes(asset.category.toLowerCase())) {
+      if (asset.description && asset.description.trim().length > 0) {
+        score += 2; // Extra bonus for templates that have descriptions
+      }
+    }
+
+    return score;
+  };
+
+  // ✅ STRATEGY: Usage-based rotation with quality-based tiebreaking
   const selectLeastUsedWithPriority = <T extends BrandAssetForImage>(
     arr: T[],
     assetType: string,
@@ -1302,8 +1461,8 @@ function pickAssetsForMode(
 
     // ✅ PRIORITY SORTING:
     // 1. Assets with 0 usage ALWAYS win
-    // 2. Among used assets, sort by: 90% individual + 10% category
-    // 3. If scores are equal, pick the one used least recently (or round-robin)
+    // 2. Among used assets, sort by individual usage count (lowest first)
+    // 3. If usage counts are equal, use quality score as tiebreaker (highest first)
     const sorted = [...arr].sort((a, b) => {
       const usageA = usageTracker[a.url] || 0;
       const usageB = usageTracker[b.url] || 0;
@@ -1312,16 +1471,13 @@ function pickAssetsForMode(
       if (usageA === 0 && usageB > 0) return -1;
       if (usageB === 0 && usageA > 0) return 1;
 
-      // Priority 2: If both have same usage status, use weighted score
-      const catUsageA = a.category ? categoryTracker[a.category] || 0 : 0;
-      const catUsageB = b.category ? categoryTracker[b.category] || 0 : 0;
+      // Priority 2: Lower usage count wins
+      if (usageA !== usageB) return usageA - usageB;
 
-      // 100% individual weight for equal distribution
-      // (Category weight removed to ensure pure rotation)
-      const scoreA = usageA;
-      const scoreB = usageB;
-
-      return scoreA - scoreB;
+      // Priority 3: Quality tiebreaker - higher quality score wins
+      const qualityA = computeQualityScore(a);
+      const qualityB = computeQualityScore(b);
+      return qualityB - qualityA;
     });
 
     const selected = sorted[0];
@@ -1347,6 +1503,10 @@ function pickAssetsForMode(
   if (mode === "lifestyle" || mode === "venue_showcase") {
     location = selectLeastUsedWithPriority(allLocations, "LOCATION");
   }
+
+  const totalAvailable = allProducts.length + allTemplates.length + allLocations.length;
+  const result = [product, template, location].filter(Boolean);
+  console.log("[AssetSelection] Mode:", mode, "Selected:", result.length, "assets from", totalAvailable, "available");
 
   return {
     product,
@@ -1487,9 +1647,21 @@ function pickVisualReferenceAssets(
 
 // Helper function for Holo-style mode instructions
 function getHoloStyleModeInstructions(mode: VisualMode): string {
+  const creativeQualityDirective = `
+
+CREATIVE QUALITY STANDARD (MANDATORY FOR ALL MODES):
+The output MUST meet high-end editorial standards:
+- ELEGANT: Clean compositions with intentional whitespace and visual hierarchy
+- MINIMAL: Avoid clutter, excessive text, or too many competing elements
+- MODERN: Contemporary aesthetic with refined typography and color restraint
+- PREMIUM: Brand-level quality that feels like a professional agency produced it
+- TASTEFUL: Sophisticated, never tacky, generic, or visually noisy
+AVOID: cluttered layouts, too much text overlay, garish colors, stock photo clichés, low-taste marketing aesthetics, busy backgrounds`;
+
+  let modeInstructions: string;
   switch (mode) {
     case "campaign_template":
-      return `📸 CAMPAIGN TEMPLATE MODE
+      modeInstructions = `📸 CAMPAIGN TEMPLATE MODE
 
 OBJECTIVE: Combine product + template style inspiration
 
@@ -1516,9 +1688,10 @@ STEP-BY-STEP PROCESS:
    - Make visible but not dominant
 
 CRITICAL: Template = INSPIRATION, not blueprint. Product = EXACT COPY.`;
+      break;
 
     case "lifestyle":
-      return `🏙️ LIFESTYLE MODE
+      modeInstructions = `🏙️ LIFESTYLE MODE
 
 OBJECTIVE: Integrate product into real location naturally
 
@@ -1536,9 +1709,10 @@ ALLOWED ADJUSTMENTS:
 INTEGRATION:
 - Place product naturally in the existing space
 - Logo on product or packaging`;
+      break;
 
     case "product_showcase":
-      return `💎 PRODUCT SHOWCASE MODE
+      modeInstructions = `💎 PRODUCT SHOWCASE MODE
 
 OBJECTIVE: Feature product as hero with brand-aligned backdrop
 
@@ -1550,9 +1724,10 @@ PROCESS:
 5. Integrate logo on product or packaging
 
 STYLE: Clean, minimal, or lifestyle-inspired based on brand style`;
+      break;
 
     case "venue_showcase":
-      return `🏢 VENUE SHOWCASE MODE
+      modeInstructions = `🏢 VENUE SHOWCASE MODE
 
 OBJECTIVE: Showcase location while preserving authenticity
 
@@ -1565,9 +1740,10 @@ ABSOLUTE RULES:
 ✅ Integrate logo as signage or environmental element
 
 The space must remain RECOGNIZABLE as the original.`;
+      break;
 
     case "inspiration_based":
-      return `✨ INSPIRATION MODE
+      modeInstructions = `✨ INSPIRATION MODE
 
 OBJECTIVE: Create new content inspired by template style
 
@@ -1585,9 +1761,10 @@ PROCESS:
    - DO NOT copy specific objects
 
 3. Integrate logo creatively`;
+      break;
 
     case "brand_only":
-      return `🎨 BRAND-ONLY MODE
+      modeInstructions = `🎨 BRAND-ONLY MODE
 
 OBJECTIVE: Create from brand identity alone
 
@@ -1598,13 +1775,18 @@ APPROACH:
 - Integrate logo as central design element
 
 Avoid generic stock photo aesthetics.`;
+      break;
   }
+
+  return modeInstructions + creativeQualityDirective;
 }
 
 export async function generateImageWithGeminiNanoBanana({
   brandDesign,
   brandAssets,
   brandEssence,
+  brandDescription,
+  brandIndustry,
 }: {
   brandDesign: BrandDesign;
   brandAssets: BrandAssetForImage[];
@@ -1615,8 +1797,15 @@ export async function generateImageWithGeminiNanoBanana({
     visualKeywords?: string | null;
     promise?: string | null;
   };
+  brandDescription?: string;
+  brandIndustry?: string;
 }): Promise<string | null> {
   try {
+    console.log(`[ImageGen] Brand description: "${brandDescription || 'N/A'}"`);
+    console.log(`[ImageGen] Brand industry: "${brandIndustry || 'N/A'}"`);
+    console.log(`[ImageGen] Brand style: "${brandDesign.brandStyle || 'N/A'}"`);
+    console.log(`[ImageGen] Brand essence tone: "${brandEssence?.tone || 'N/A'}", visual keywords: "${brandEssence?.visualKeywords || 'N/A'}"`);
+
     const brandId = brandAssets[0]?.url?.match(/brands\/([^/]+)/)?.[1];
     const mode = selectVisualMode(brandAssets);
     const modeAssets = pickAssetsForMode(mode, brandAssets, brandId);
@@ -1794,6 +1983,34 @@ Color Palette: ${colorPalette}
 Tone: ${brandEssence?.tone || "professional"}
 Emotion: ${brandEssence?.emotion || "inspiring"}
 Visual Keywords: ${brandEssence?.visualKeywords || "clean, elegant"}
+${brandDescription ? `Business Description: ${brandDescription}` : ""}
+${brandIndustry ? `Industry: ${brandIndustry}` : ""}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📷 PHOTOREALISM REQUIREMENTS (CRITICAL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+The image MUST look like it was shot with a real camera, NOT generated by AI.
+- Shot on professional DSLR camera with 35mm or 50mm lens
+- Natural lighting with soft shadows and realistic highlights
+- Real skin textures with natural imperfections (pores, slight asymmetry)
+- Proper depth of field with natural bokeh
+- High dynamic range but natural — NOT HDR-processed
+- Editorial/campaign-level photography quality
+- Believable real-world environments, NOT studio renders
+AVOID: over-smoothing, plastic skin, beauty filter effects, overly perfect gradients, CGI look, synthetic lighting, stock photo feel
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏷️ BUSINESS NICHE CONTEXT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${brandDescription ? `This brand is: "${brandDescription}". ALL imagery MUST match this exact business niche. Interpret the business category semantically — do NOT default to generic tech or office imagery.` : "Use the brand essence and visual keywords to determine the correct visual category."}
+
+NICHE NEGATIVE PROMPT — DO NOT include any of the following unless they are directly relevant to the brand's actual business:
+- Laptops, coding screens, circuit boards, server rooms
+- Generic startup/office/coworking imagery
+- Random stock photography unrelated to the business
+- Technology hardware (unless the brand IS a tech hardware company)
+- Generic corporate handshakes or meeting rooms
+- Unrelated industry imagery
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🔧 GENERATION MODE: ${mode.toUpperCase()}
@@ -1978,12 +2195,15 @@ LOCATION IMAGE CONSTRAINTS (CRITICAL):
     const enhancedPrompt = `${visualResetBlock}${imagePrompt}. 
 
 ────────────────────────────────
-OBJETIVO: IMAGEN PROFESIONAL PUBLISH-READY
+OBJECTIVE: PROFESSIONAL PUBLISH-READY IMAGE
 ────────────────────────────────
-La imagen final debe ser:
-- Profesional y fotorealista, apta para marketing digital en redes sociales
-- Lista para publicar sin edición adicional
-- Composición limpia con buena iluminación y fondo profesional
+The final image MUST be:
+- Shot on professional DSLR camera (35mm/50mm lens), natural lighting, soft shadows
+- Real skin textures with natural imperfections — NOT over-smoothed or plastic
+- Proper depth of field, natural bokeh, editorial photography quality
+- Believable real-world environment — NOT a CGI render
+- Ready to publish without additional editing
+AVOID: synthetic/AI look, beauty filters, over-perfect gradients, stock photo feel
 
 VISUAL CONTEXT:
 ${productImageContext}
@@ -2508,6 +2728,92 @@ export async function processPostGeneration(
     // Load brand essence from separate table
     const brandEssence = await storage.getBrandEssence(brandId);
 
+    // Load content learning data (accept/reject history) for Brand DNA Learning
+    let contentLearning: PostGenerationContext["contentLearning"] | undefined;
+    try {
+      const { eq, and, count, inArray, sql } = await import("drizzle-orm");
+      const { db } = await import("../db");
+      const { aiGeneratedPosts } = await import("@shared/schema");
+
+      // Count posts grouped by status
+      const statusCounts = await db
+        .select({
+          status: aiGeneratedPosts.status,
+          count: count(),
+        })
+        .from(aiGeneratedPosts)
+        .where(eq(aiGeneratedPosts.brandId, brandId))
+        .groupBy(aiGeneratedPosts.status);
+
+      const counts: Record<string, number> = {};
+      for (const row of statusCounts) {
+        counts[row.status] = Number(row.count);
+      }
+
+      const accepted = counts["accepted"] || 0;
+      const published = counts["published"] || 0;
+      const totalGenerated = Object.values(counts).reduce((s, v) => s + v, 0);
+      const acceptedAndPublished = accepted + published;
+      const acceptanceRate = totalGenerated > 0 ? acceptedAndPublished / totalGenerated : 0;
+
+      // Aggregate hashtags from accepted/published posts
+      const hashtagRows = await db
+        .select({ hashtags: aiGeneratedPosts.hashtags })
+        .from(aiGeneratedPosts)
+        .where(
+          and(
+            eq(aiGeneratedPosts.brandId, brandId),
+            inArray(aiGeneratedPosts.status, ["accepted", "published"]),
+            sql`${aiGeneratedPosts.hashtags} IS NOT NULL`,
+          ),
+        );
+
+      const hashtagFreq: Record<string, number> = {};
+      for (const row of hashtagRows) {
+        if (!row.hashtags) continue;
+        const tags = row.hashtags.match(/#[\w\u00C0-\u024F\u1E00-\u1EFF]+/g) || [];
+        for (const tag of tags) {
+          const lower = tag.toLowerCase();
+          hashtagFreq[lower] = (hashtagFreq[lower] || 0) + 1;
+        }
+      }
+      const topHashtags = Object.entries(hashtagFreq)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 15)
+        .map(([tag]) => tag);
+
+      // Aggregate preferred post types from accepted/published posts
+      const typeRows = await db
+        .select({
+          type: aiGeneratedPosts.type,
+          count: count(),
+        })
+        .from(aiGeneratedPosts)
+        .where(
+          and(
+            eq(aiGeneratedPosts.brandId, brandId),
+            inArray(aiGeneratedPosts.status, ["accepted", "published"]),
+          ),
+        )
+        .groupBy(aiGeneratedPosts.type);
+
+      const preferredTypes = typeRows
+        .sort((a, b) => Number(b.count) - Number(a.count))
+        .map((r) => r.type || "image");
+
+      if (totalGenerated >= 5) {
+        contentLearning = {
+          acceptanceRate: Math.round(acceptanceRate * 100) / 100,
+          topHashtags,
+          preferredTypes,
+          totalGenerated,
+        };
+        console.log(`[PostGenerator] Brand DNA learning loaded for brand ${brandId}: ${totalGenerated} posts, ${Math.round(acceptanceRate * 100)}% acceptance rate`);
+      }
+    } catch (err) {
+      console.warn("[PostGenerator] Failed to load content learning data (non-fatal):", err);
+    }
+
     const integrations = await storage.getIntegrationsByBrandId(brandId);
 
     // Get only connected Meta platforms (Instagram and Facebook)
@@ -2644,6 +2950,7 @@ export async function processPostGeneration(
             promise: brandEssence.brandPromise ?? null,
           }
         : undefined,
+      contentLearning,
     };
 
     const allPosts = await generatePostsWithGemini({
@@ -2710,6 +3017,7 @@ export async function processPostGeneration(
       name: a.name,
       category: a.category || "general",
       description: (a as any).description || "",
+      createdAt: (a as any).createdAt || null,
     }));
 
     // Track how many images were successfully generated
@@ -2746,6 +3054,8 @@ export async function processPostGeneration(
           brandDesign,
           brandAssets: assetsForImageGen,
           brandEssence,
+          brandDescription: brand.description || undefined,
+          brandIndustry: brand.industry || undefined,
         });
 
         let finalTitulo = post.titulo;

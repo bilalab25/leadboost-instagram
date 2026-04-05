@@ -652,7 +652,7 @@ export default function BrandIdentity() {
                 </label>
                 <select
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                  defaultValue={selectedBrand?.timezone || "UTC"}
+                  defaultValue={(selectedBrand as any)?.timezone || "UTC"}
                   onChange={async (e) => {
                     if (!selectedBrand?.id) return;
                     try {

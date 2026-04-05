@@ -533,17 +533,37 @@ export default function BrandStudio() {
         return currentUrl;
       };
 
-      // Sube logos/favicons si son nuevos
-      const whiteLogoUrl = await uploadIfNeeded(
+      // Auto-remove background from logo if needed
+      const processLogoBackground = async (logoUrl: string | null): Promise<string | null> => {
+        if (!logoUrl || !activeBrandId) return logoUrl;
+        try {
+          const res = await apiRequest("POST", `/api/brand-design/remove-background?brandId=${activeBrandId}`, { imageUrl: logoUrl });
+          const data = await res.json();
+          if (data.backgroundRemoved && data.transparentUrl) {
+            console.log("[LogoBG] Auto-removed background:", data.transparentUrl);
+            return data.transparentUrl;
+          }
+          return logoUrl;
+        } catch {
+          return logoUrl;
+        }
+      };
+
+      // Upload logos/favicons if new
+      let whiteLogoUrl = await uploadIfNeeded(
         whiteLogoFile,
         whiteLogoPreviewUrl,
         setWhiteLogoPreviewUrl,
       );
-      const blackLogoUrl = await uploadIfNeeded(
+      let blackLogoUrl = await uploadIfNeeded(
         blackLogoFile,
         blackLogoPreviewUrl,
         setBlackLogoPreviewUrl,
       );
+
+      // Auto-process logo backgrounds
+      if (whiteLogoFile) whiteLogoUrl = await processLogoBackground(whiteLogoUrl);
+      if (blackLogoFile) blackLogoUrl = await processLogoBackground(blackLogoUrl);
       const whiteFaviconUrl = await uploadIfNeeded(
         whiteFaviconFile,
         whiteFaviconPreviewUrl,

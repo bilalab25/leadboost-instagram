@@ -141,7 +141,7 @@ export default function Dashboard() {
   const latestConversations = latestConversationsData?.conversations || [];
 
   // Fetch integrations for the active brand
-  const { data: integrationsData, error: integrationsError } = useQuery({
+  const { data: integrationsData, error: integrationsError, isLoading: integrationsLoading } = useQuery({
     queryKey: ["/api/integrations", activeBrandId],
     queryFn: async () => {
       if (!activeBrandId) return [];
