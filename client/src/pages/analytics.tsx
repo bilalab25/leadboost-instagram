@@ -73,7 +73,7 @@ export default function Analytics() {
   const { data: rawAnalytics, isLoading: analyticsLoading } = useQuery<
     AnalyticsRow[]
   >({
-    queryKey: ["/api/analytics", activeBrandId],
+    queryKey: ["/api/analytics", { brandId: activeBrandId }],
     enabled: !!activeBrandId,
     retry: false,
   });

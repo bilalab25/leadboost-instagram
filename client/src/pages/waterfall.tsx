@@ -163,7 +163,7 @@ export default function Waterfall() {
     queryKey: ["/api/ai-posts", activeBrandId],
     queryFn: async () => {
       if (!activeBrandId) return [];
-      const response = await fetch(`/api/ai-posts`, {
+      const response = await fetch(`/api/ai-posts?brandId=${activeBrandId}`, {
         credentials: "include",
       });
       if (!response.ok) return [];

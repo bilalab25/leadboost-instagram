@@ -34,7 +34,7 @@ export default function AuthProviderBanner({
         ? "Microsoft"
         : provider === "apple.com"
           ? "Apple"
-          : "otro servicio";
+          : (isSpanish ? "otro servicio" : "another service");
 
   return (
     <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/50 px-4 py-3">
