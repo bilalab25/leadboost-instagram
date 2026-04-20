@@ -57,11 +57,67 @@ app.post(
 // ============================================================
 app.use(
   helmet({
-    // Relax CSP for development (Vite HMR needs inline scripts)
     contentSecurityPolicy: isProduction
-      ? undefined // Use helmet defaults in production
-      : false, // Disable in development for Vite HMR
-    // Allow cross-origin for embedded resources (Cloudinary images, Google Fonts, etc.)
+      ? {
+          directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: [
+              "'self'",
+              "'unsafe-inline'",
+              "'unsafe-eval'",
+              "https://js.stripe.com",
+              "https://widget.trustpilot.com",
+              "https://www.googletagmanager.com",
+              "https://apis.google.com",
+              "https://www.gstatic.com",
+              "https://www.google.com",
+              "https://maps.googleapis.com",
+            ],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
+            imgSrc: [
+              "'self'",
+              "data:",
+              "blob:",
+              "https://res.cloudinary.com",
+              "https://*.fbcdn.net",
+              "https://*.cdninstagram.com",
+              "https://lh3.googleusercontent.com",
+              "https://www.google-analytics.com",
+              "https://widget.trustpilot.com",
+              "https://*.trustpilot.com",
+            ],
+            connectSrc: [
+              "'self'",
+              "https://api.cloudinary.com",
+              "https://api.render.com",
+              "https://www.googleapis.com",
+              "https://fonts.googleapis.com",
+              "https://identitytoolkit.googleapis.com",
+              "https://securetoken.googleapis.com",
+              "https://firebaseinstallations.googleapis.com",
+              "https://graph.facebook.com",
+              "https://graph.instagram.com",
+              "https://api.stripe.com",
+              "wss:",
+              "ws:",
+            ],
+            frameSrc: [
+              "'self'",
+              "https://js.stripe.com",
+              "https://hooks.stripe.com",
+              "https://widget.trustpilot.com",
+              "https://*.firebaseapp.com",
+              "https://accounts.google.com",
+              "https://www.facebook.com",
+            ],
+            mediaSrc: ["'self'", "blob:", "data:", "https://res.cloudinary.com"],
+            workerSrc: ["'self'", "blob:"],
+            objectSrc: ["'none'"],
+            upgradeInsecureRequests: [],
+          },
+        }
+      : false,
     crossOriginResourcePolicy: { policy: "cross-origin" },
     crossOriginEmbedderPolicy: false,
   })

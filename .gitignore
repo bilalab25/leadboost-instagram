@@ -33,3 +33,7 @@ endpoint_analysis.txt
 Thumbs.db
 *.swp
 *.swo
+# Deploy scripts with API keys
+deploy-render.mjs
+update-render-env.mjs
+update-app-url.mjs
