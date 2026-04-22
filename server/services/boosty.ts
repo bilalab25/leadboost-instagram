@@ -1,4 +1,4 @@
-import { GoogleGenAI, Modality } from "@google/genai";
+import { GoogleGenAI, Modality, Type } from "@google/genai";
 import { generateContentWithRetry } from "./aiRetry";
 import { db } from "../db";
 import {
@@ -394,19 +394,23 @@ function detectCampaignBrief(message: string, history: ChatMessage[] = []): Camp
   const text = `${message} ${recent}`;
   const lower = text.toLowerCase();
 
-  const offerMatch = text.match(/\b(\d{1,2}\s*%\s*(?:off|de\s*descuento|descuento|menos)|2x1|3x2|free\s+\w+|gratis\s+\w+|combo|bundle)\b/i);
+  const offerMatch = text.match(/\b(\d{1,2}\s*%\s*(?:off|de\s*descuento|descuento|menos)|2x1|3x2|free\s+\w+(?:\s+\w+)?|gratis\s+\w+(?:\s+\w+)?|combo|bundle)\b/i);
   const hasOffer = !!offerMatch || /\b(oferta|promoci[oó]n|descuento|sale|deal|discount|promo|special)\b/i.test(lower);
 
-  const dateMatch = text.match(/\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?|enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\b[\s\d\-—a-z]*\d{0,4}/i);
+  // Capture month-with-day-range like "valid June 1-30" or "del 1 al 30 de junio"
+  const dateMatch = text.match(/\b(?:v[aá]lid[oa]?\s*(?:from|del|until|hasta)?\s*)?((?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?|enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\s*\d{0,2}\s*[-—–]?\s*\d{0,2}(?:\s*,?\s*\d{4})?)/i);
   const hasDates = !!dateMatch || /\b(\d{1,2}\s*[-—]\s*\d{1,2}|today|tomorrow|this week|next week|this month|next month|hoy|ma[nñ]ana|esta semana|pr[oó]xima semana|este mes|pr[oó]ximo mes|del?\s*\d{1,2}\s*(?:al|to|hasta)\s*\d{1,2})\b/i.test(lower);
 
-  const serviceMatch = text.match(/\b(botox|filler|relleno|tratamiento|armonizaci[oó]n|facial|consulta|consultation|peeling|lifting|massage|masaje|skincare|cuidado de piel|product|producto|hidrataci[oó]n|microblading|laser|l[aá]ser)\b/i);
+  // Capture multi-word service names like "armonización facial", "botox lifting"
+  const serviceMatch = text.match(/\b(armonizaci[oó]n\s+facial|tratamiento\s+\w+|botox|filler|relleno|consulta(?:ci[oó]n)?|peeling|lifting|massage|masaje|skincare|cuidado\s*de\s*piel|hidrataci[oó]n|microblading|l[aá]ser|facial|tratamiento|product[oa]?)\b/i);
   const hasService = !!serviceMatch;
 
-  const ctaMatch = text.match(/\b(book|agenda|reserva|call|llama|visit|visita|click|swipe up|sign\s*up|reg[ií]strate|order|pide|buy|compra|dm|message us|escr[ií]benos|contacto|contact|inquire|sched(?:ule)?)\b/i);
+  // Capture full CTAs like "agenda tu cita", "book your appointment", "DM us to reserve"
+  const ctaMatch = text.match(/\b(agenda\s+(?:tu\s+)?(?:cita|consulta)|reserva\s+(?:tu\s+)?(?:cita|lugar|consulta)?(?:\s+ahora|\s+ya)?|book\s+(?:your\s+|an?\s+)?(?:appointment|consultation|spot|now)?|dm\s+(?:us\s+|me\s+)?(?:to\s+\w+)?|escr[ií]benos(?:\s+por\s+dm)?|message\s+us|contact\s+us|sched(?:ule)?\s+(?:your\s+|an?\s+)?(?:appointment|call)?|sign\s*up\s+(?:now|today)?|reg[ií]strate(?:\s+ahora)?|swipe\s+up|click\s+(?:link|here|now)?|buy\s+now|compra\s+ahora|llama|call\s+us)\b/i);
   const hasCTA = !!ctaMatch;
 
-  const themeMatch = text.match(/\b(fifa|world cup|black friday|christmas|navidad|valentine|san valent[ií]n|halloween|new year|a[nñ]o nuevo|mother'?s day|d[ií]a de las? madres?|father'?s day|d[ií]a del padre|easter|pascua|summer|verano|winter|invierno|spring|primavera|fall|oto[nñ]o)\b/i);
+  // Capture themed events with year/qualifier like "FIFA World Cup 2026"
+  const themeMatch = text.match(/\b(fifa\s+world\s+cup(?:\s+\d{4})?|world\s+cup(?:\s+\d{4})?|black\s+friday|cyber\s+monday|christmas|navidad|valentine'?s?(?:\s+day)?|san\s+valent[ií]n|halloween|new\s+year|a[nñ]o\s+nuevo|mother'?s\s+day|d[ií]a\s+de\s+las?\s+madres?|father'?s\s+day|d[ií]a\s+del\s+padre|easter|pascua|summer\s+sale|verano|winter\s+sale|invierno|spring\s+sale|primavera|fall\s+sale|oto[nñ]o|fifa)\b/i);
   const hasTheme = !!themeMatch;
 
   const flags = [hasOffer, hasDates, hasService, hasCTA, hasTheme];
@@ -1270,124 +1274,87 @@ Your job is to produce a JSON object with:
 
 Respond ONLY with valid JSON.`;
 
-    try {
-      const response = await generateContentWithRetry(getAI(), {
-        model: "gemini-2.5-flash",
-        contents: prompt,
-        config: {
-          temperature: 0.7,
-          maxOutputTokens: 1500,
-          responseMimeType: "application/json",
-        },
-      });
-
-      const text = response.text || "";
-      // With responseMimeType=json the whole text should be valid JSON, but
-      // sometimes the model still wraps it in code fences — be lenient.
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-
-        if (editorialMode) {
-          // Sanitize editorial outputs
-          const basePhotoPrompt = sanitizePrompt(
-            parsed.basePhotoPrompt ||
-              buildEditorialBasePrompt(preset, context, userMessage),
-          );
-          const layoutPlan = sanitizeLayoutPlan(
-            parsed.layoutPlan || {
-              aspectRatio: "4:5",
-              safeAreaPercent: { top: 8, right: 8, bottom: 10, left: 8 },
-              headline: promotionDetails || context.brand.name,
-              subhead: context.design?.brandStyle || "",
-              alignment: "center",
-              theme: "light",
-            },
-          );
-
-          return {
-            basePhotoPrompt,
-            layoutPlan,
-            caption: parsed.caption || "",
-            hashtags: parsed.hashtags || "",
-            editorialMode: true,
-          };
-        } else {
-          // Non-editorial / campaign mode: return imagePrompt directly.
-          // Fall back to a brief-driven caption + hashtags if Gemini left them blank.
-          const fallbackCaption =
-            language === "es"
-              ? `${promotionDetails ? promotionDetails + " — " : ""}${serviceName || context.brand.name}${datesText ? ` (${datesText})` : ""}. ${ctaText || "Escríbenos para reservar"} 💬`
-              : `${promotionDetails ? promotionDetails + " — " : ""}${serviceName || context.brand.name}${datesText ? ` (${datesText})` : ""}. ${ctaText || "DM us to book"} 💬`;
-          const fallbackHashtags = [
-            `#${context.brand.name.replace(/\s+/g, "")}`,
-            serviceName ? `#${serviceName.replace(/\s+/g, "")}` : "",
-            themeName ? `#${themeName.replace(/\s+/g, "")}` : "",
-            promotionDetails ? `#${promotionDetails.replace(/\s+/g, "")}` : "",
-            "#instagram",
-          ]
-            .filter(Boolean)
-            .join(" ");
-
-          return {
-            basePhotoPrompt:
-              parsed.imagePrompt ||
-              `Polished Instagram ad creative for ${context.brand.name}: hero photo, oversized headline "${promotionDetails || serviceName || context.brand.name}", sub-text "${datesText || serviceName}", CTA button "${ctaText || "Book now"}", brand color background, brand logo top-left.`,
+    // Schema-locked JSON output. With responseSchema the model is guaranteed
+    // to return parseable JSON with these exact fields populated — no need
+    // for regex extraction or generic fallbacks.
+    const briefSchema = editorialMode
+      ? {
+          type: Type.OBJECT,
+          properties: {
+            basePhotoPrompt: { type: Type.STRING },
             layoutPlan: {
-              aspectRatio: "4:5",
-              safeAreaPercent: { top: 0, right: 0, bottom: 0, left: 0 },
-              headline: "",
-              subhead: "",
-              alignment: "center" as const,
-              theme: "light" as const,
+              type: Type.OBJECT,
+              properties: {
+                aspectRatio: { type: Type.STRING },
+                headline: { type: Type.STRING },
+                subhead: { type: Type.STRING },
+                cta: { type: Type.STRING },
+                alignment: { type: Type.STRING },
+                theme: { type: Type.STRING },
+              },
+              required: ["aspectRatio", "headline", "subhead", "alignment", "theme"],
             },
-            caption: parsed.caption || fallbackCaption,
-            hashtags: parsed.hashtags || fallbackHashtags,
-            editorialMode: false,
-          };
+            caption: { type: Type.STRING },
+            hashtags: { type: Type.STRING },
+          },
+          required: ["basePhotoPrompt", "layoutPlan", "caption", "hashtags"],
         }
-      }
-    } catch (error) {
-      console.error("[Boosty] Error generating image prompt:", error);
-    }
+      : {
+          type: Type.OBJECT,
+          properties: {
+            imagePrompt: { type: Type.STRING },
+            caption: { type: Type.STRING },
+            hashtags: { type: Type.STRING },
+          },
+          required: ["imagePrompt", "caption", "hashtags"],
+        };
 
-    // Fallback based on mode — brief-aware so we never return empty caption/hashtags
-    if (editorialMode) {
-      return this.buildEditorialFallback(userMessage, context, preset);
-    } else {
-      const headline =
-        promotionDetails || themeName || serviceName || context.brand.name;
-      const sub = [serviceName, datesText].filter(Boolean).join(" — ");
-      const cta = ctaText || (language === "es" ? "Agenda tu cita" : "Book now");
-      const fallbackBasePrompt = `Polished Instagram 4:5 ad creative for ${context.brand.name}. Hero photo of a relevant ${context.brand.industry || "lifestyle"} subject. The brand's primary color (${context.design?.colors?.primary || "brand color"}) dominates the background or as a bold panel. OVERSIZED HEADLINE in ${context.design?.fonts?.primary || "modern bold sans-serif"} reading "${headline}". Sub-text below reading "${sub || serviceName || context.brand.name}". A clean rounded CTA button at the bottom labeled "${cta}". The brand logo is placed cleanly in the top-left corner. Sharp typography hierarchy, magazine-grade composition, high contrast, professional commercial polish. AVOID generic stock-photo look, busy collage layouts, fake QR codes.`;
-      const fallbackCaption =
-        language === "es"
-          ? `${promotionDetails ? promotionDetails + " — " : ""}${serviceName || context.brand.name}${datesText ? ` (${datesText})` : ""}. ${cta} 💬`
-          : `${promotionDetails ? promotionDetails + " — " : ""}${serviceName || context.brand.name}${datesText ? ` (${datesText})` : ""}. ${cta} 💬`;
-      const fallbackHashtags = [
-        `#${context.brand.name.replace(/\s+/g, "")}`,
-        serviceName ? `#${serviceName.replace(/\s+/g, "")}` : "",
-        themeName ? `#${themeName.replace(/\s+/g, "")}` : "",
-        promotionDetails ? `#${promotionDetails.replace(/[\s%]+/g, "")}` : "",
-        "#instagram",
-      ]
+    const response = await generateContentWithRetry(getAI(), {
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        temperature: 0.85,
+        maxOutputTokens: 2048,
+        responseMimeType: "application/json",
+        responseSchema: briefSchema as any,
+      },
+    });
+
+    const text =
+      response.text ||
+      response.candidates?.[0]?.content?.parts
+        ?.map((p: any) => p.text)
         .filter(Boolean)
-        .join(" ");
+        .join("") ||
+      "";
+    const parsed = JSON.parse(text);
+
+    if (editorialMode) {
+      const basePhotoPrompt = sanitizePrompt(parsed.basePhotoPrompt);
+      const layoutPlan = sanitizeLayoutPlan(parsed.layoutPlan);
       return {
-        basePhotoPrompt: fallbackBasePrompt,
-        layoutPlan: {
-          aspectRatio: "4:5",
-          safeAreaPercent: { top: 0, right: 0, bottom: 0, left: 0 },
-          headline: "",
-          subhead: "",
-          alignment: "center" as const,
-          theme: "light" as const,
-        },
-        caption: fallbackCaption,
-        hashtags: fallbackHashtags,
-        editorialMode: false,
+        basePhotoPrompt,
+        layoutPlan,
+        caption: parsed.caption,
+        hashtags: parsed.hashtags,
+        editorialMode: true,
       };
     }
+
+    return {
+      basePhotoPrompt: parsed.imagePrompt,
+      layoutPlan: {
+        aspectRatio: "4:5",
+        safeAreaPercent: { top: 0, right: 0, bottom: 0, left: 0 },
+        headline: "",
+        subhead: "",
+        alignment: "center" as const,
+        theme: "light" as const,
+      },
+      caption: parsed.caption,
+      hashtags: parsed.hashtags,
+      editorialMode: false,
+    };
   }
 
   async chat(
