@@ -33,6 +33,8 @@ import {
   MicOff,
   X,
   FileAudio,
+  Download,
+  ZoomIn,
 } from "lucide-react";
 import { SiInstagram, SiFacebook, SiTiktok } from "react-icons/si";
 import Sidebar from "@/components/Sidebar";
@@ -152,6 +154,7 @@ export default function Waterfall() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [voiceNote, setVoiceNote] = useState<Blob | null>(null);
+  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -821,25 +824,35 @@ export default function Waterfall() {
                                         animate={{ opacity: 1, scale: 1 }}
                                         className="mb-4"
                                       >
-                                        <div className="relative group">
+                                        <div className="relative group inline-block max-w-md w-full">
                                           <img
                                             src={msg.image}
                                             alt="Generated content"
-                                            className="w-full max-w-md rounded-xl shadow-lg object-cover cursor-pointer hover:shadow-xl transition-shadow"
-                                            style={{ maxHeight: "400px" }}
+                                            className="w-full h-auto rounded-xl shadow-lg object-contain bg-gray-50 cursor-zoom-in hover:shadow-xl transition-shadow"
                                             data-testid="generated-image"
                                             onClick={() => {
-                                              if (msg.image?.startsWith("data:")) {
-                                                // Data URLs can't reliably be opened in new tabs
-                                                const link = document.createElement("a");
-                                                link.href = msg.image;
-                                                link.download = "generated-image.png";
-                                                link.click();
-                                              } else if (isSafeUrl(msg.image)) {
-                                                window.open(msg.image, "_blank");
-                                              }
+                                              if (msg.image) setFullscreenImage(msg.image);
                                             }}
                                           />
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              if (!msg.image) return;
+                                              const link = document.createElement("a");
+                                              link.href = msg.image;
+                                              link.download = `boosty-creative-${Date.now()}.png`;
+                                              document.body.appendChild(link);
+                                              link.click();
+                                              document.body.removeChild(link);
+                                            }}
+                                            className="absolute top-2 right-2 bg-white/90 hover:bg-white text-gray-800 backdrop-blur-sm shadow-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all"
+                                            title={language === "es" ? "Descargar imagen" : "Download image"}
+                                            data-testid="button-download-image"
+                                          >
+                                            <Download className="w-3.5 h-3.5" />
+                                            {language === "es" ? "Descargar" : "Download"}
+                                          </button>
                                           <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <Badge className="bg-gradient-to-r from-brand-600 to-cyan-500 text-white text-xs">
                                               <Sparkles className="w-3 h-3 mr-1" />
@@ -1154,6 +1167,54 @@ export default function Waterfall() {
           </main>
         </div>
       </div>
+
+      {/* Fullscreen image lightbox + download */}
+      <Dialog
+        open={!!fullscreenImage}
+        onOpenChange={(open) => !open && setFullscreenImage(null)}
+      >
+        <DialogContent className="max-w-5xl p-0 bg-transparent border-none shadow-none">
+          <DialogTitle className="sr-only">
+            {language === "es" ? "Vista previa" : "Image preview"}
+          </DialogTitle>
+          <div className="relative">
+            {fullscreenImage ? (
+              <img
+                src={fullscreenImage}
+                alt={language === "es" ? "Vista previa" : "Full preview"}
+                className="w-full h-auto max-h-[88vh] object-contain rounded-lg bg-white"
+              />
+            ) : null}
+            <div className="absolute top-3 right-3 flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (!fullscreenImage) return;
+                  const link = document.createElement("a");
+                  link.href = fullscreenImage;
+                  link.download = `boosty-creative-${Date.now()}.png`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
+                className="bg-white/95 hover:bg-white text-gray-900 backdrop-blur-sm shadow-md rounded-lg px-3 py-2 text-sm font-medium flex items-center gap-2 transition-all"
+                data-testid="button-download-fullscreen"
+              >
+                <Download className="w-4 h-4" />
+                {language === "es" ? "Descargar" : "Download"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setFullscreenImage(null)}
+                className="bg-white/95 hover:bg-white text-gray-900 backdrop-blur-sm shadow-md rounded-lg p-2 transition-all"
+                aria-label={language === "es" ? "Cerrar" : "Close"}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
