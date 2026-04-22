@@ -406,16 +406,16 @@ interface CampaignBrief {
 // Pattern matchers shared with isImageRequest so we know if a message itself
 // starts a fresh creative request.
 const IMAGE_REQUEST_ALL = [
-  /genera(r)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel)/i,
-  /crea(r)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel)/i,
-  /haz(me)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel)/i,
-  /quiero\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual)/i,
-  /necesito\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual)/i,
-  /generate\s*(the|an?|that|this)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel)/i,
-  /create\s*(the|an?|that|this)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel)/i,
-  /make\s*(me\s*)?(the|an?|that|this)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel)/i,
-  /i\s*(want|need)\s*to\s*(make|create|design|generate)\s*(a|an|the)?\s*(image|photo|post|visual|story|story|reel|design|graphic|banner)/i,
-  /design\s*(me\s*)?(the|an?|that|this)?\s*(image|photo|post|visual)/i,
+  /genera(r)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel|reels|carrusel|carousel|carrousel)/i,
+  /crea(r)?\s*(la|el|un[ao]?|esa?|\d+\s*-?slide\s*)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel|reels|carrusel|carousel|carrousel)/i,
+  /haz(me)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel|reels|carrusel|carousel|carrousel)/i,
+  /quiero\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|carrusel|reel)/i,
+  /necesito\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|carrusel|reel)/i,
+  /generate\s*(the|an?|that|this|\d+\s*-?slide)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel|reels|carousel|carrousel)/i,
+  /create\s*(the|an?|that|this|\d+\s*-?slide)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel|reels|carousel|carrousel)/i,
+  /make\s*(me\s*)?(the|an?|that|this|\d+\s*-?slide)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel|reels|carousel|carrousel)/i,
+  /i\s*(want|need)\s*to\s*(make|create|design|generate)\s*(a|an|the|\d+\s*-?slide)?\s*(image|photo|post|visual|story|reel|reels|design|graphic|banner|carousel|carrousel)/i,
+  /design\s*(me\s*)?(the|an?|that|this)?\s*(image|photo|post|visual|carousel|reel)/i,
 ];
 
 function isFreshImageRequest(message: string): boolean {
@@ -621,20 +621,20 @@ function missingBriefQuestions(
 
 const IMAGE_REQUEST_PATTERNS = {
   es: [
-    /genera(r)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel)/i,
-    /crea(r)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel)/i,
-    /haz(me)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel)/i,
-    /quiero\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual)/i,
-    /necesito\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual)/i,
-    /dise[ñn]a(me)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n)/i,
+    /genera(r)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel|reels|carrusel|carousel|carrousel)/i,
+    /crea(r)?\s*(la|el|una?|esa?|un|\d+\s*-?slide\s*)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel|reels|carrusel|carousel|carrousel)/i,
+    /haz(me)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel|reels|carrusel|carousel|carrousel)/i,
+    /quiero\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|carrusel|reel)/i,
+    /necesito\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|carrusel|reel)/i,
+    /dise[ñn]a(me)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|carrusel|reel)/i,
     /genera(r)?\s*(eso|esto)/i,
   ],
   en: [
-    /generate\s*(the|an?|that|this)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel)/i,
-    /create\s*(the|an?|that|this)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel)/i,
-    /make\s*(me\s*)?(the|an?|that|this)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel)/i,
-    /i\s*(want|need)\s*(the|an?|that|this)?\s*(image|photo|post|visual)/i,
-    /design\s*(me\s*)?(the|an?|that|this)?\s*(image|photo|post|visual)/i,
+    /generate\s*(the|an?|that|this|\d+\s*-?slide)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel|reels|carousel|carrousel)/i,
+    /create\s*(the|an?|that|this|\d+\s*-?slide)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel|reels|carousel|carrousel)/i,
+    /make\s*(me\s*)?(the|an?|that|this|\d+\s*-?slide)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel|reels|carousel|carrousel)/i,
+    /i\s*(want|need)\s*(the|an?|that|this|\d+\s*-?slide)?\s*(image|photo|post|visual|carousel|reel|story)/i,
+    /design\s*(me\s*)?(the|an?|that|this)?\s*(image|photo|post|visual|carousel|reel)/i,
     /please\s+generate/i,
     /can\s+you\s+generate/i,
     /generate\s+(it|that|this)/i,
