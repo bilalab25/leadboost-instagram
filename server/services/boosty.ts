@@ -2151,50 +2151,65 @@ Respond ONLY with valid JSON.`;
 
   private async generateVideoWithVeo(prompt: string): Promise<string | null> {
     const ai = getAI();
-    let op: any;
-    try {
-      op = await (ai.models as any).generateVideos({
-        // Latest Veo model in this account. 3.1 produces noticeably better
-        // motion + composition than 3.0. Audio is native to Veo 3.x.
-        // Hard API limit on every Veo model is 4-8 seconds per clip — for
-        // longer reels we'd need to stitch multiple clips with ffmpeg.
-        model: "veo-3.1-generate-preview",
-        prompt,
-        config: {
-          aspectRatio: "9:16",
-          numberOfVideos: 1,
-          // Aggressive negative prompt — these are the visual + audio
-          // artifacts that scream "this is AI". List as many as Veo will
-          // honor.
-          negativePrompt: [
-            // Image artifacts
-            "blurry", "low quality", "distorted faces", "warped hands", "extra fingers",
-            "uncanny valley", "plastic skin", "doll-like skin", "waxy skin",
-            "deformed anatomy", "bad anatomy", "disfigured",
-            // Text artifacts (Veo can't render text legibly)
-            "any text", "any letters", "any words", "captions", "subtitles", "watermarks",
-            "labels", "signs", "logos", "garbled text", "gibberish text", "warped letters",
-            "screens with readable text", "UI mockups",
-            // Cut/motion artifacts
-            "choppy cuts", "hard cuts", "stuttering motion", "frame jumps", "morphing",
-            "warping transitions", "glitchy",
-            // Audio (don't speak)
-            "robotic voice", "AI voice", "synthesized speech", "TTS", "spoken narration",
-            "voiceover", "talking head with dialogue",
-            // The "AI look"
-            "CGI look", "3D rendered look", "video game cutscene", "AI generated look",
-            "smooth plastic surfaces", "perfect symmetry", "uncanny perfection",
-            "stock photo aesthetic", "shutterstock", "generic corporate",
-            "infographic style", "motion graphics overlay", "lower-third graphic",
-          ].join(", "),
-        },
-      });
-    } catch (e: any) {
-      console.warn("[Boosty/Veo] Submit failed:", e?.message || e);
+    // Aggressive negative prompt — visual + audio artifacts that scream AI.
+    const negativePrompt = [
+      // Image artifacts
+      "blurry", "low quality", "distorted faces", "warped hands", "extra fingers",
+      "uncanny valley", "plastic skin", "doll-like skin", "waxy skin",
+      "deformed anatomy", "bad anatomy", "disfigured",
+      // Text artifacts (Veo can't render text legibly)
+      "any text", "any letters", "any words", "captions", "subtitles", "watermarks",
+      "labels", "signs", "logos", "garbled text", "gibberish text", "warped letters",
+      "screens with readable text", "UI mockups",
+      // Cut/motion artifacts
+      "choppy cuts", "hard cuts", "stuttering motion", "frame jumps", "morphing",
+      "warping transitions", "glitchy",
+      // Audio (don't speak)
+      "robotic voice", "AI voice", "synthesized speech", "TTS", "spoken narration",
+      "voiceover", "talking head with dialogue",
+      // The "AI look"
+      "CGI look", "3D rendered look", "video game cutscene", "AI generated look",
+      "smooth plastic surfaces", "perfect symmetry", "uncanny perfection",
+      "stock photo aesthetic", "shutterstock", "generic corporate",
+      "infographic style", "motion graphics overlay", "lower-third graphic",
+    ].join(", ");
+
+    // Try the latest model first; fall back to older Veo variants when the
+    // newer ones are quota-throttled (HTTP 429). Veo 3.x has audio; Veo 2
+    // does not but is the most quota-available.
+    const modelChain = [
+      "veo-3.1-generate-preview",
+      "veo-3.0-generate-001",
+      "veo-3.0-fast-generate-001",
+      "veo-2.0-generate-001",
+    ];
+
+    let op: any = null;
+    let usedModel: string | null = null;
+    for (const model of modelChain) {
+      try {
+        op = await (ai.models as any).generateVideos({
+          model,
+          prompt,
+          config: { aspectRatio: "9:16", numberOfVideos: 1, negativePrompt },
+        });
+        usedModel = model;
+        console.log(`[Boosty/Veo] Submitted to ${model}`);
+        break;
+      } catch (e: any) {
+        const msg = e?.message || String(e);
+        const is429 = /429|quota|RESOURCE_EXHAUSTED/i.test(msg);
+        console.warn(`[Boosty/Veo] ${model} ${is429 ? "quota-throttled" : "submit failed"}: ${msg.slice(0, 200)}`);
+        if (!is429) return null; // Hard error — don't retry other models
+      }
+    }
+    if (!op) {
+      console.warn("[Boosty/Veo] All Veo models quota-throttled");
       return null;
     }
+
     const startedAt = Date.now();
-    const TIMEOUT_MS = 8 * 60_000; // Full Veo 3 can take 2-5 min
+    const TIMEOUT_MS = 8 * 60_000;
     while (!op.done && Date.now() - startedAt < TIMEOUT_MS) {
       await new Promise((r) => setTimeout(r, 8000));
       try {
@@ -2205,13 +2220,13 @@ Respond ONLY with valid JSON.`;
       }
     }
     if (!op.done) {
-      console.warn("[Boosty/Veo] Generation timed out after 8 minutes");
+      console.warn(`[Boosty/Veo] ${usedModel} generation timed out after 8 minutes`);
       return null;
     }
     const generated = op.response?.generatedVideos || [];
     const uri = generated[0]?.video?.uri;
     if (!uri) {
-      console.warn("[Boosty/Veo] No video in response (likely safety-filtered)");
+      console.warn(`[Boosty/Veo] ${usedModel} returned no video (likely safety-filtered)`);
       return null;
     }
     const sep = uri.includes("?") ? "&" : "?";
