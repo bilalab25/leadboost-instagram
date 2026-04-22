@@ -1849,36 +1849,48 @@ BRAND:
 - Headline font: ${context.design?.fonts?.primary || "modern sans-serif"}
 
 ═══════════════════════════════════════════════════════════════
-CRITICAL: How a Veo-3 8-second clip actually works
+CRITICAL: hard rules for the Veo video prompt
 ═══════════════════════════════════════════════════════════════
-Veo CANNOT render 3 hard-cut scenes in 8 seconds — those produce vague, choppy
-output. Veo CAN render ONE flowing shot or ONE smooth camera move with a clear
-opening beat, middle action, and a deliberate ending beat (like a button card).
-Your job is to write a SINGLE cinematic shot description Veo can execute
-perfectly, plus a separate human-readable script for the user.
+Veo 3 has known weaknesses you MUST design around — otherwise the output looks
+unmistakably AI:
+
+• Veo can NOT render legible written text inside the video. Any in-frame text
+  comes out as garbled letterforms. So: ZERO words, signs, labels, captions,
+  buttons-with-text, posters, magazine covers, screens with UI copy, computer
+  screens with readable text — none of it.
+• Veo's spoken voiceover sounds robotic and AI. So: NO spoken dialogue and NO
+  narration. Audio is ONLY ambient sound + a tasteful musical underscore.
+• Veo CANNOT do 3 hard-cut scenes in 8 seconds. Use ONE continuous shot with a
+  single smooth camera move.
+• To avoid the "AI look", anchor every shot in REAL-WORLD cinematography
+  language: film stock or sensor, lens choice, natural light source, real
+  texture, location specifics. Avoid words like "render", "3D", "graphic",
+  "animated", "infographic", "VFX", "CGI", "perfect", "futuristic UI".
 
 Output JSON with these fields, no others:
 
-1. "videoPrompt": (max 250 words) ONE single-shot cinematic instruction for the
-   Veo 3 video model. Must follow this exact structure:
+1. "videoPrompt": (max 250 words) ONE photoreal cinematic single-shot
+   instruction for the Veo 3 video model, written as a paragraph (no bullets).
+   Mandatory structure:
 
-   OPENING (0–1.5s): a strong, immediately-readable visual that stops the scroll.
-   Specify subject, action, framing.
-   MIDDLE (1.5–6s): the core demonstration — one continuous camera movement
-   (slow push-in, smooth pan, dolly, orbit, rack focus). NO hard cuts.
-   ENDING (6–8s): the camera lands on a clean ending beat — either the brand
-   name in bold typography over the brand color (${context.design?.colors?.primary || "brand color"}), OR the CTA "${brief.extracted.cta || "Book now"}" rendered as a pill button.
+   OPENING BEAT (0-1.5s): a real-world subject doing a real-world action
+   (not a screen, not text) framed for instant readability — describe the
+   subject, the lens (e.g. "shot on a 35mm film camera, anamorphic", or
+   "Sony FX3 with a 50mm prime, T1.4"), the lighting source (window light,
+   golden hour, soft top light), and the depth of field.
+   MIDDLE (1.5-6.5s): ONE continuous camera move — slow push-in, gentle pan,
+   handheld micro-shake, smooth dolly, or rack focus. The subject performs
+   the core demonstration grounded in physical reality. Note color grade
+   (e.g. "warm filmic grade with subtle grain", "Kodak Portra palette").
+   ENDING BEAT (6.5-8s): the camera lands on a clean composition — a
+   product detail, the subject's confident reaction, or a clean negative-space
+   frame washed in the brand color (${context.design?.colors?.primary || "brand color"}). NO TEXT. NO BUTTONS. NO LABELS.
 
-   STYLE LINE: cinematic, commercial-grade, modern color grading, sharp focus,
-   ${context.design?.brandStyle || "premium minimalist"} aesthetic, 9:16 vertical.
-   AUDIO LINE: spoken voiceover (one short sentence, max 12 words, natural tone)
-   AND subtle musical underscore + ambient sound. Specify the EXACT words to
-   speak in quotes.
-   NEGATIVE LINE: no text artifacts, no warped faces, no watermarks, no
-   choppy cuts, no jarring transitions.
-
-   The whole prompt is one paragraph using Veo-friendly cinematic language
-   (camera type, lens, lighting, color grade, motion). Avoid lists.
+   STYLE: cinematic, commercial-grade, photoreal, ${context.design?.brandStyle || "premium minimalist"}, 9:16 vertical.
+   AUDIO: ONLY ambient diegetic sound (room tone, soft footsteps, paper
+   shuffle, keyboard taps, coffee pour, etc. — match the scene) plus a
+   tasteful instrumental underscore (specify mood: warm acoustic, modern lo-fi,
+   uplifting strings). NO voiceover. NO narration. NO spoken words. NO TTS.
 
 2. "coverImagePrompt": (max 200 words) instructions for a 9:16 vertical Reel
    COVER STILL frame. In-image typography: punchy headline (3-5 words) + service
@@ -2041,8 +2053,30 @@ Respond ONLY with valid JSON.`;
         config: {
           aspectRatio: "9:16",
           numberOfVideos: 1,
-          negativePrompt:
-            "blurry, low quality, distorted faces, warped hands, watermark, text artifacts, glitches, choppy cuts, stuttering motion, garbled letters, fake logos, generic stock-photo look",
+          // Aggressive negative prompt — these are the visual + audio
+          // artifacts that scream "this is AI". List as many as Veo will
+          // honor.
+          negativePrompt: [
+            // Image artifacts
+            "blurry", "low quality", "distorted faces", "warped hands", "extra fingers",
+            "uncanny valley", "plastic skin", "doll-like skin", "waxy skin",
+            "deformed anatomy", "bad anatomy", "disfigured",
+            // Text artifacts (Veo can't render text legibly)
+            "any text", "any letters", "any words", "captions", "subtitles", "watermarks",
+            "labels", "signs", "logos", "garbled text", "gibberish text", "warped letters",
+            "screens with readable text", "UI mockups",
+            // Cut/motion artifacts
+            "choppy cuts", "hard cuts", "stuttering motion", "frame jumps", "morphing",
+            "warping transitions", "glitchy",
+            // Audio (don't speak)
+            "robotic voice", "AI voice", "synthesized speech", "TTS", "spoken narration",
+            "voiceover", "talking head with dialogue",
+            // The "AI look"
+            "CGI look", "3D rendered look", "video game cutscene", "AI generated look",
+            "smooth plastic surfaces", "perfect symmetry", "uncanny perfection",
+            "stock photo aesthetic", "shutterstock", "generic corporate",
+            "infographic style", "motion graphics overlay", "lower-third graphic",
+          ].join(", "),
         },
       });
     } catch (e: any) {
