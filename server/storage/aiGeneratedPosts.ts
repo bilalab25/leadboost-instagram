@@ -167,10 +167,12 @@ export async function updateAiGeneratedPostStatus(
   }
 
   // Only allow transitions from valid source statuses (prevents concurrent race conditions)
+  // published is terminal; accepted/rejected flip back to pending only, not to each other
+  // (prevents approve→reject or reject→approve races without going through pending first).
   const validSourceStatuses: Record<string, string[]> = {
     accepted: ["pending"],
     rejected: ["pending"],
-    pending: ["accepted", "rejected", "pending"],
+    pending: ["accepted", "rejected"],
     published: ["accepted"],
   };
   const allowedFrom = validSourceStatuses[status] || [];
@@ -224,4 +226,29 @@ export async function bulkUpdateAiGeneratedPostsStatus(
     .returning();
 
   return result.length;
+}
+
+// Delete a post by id scoped to its brand. Refuses to delete already-published
+// posts since those exist on Instagram and deleting the DB row won't unpost them.
+export async function deleteAiGeneratedPost(
+  postId: string,
+  brandId: string,
+): Promise<{ deleted: boolean; reason?: string }> {
+  const existing = await db
+    .select()
+    .from(aiGeneratedPosts)
+    .where(
+      and(eq(aiGeneratedPosts.id, postId), eq(aiGeneratedPosts.brandId, brandId)),
+    )
+    .limit(1);
+  if (existing.length === 0) return { deleted: false, reason: "not_found" };
+  if (existing[0].status === "published") {
+    return { deleted: false, reason: "already_published" };
+  }
+  await db
+    .delete(aiGeneratedPosts)
+    .where(
+      and(eq(aiGeneratedPosts.id, postId), eq(aiGeneratedPosts.brandId, brandId)),
+    );
+  return { deleted: true };
 }

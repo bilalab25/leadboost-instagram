@@ -1674,6 +1674,13 @@ export default function ContentCalendar() {
     }
     if (!editPost.scheduledFor) {
       errors.scheduledFor = isSpanish ? "La fecha es obligatoria" : "Schedule date is required";
+    } else {
+      const scheduledTs = new Date(editPost.scheduledFor).getTime();
+      if (!isNaN(scheduledTs) && scheduledTs < Date.now() - 60_000) {
+        errors.scheduledFor = isSpanish
+          ? "La fecha debe ser en el futuro"
+          : "Scheduled time must be in the future";
+      }
     }
     if ((editPost.content?.length || 0) > 2200) {
       errors.content = isSpanish ? "Máximo 2,200 caracteres" : "Maximum 2,200 characters";

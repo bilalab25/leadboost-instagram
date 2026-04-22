@@ -2976,6 +2976,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "Invalid status" });
         }
 
+        // Reject schedules in the past — they'd never get picked up by the
+        // publisher cron and just rot as zombie accepted posts.
+        if (scheduledPublishTime) {
+          const scheduledDate = new Date(scheduledPublishTime);
+          if (isNaN(scheduledDate.getTime())) {
+            return res
+              .status(400)
+              .json({ message: "Invalid scheduled publish time" });
+          }
+          if (status === "accepted" && scheduledDate.getTime() < Date.now() - 60_000) {
+            return res.status(400).json({
+              code: "SCHEDULE_IN_PAST",
+              message:
+                "Scheduled publish time is in the past. Please choose a future date and time.",
+              messageEs:
+                "La hora de publicación programada está en el pasado. Por favor elige una fecha y hora futuras.",
+            });
+          }
+        }
+
         const { updateAiGeneratedPostStatus } = await import(
           "./storage/aiGeneratedPosts"
         );
@@ -3005,6 +3025,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: "Failed to update post status",
           // error details omitted for security
         });
+      }
+    },
+  );
+
+  // Delete an AI-generated post (cancel a pending/scheduled post).
+  // Refuses to delete posts with status="published".
+  app.delete(
+    "/api/ai-posts/:postId",
+    isAuthenticated,
+    requireBrand,
+    async (req: any, res) => {
+      try {
+        const { postId } = req.params;
+        const brandId = req.brandId;
+        const { deleteAiGeneratedPost } = await import(
+          "./storage/aiGeneratedPosts"
+        );
+        const result = await deleteAiGeneratedPost(postId, brandId);
+        if (!result.deleted) {
+          if (result.reason === "already_published") {
+            return res.status(409).json({
+              code: "ALREADY_PUBLISHED",
+              message:
+                "Published posts can't be deleted from LeadBoost. Delete it from Instagram directly.",
+              messageEs:
+                "No se pueden eliminar publicaciones ya publicadas desde LeadBoost. Bórralas directamente desde Instagram.",
+            });
+          }
+          return res.status(404).json({ message: "Post not found" });
+        }
+        res.json({ success: true });
+      } catch (error) {
+        console.error("[AI Posts] Delete error:", error);
+        res.status(500).json({ message: "Failed to delete post" });
       }
     },
   );
