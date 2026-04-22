@@ -1048,18 +1048,20 @@ ${sanitizedPrompt}
 - Industry: ${industry || "general"}
 - Brand colors (use prominently): ${colorPalette}
 
-📐 OUTPUT REQUIREMENTS:
+📐 OUTPUT REQUIREMENTS — RENDER EVERY ELEMENT BELOW:
 - Instagram 4:5 vertical composition (1080×1350)
 - Premium polished AD CREATIVE — like a Sephora / Apple / Nike Instagram Story
-- Sharp, modern typography hierarchy: oversized HEADLINE, smaller SUB, clear CTA button
-- Render ALL the text from the prompt above directly INTO the image as legible typography (no separate overlay needed)
-- The supplied reference image IS the brand logo — place it cleanly in a corner
-- Use the brand color as the dominant background or as a bold accent panel
-- High contrast, easy to read on a phone at thumb-scroll speed
-- Professional commercial photography for the hero subject (not stock-looking)
+- Render ALL text from the prompt above directly INTO the image as crisp, legible typography. Text must be in-image, NOT as a separate overlay.
+- TYPOGRAPHY HIERARCHY (mandatory):
+  1. OVERSIZED HEADLINE at top in bold sans-serif (the offer/theme text)
+  2. SUB-TEXT below the headline with the service name and date range
+  3. CTA BUTTON: a solid pill-shaped button at the BOTTOM-CENTER with rounded corners and contrasting fill, containing the CTA copy. This button is REQUIRED — do not omit it.
+  4. ${contentParts.length > 1 ? "Brand LOGO from the supplied reference image, placed cleanly in TOP-LEFT or TOP-RIGHT corner (small, ~10% width)." : "(No brand logo asset provided — leave the corners clean, no fake logos.)"}
+- Brand color (${colorPalette}) is the DOMINANT background OR a bold accent panel — never a plain white or gray background.
+- Hero photo: professional commercial photography (a model / scene / product) — NOT a stock-photo cliché.
+- High contrast for thumb-scroll legibility.
 
-✅ MUST INCLUDE: bold headline text, sub-text, CTA button, brand logo, brand color
-⛔ AVOID: generic stock-photo composition, busy collage layouts, repeated promo banners, fake QR codes, no-text editorial moodiness
+⛔ AVOID: generic stock-photo composition, busy collage layouts, repeated promo banners, fake QR codes, no-text editorial moodiness, OMITTING THE CTA BUTTON.
 `;
 
       contentParts.push({ text: enhancedPrompt });
