@@ -139,6 +139,8 @@ export default function Waterfall() {
       role: "user" | "assistant";
       content: string;
       image?: string;
+      images?: string[]; // For carousels
+      postKind?: "post" | "story" | "carousel" | "reel";
       attachmentPreview?: string;
       attachmentName?: string;
     }[]
@@ -277,6 +279,8 @@ export default function Waterfall() {
           role: "assistant",
           content: data.response,
           image: data.image,
+          images: data.images,
+          postKind: data.postKind,
         },
       ]);
     },
@@ -819,7 +823,60 @@ export default function Waterfall() {
                               >
                                 {msg.role === "assistant" ? (
                                   <>
-                                    {msg.image && (
+                                    {msg.images && msg.images.length > 0 && (
+                                      <motion.div
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="mb-4"
+                                      >
+                                        <div className="overflow-x-auto -mx-2 px-2 pb-2">
+                                          <div className="flex gap-3 snap-x snap-mandatory">
+                                            {msg.images.map((src, idx) => (
+                                              <div
+                                                key={idx}
+                                                className="relative group flex-shrink-0 w-72 snap-center"
+                                              >
+                                                <img
+                                                  src={src}
+                                                  alt={`Slide ${idx + 1}`}
+                                                  className="w-full h-auto rounded-xl shadow-lg object-contain bg-gray-50 cursor-zoom-in hover:shadow-xl transition-shadow"
+                                                  data-testid={`carousel-slide-${idx}`}
+                                                  onClick={() => setFullscreenImage(src)}
+                                                />
+                                                <button
+                                                  type="button"
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    const link = document.createElement("a");
+                                                    link.href = src;
+                                                    link.download = `boosty-slide-${idx + 1}-${Date.now()}.png`;
+                                                    document.body.appendChild(link);
+                                                    link.click();
+                                                    document.body.removeChild(link);
+                                                  }}
+                                                  className="absolute top-2 right-2 bg-white/90 hover:bg-white text-gray-800 backdrop-blur-sm shadow-md rounded-lg px-2.5 py-1 text-xs font-medium flex items-center gap-1.5 transition-all"
+                                                  title={language === "es" ? "Descargar slide" : "Download slide"}
+                                                >
+                                                  <Download className="w-3.5 h-3.5" />
+                                                  {idx + 1}/{msg.images!.length}
+                                                </button>
+                                                <div className="absolute bottom-2 left-2">
+                                                  <Badge className="bg-black/70 text-white text-xs">
+                                                    Slide {idx + 1}
+                                                  </Badge>
+                                                </div>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                          {language === "es"
+                                            ? `← Desliza para ver los ${msg.images.length} slides →`
+                                            : `← Swipe to see all ${msg.images.length} slides →`}
+                                        </p>
+                                      </motion.div>
+                                    )}
+                                    {msg.image && !msg.images && (
                                       <motion.div
                                         initial={{ opacity: 0, scale: 0.95 }}
                                         animate={{ opacity: 1, scale: 1 }}

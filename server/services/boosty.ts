@@ -369,6 +369,13 @@ interface ChatMessage {
 interface ChatResponse {
   text: string;
   image?: string;
+  images?: string[];           // For carousels — multiple slides
+  postKind?: "post" | "story" | "carousel" | "reel";
+  reelScript?: {
+    hook: string;
+    scenes: Array<{ visual: string; voiceover: string; durationSec: number }>;
+    cta: string;
+  };
   imagePrompt?: string;
   layoutPlan?: LayoutPlan;
   editorialMode?: boolean;
@@ -1651,6 +1658,322 @@ Respond ONLY with valid JSON. No prose, no markdown.`;
     };
   }
 
+  // Generate a 5-slide Instagram carousel: cover → 3 content slides → CTA.
+  // Slides share the brand context but each tells a distinct story beat.
+  // Returns ChatResponse with images: string[].
+  private async generateCarousel(
+    userMessage: string,
+    context: BrandContext,
+    language: "es" | "en",
+    conversationHistory: ChatMessage[],
+  ): Promise<ChatResponse> {
+    const recentHistory = conversationHistory.slice(-6);
+    const conversationContext = recentHistory
+      .map((m) => `${m.role}: ${m.content}`)
+      .join("\n");
+    const brief = detectCampaignBrief(userMessage, conversationHistory);
+    const colorPalette = [context.design?.colors?.primary, context.design?.colors?.accent1]
+      .filter(Boolean)
+      .join(", ");
+
+    const prompt = `You are a senior creative director designing a 5-slide Instagram CAROUSEL for "${context.brand.name}" (${context.brand.industry || "general"}).
+
+USER REQUEST: "${userMessage}"
+${conversationContext ? `\nCONVERSATION CONTEXT:\n${conversationContext}\n` : ""}
+
+CAMPAIGN BRIEF:
+- Offer: ${brief.extracted.offer || "(none)"}
+- Theme: ${brief.extracted.theme || "(none)"}
+- Service: ${brief.extracted.service || "(general brand)"}
+- Dates: ${brief.extracted.dates || "(unspecified)"}
+- CTA: ${brief.extracted.cta || "Book now"}
+
+BRAND:
+- Style: ${context.design?.brandStyle || "modern"}
+- Primary color: ${context.design?.colors?.primary || "n/a"}
+- Headline font: ${context.design?.fonts?.primary || "modern sans-serif"}
+
+Build EXACTLY 5 slides. Each slide needs a distinct visual + text purpose:
+  Slide 1 — HOOK COVER: bold headline grabs attention, sub-text teases the value.
+  Slide 2 — PROBLEM/CONTEXT: a relatable pain or insight the audience feels.
+  Slide 3 — SOLUTION: how the service/offer solves it, with one concrete benefit.
+  Slide 4 — PROOF/DETAIL: specifics — what's included, before/after vibe, social proof, OR the offer's date range.
+  Slide 5 — CTA CARD: bold CTA button, brand color background, clean minimal design.
+
+Output JSON with these fields, no others:
+
+1. "slides": array of EXACTLY 5 objects, each:
+   - "role": one of "cover" | "problem" | "solution" | "proof" | "cta"
+   - "imagePrompt": (max 150 words) instructions for an Instagram 4:5 image. Include in-image typography (headline + sub), brand color usage, hero photo style, NO fake logos. The CTA slide must include a pill CTA button with the text "${brief.extracted.cta || "Book now"}".
+   - "slideText": (max 60 chars) the in-image headline copy
+
+2. "feedCaption": ONE persuasive caption in ${language === "es" ? "Spanish" : "English"} (max 220 chars) — what the user types under the carousel post. Hook + value + CTA, 1-2 emojis.
+
+3. "hashtagsBranded": 3-4 brand/service/promo hashtags
+4. "hashtagsNiche": 5-7 niche community hashtags
+5. "hashtagsBroad": 3-5 broader discovery hashtags
+6. "suggestedPostingTime": short 1-line strategic recommendation in ${language === "es" ? "Spanish" : "English"}
+
+Respond ONLY with valid JSON.`;
+
+    const schema = {
+      type: Type.OBJECT,
+      properties: {
+        slides: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              role: { type: Type.STRING },
+              imagePrompt: { type: Type.STRING },
+              slideText: { type: Type.STRING },
+            },
+            required: ["role", "imagePrompt", "slideText"],
+          },
+        },
+        feedCaption: { type: Type.STRING },
+        hashtagsBranded: { type: Type.STRING },
+        hashtagsNiche: { type: Type.STRING },
+        hashtagsBroad: { type: Type.STRING },
+        suggestedPostingTime: { type: Type.STRING },
+      },
+      required: [
+        "slides",
+        "feedCaption",
+        "hashtagsBranded",
+        "hashtagsNiche",
+        "hashtagsBroad",
+        "suggestedPostingTime",
+      ],
+    };
+
+    const briefResp = await generateContentWithRetry(getAI(), {
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        temperature: 0.85,
+        maxOutputTokens: 4096,
+        responseMimeType: "application/json",
+        responseSchema: schema as any,
+      },
+    });
+    const parsed = JSON.parse(briefResp.text || "{}");
+    const slides: Array<{ role: string; imagePrompt: string; slideText: string }> =
+      parsed.slides || [];
+
+    // Generate slide images in parallel. Each slide reuses the existing
+    // generateImage() pipeline so brand reference images + sanitization
+    // continue to apply.
+    const imageResults = await Promise.all(
+      slides.map(async (s) => {
+        try {
+          return await this.generateImage(s.imagePrompt, context, false);
+        } catch (e) {
+          console.error("[Boosty] Carousel slide gen failed:", e);
+          return null;
+        }
+      }),
+    );
+    const images = imageResults.filter((x): x is string => !!x);
+
+    if (images.length === 0) {
+      const text =
+        language === "es"
+          ? "No pude generar las imágenes del carrusel. Inténtalo de nuevo en un momento."
+          : "I couldn't generate the carousel images. Please try again in a moment.";
+      return { text, postKind: "carousel" };
+    }
+
+    const isSpanish = language === "es";
+    const slideLabels = isSpanish
+      ? ["Cover", "Problema", "Solución", "Prueba", "CTA"]
+      : ["Cover", "Problem", "Solution", "Proof", "CTA"];
+    const slidesBlock = slides
+      .map((s, i) => `**${i + 1}. ${slideLabels[i] ?? s.role}** — ${s.slideText}`)
+      .join("\n");
+    const tagSections: string[] = [];
+    if (parsed.hashtagsBranded)
+      tagSections.push(`${isSpanish ? "🏷️ Marca/Servicio" : "🏷️ Branded / Service"}: ${parsed.hashtagsBranded}`);
+    if (parsed.hashtagsNiche)
+      tagSections.push(`${isSpanish ? "🎯 Nicho" : "🎯 Niche"}: ${parsed.hashtagsNiche}`);
+    if (parsed.hashtagsBroad)
+      tagSections.push(`${isSpanish ? "🌐 Amplios" : "🌐 Broad reach"}: ${parsed.hashtagsBroad}`);
+
+    const text = [
+      isSpanish
+        ? `¡Carrusel listo! 🎠 ${images.length} slides generados.`
+        : `Carousel ready! 🎠 ${images.length} slides generated.`,
+      isSpanish ? `**Estructura del carrusel:**` : `**Carousel structure:**`,
+      slidesBlock,
+      isSpanish ? `**Caption del feed:**` : `**Feed caption:**`,
+      parsed.feedCaption,
+      isSpanish ? `**Hashtags por capa:**` : `**Hashtags by tier:**`,
+      tagSections.join("\n"),
+      parsed.suggestedPostingTime
+        ? `${isSpanish ? "**Mejor momento para publicar:**" : "**Best time to post:**"}\n${parsed.suggestedPostingTime}`
+        : "",
+      isSpanish
+        ? `Dime "programa para [fecha]" para mandarlo al calendario.`
+        : `Say "schedule for [date]" and I'll send it to your calendar.`,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+
+    return { text, images, postKind: "carousel" };
+  }
+
+  // Generate a 9:16 reel cover frame + a tight reel shooting script.
+  // Actual video synthesis requires Veo (not provisioned in this account),
+  // so Boosty hands the user a publish-ready cover + a 15-30 second script
+  // they (or a video tool) can shoot.
+  private async generateReel(
+    userMessage: string,
+    context: BrandContext,
+    language: "es" | "en",
+    conversationHistory: ChatMessage[],
+  ): Promise<ChatResponse> {
+    const recentHistory = conversationHistory.slice(-6);
+    const conversationContext = recentHistory
+      .map((m) => `${m.role}: ${m.content}`)
+      .join("\n");
+    const brief = detectCampaignBrief(userMessage, conversationHistory);
+
+    const prompt = `You are a senior creative director designing an Instagram REEL for "${context.brand.name}" (${context.brand.industry || "general"}).
+
+USER REQUEST: "${userMessage}"
+${conversationContext ? `\nCONVERSATION CONTEXT:\n${conversationContext}\n` : ""}
+
+BRIEF:
+- Offer: ${brief.extracted.offer || "(none)"}
+- Service: ${brief.extracted.service || "(general brand)"}
+- Theme: ${brief.extracted.theme || "(none)"}
+- Dates: ${brief.extracted.dates || "(unspecified)"}
+- CTA: ${brief.extracted.cta || "Book now"}
+
+BRAND:
+- Primary color: ${context.design?.colors?.primary || "n/a"}
+- Headline font: ${context.design?.fonts?.primary || "modern sans-serif"}
+
+Output JSON with these fields, no others:
+
+1. "coverImagePrompt": (max 200 words) instructions for a 9:16 vertical Reel COVER frame. The cover MUST include in-image typography: a punchy headline (3-5 words), the service name, and visual treatment that matches the brand color. NO fake logos. Hero photo of a relevant subject.
+
+2. "script": object with:
+   - "hook" — opening 3-second line that stops the scroll (max 80 chars)
+   - "scenes" — array of EXACTLY 3 scenes, each: { "visual": what's on screen (camera, action, on-screen text), "voiceover": exact words said or text overlay, "durationSec": 5 }
+   - "cta" — closing 3-second line with the call-to-action
+
+3. "caption": ONE persuasive caption in ${language === "es" ? "Spanish" : "English"} (max 220 chars).
+4. "hashtagsBranded": 3-4 brand/service hashtags
+5. "hashtagsNiche": 5-7 niche hashtags
+6. "hashtagsBroad": 3-5 discovery hashtags
+7. "suggestedPostingTime": 1-line strategic recommendation
+
+Respond ONLY with valid JSON.`;
+
+    const schema = {
+      type: Type.OBJECT,
+      properties: {
+        coverImagePrompt: { type: Type.STRING },
+        script: {
+          type: Type.OBJECT,
+          properties: {
+            hook: { type: Type.STRING },
+            scenes: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  visual: { type: Type.STRING },
+                  voiceover: { type: Type.STRING },
+                  durationSec: { type: Type.NUMBER },
+                },
+                required: ["visual", "voiceover", "durationSec"],
+              },
+            },
+            cta: { type: Type.STRING },
+          },
+          required: ["hook", "scenes", "cta"],
+        },
+        caption: { type: Type.STRING },
+        hashtagsBranded: { type: Type.STRING },
+        hashtagsNiche: { type: Type.STRING },
+        hashtagsBroad: { type: Type.STRING },
+        suggestedPostingTime: { type: Type.STRING },
+      },
+      required: [
+        "coverImagePrompt",
+        "script",
+        "caption",
+        "hashtagsBranded",
+        "hashtagsNiche",
+        "hashtagsBroad",
+        "suggestedPostingTime",
+      ],
+    };
+
+    const briefResp = await generateContentWithRetry(getAI(), {
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        temperature: 0.85,
+        maxOutputTokens: 4096,
+        responseMimeType: "application/json",
+        responseSchema: schema as any,
+      },
+    });
+    const parsed = JSON.parse(briefResp.text || "{}");
+
+    const cover = await this.generateImage(parsed.coverImagePrompt, context, false);
+
+    const isSpanish = language === "es";
+    const scenes = (parsed.script?.scenes || []) as Array<{ visual: string; voiceover: string; durationSec: number }>;
+    const sceneBlock = scenes
+      .map(
+        (s, i) =>
+          `**${isSpanish ? `Escena` : `Scene`} ${i + 1} (${s.durationSec}s)**\n📹 ${s.visual}\n🎙️ "${s.voiceover}"`,
+      )
+      .join("\n\n");
+
+    const tagSections: string[] = [];
+    if (parsed.hashtagsBranded)
+      tagSections.push(`${isSpanish ? "🏷️ Marca/Servicio" : "🏷️ Branded / Service"}: ${parsed.hashtagsBranded}`);
+    if (parsed.hashtagsNiche)
+      tagSections.push(`${isSpanish ? "🎯 Nicho" : "🎯 Niche"}: ${parsed.hashtagsNiche}`);
+    if (parsed.hashtagsBroad)
+      tagSections.push(`${isSpanish ? "🌐 Amplios" : "🌐 Broad reach"}: ${parsed.hashtagsBroad}`);
+
+    const text = [
+      isSpanish
+        ? `¡Reel listo! 🎬 Cover + guion de 15-18 segundos.`
+        : `Reel ready! 🎬 Cover + 15-18 second script.`,
+      isSpanish ? `**Hook (0-3s):**` : `**Hook (0-3s):**`,
+      parsed.script?.hook,
+      sceneBlock,
+      isSpanish ? `**CTA (final 3s):**` : `**CTA (final 3s):**`,
+      parsed.script?.cta,
+      isSpanish ? `**Caption del Reel:**` : `**Reel caption:**`,
+      parsed.caption,
+      isSpanish ? `**Hashtags por capa:**` : `**Hashtags by tier:**`,
+      tagSections.join("\n"),
+      parsed.suggestedPostingTime
+        ? `${isSpanish ? "**Mejor momento para publicar:**" : "**Best time to post:**"}\n${parsed.suggestedPostingTime}`
+        : "",
+      isSpanish
+        ? `_La generación de video automatizada requiere Veo y aún no está activa en esta cuenta. Por ahora entrego el cover + guion listo para grabar._`
+        : `_Automated video generation requires Veo, which isn't enabled in this account. For now I deliver a ready-to-shoot cover + script._`,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+
+    return {
+      text,
+      image: cover || undefined,
+      postKind: "reel",
+      reelScript: parsed.script,
+    };
+  }
+
   async chat(
     brandId: string,
     userId: string,
@@ -1750,6 +2073,16 @@ Respond ONLY with valid JSON. No prose, no markdown.`;
         return {
           text: `${intro}\n\n${questions.map((q) => `• ${q}`).join("\n")}${closing}`,
         };
+      }
+
+      // Branch on post kind. Carousels and reels need different generation
+      // pipelines than the default 4:5 single-image post/story.
+      const postKind = detectPostKind(message);
+      if (postKind === "carousel") {
+        return await this.generateCarousel(message, context, language, conversationHistory);
+      }
+      if (postKind === "reel") {
+        return await this.generateReel(message, context, language, conversationHistory);
       }
 
       const promptResult = await this.generateImagePrompt(

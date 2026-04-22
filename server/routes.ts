@@ -10433,6 +10433,9 @@ Respond ONLY in JSON with this exact format:
         res.json({
           response: chatResponse.text,
           image: chatResponse.image,
+          images: chatResponse.images,
+          postKind: chatResponse.postKind,
+          reelScript: chatResponse.reelScript,
           imagePrompt: chatResponse.imagePrompt,
         });
       } catch (error: any) {
