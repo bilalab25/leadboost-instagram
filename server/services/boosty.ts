@@ -446,8 +446,8 @@ function detectCampaignBrief(message: string, history: ChatMessage[] = []): Camp
   const dateMatch = text.match(/\b(?:v[aá]lid[oa]?\s*(?:from|del|until|hasta)?\s*)?((?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?|enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\s*\d{0,2}\s*[-—–]?\s*\d{0,2}(?:\s*,?\s*\d{4})?)/i);
   const hasDates = !!dateMatch || /\b(\d{1,2}\s*[-—]\s*\d{1,2}|today|tomorrow|this week|next week|this month|next month|hoy|ma[nñ]ana|esta semana|pr[oó]xima semana|este mes|pr[oó]ximo mes|del?\s*\d{1,2}\s*(?:al|to|hasta)\s*\d{1,2})\b/i.test(lower);
 
-  // Capture multi-word service names like "armonización facial", "botox lifting"
-  const serviceMatch = text.match(/\b(armonizaci[oó]n\s+facial|tratamiento\s+\w+|botox|filler|relleno|consulta(?:ci[oó]n)?|peeling|lifting|massage|masaje|skincare|cuidado\s*de\s*piel|hidrataci[oó]n|microblading|l[aá]ser|facial|tratamiento|product[oa]?)\b/i);
+  // Capture service / product / offering names. Beauty + general business.
+  const serviceMatch = text.match(/\b(armonizaci[oó]n\s+facial|tratamiento\s+\w+|botox|filler|relleno|consulta(?:ci[oó]n|ting)?|consulting|peeling|lifting|massage|masaje|skincare|cuidado\s*de\s*piel|hidrataci[oó]n|microblading|l[aá]ser|facial|tratamiento|product[oa]?|service|servicio|package|paquete|plan(?:\s+\w+)?|membership|subscription|suscripci[oó]n|audit|auditor[ií]a|coaching|workshop|taller|class(?:es)?|clase|course|curso|session|sesi[oó]n|retreat|retiro|app|software|tool|herramienta|integration|integraci[oó]n|onboarding)\b/i);
   const hasService = !!serviceMatch;
 
   // Capture full CTAs like "agenda tu cita", "book your appointment", "DM us to reserve"
