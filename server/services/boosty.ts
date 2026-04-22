@@ -1832,7 +1832,7 @@ Respond ONLY with valid JSON.`;
       .join("\n");
     const brief = detectCampaignBrief(userMessage, conversationHistory);
 
-    const prompt = `You are a senior creative director designing an Instagram REEL for "${context.brand.name}" (${context.brand.industry || "general"}).
+    const prompt = `You are a senior creative director and shot-list director designing a polished 8-second Instagram REEL for "${context.brand.name}" (${context.brand.industry || "general"}).
 
 USER REQUEST: "${userMessage}"
 ${conversationContext ? `\nCONVERSATION CONTEXT:\n${conversationContext}\n` : ""}
@@ -1848,26 +1848,59 @@ BRAND:
 - Primary color: ${context.design?.colors?.primary || "n/a"}
 - Headline font: ${context.design?.fonts?.primary || "modern sans-serif"}
 
+═══════════════════════════════════════════════════════════════
+CRITICAL: How a Veo-3 8-second clip actually works
+═══════════════════════════════════════════════════════════════
+Veo CANNOT render 3 hard-cut scenes in 8 seconds — those produce vague, choppy
+output. Veo CAN render ONE flowing shot or ONE smooth camera move with a clear
+opening beat, middle action, and a deliberate ending beat (like a button card).
+Your job is to write a SINGLE cinematic shot description Veo can execute
+perfectly, plus a separate human-readable script for the user.
+
 Output JSON with these fields, no others:
 
-1. "coverImagePrompt": (max 200 words) instructions for a 9:16 vertical Reel COVER frame. The cover MUST include in-image typography: a punchy headline (3-5 words), the service name, and visual treatment that matches the brand color. NO fake logos. Hero photo of a relevant subject.
+1. "videoPrompt": (max 250 words) ONE single-shot cinematic instruction for the
+   Veo 3 video model. Must follow this exact structure:
 
-2. "script": object with:
-   - "hook" — opening 3-second line that stops the scroll (max 80 chars)
-   - "scenes" — array of EXACTLY 3 scenes, each: { "visual": what's on screen (camera, action, on-screen text), "voiceover": exact words said or text overlay, "durationSec": 5 }
-   - "cta" — closing 3-second line with the call-to-action
+   OPENING (0–1.5s): a strong, immediately-readable visual that stops the scroll.
+   Specify subject, action, framing.
+   MIDDLE (1.5–6s): the core demonstration — one continuous camera movement
+   (slow push-in, smooth pan, dolly, orbit, rack focus). NO hard cuts.
+   ENDING (6–8s): the camera lands on a clean ending beat — either the brand
+   name in bold typography over the brand color (${context.design?.colors?.primary || "brand color"}), OR the CTA "${brief.extracted.cta || "Book now"}" rendered as a pill button.
 
-3. "caption": ONE persuasive caption in ${language === "es" ? "Spanish" : "English"} (max 220 chars).
-4. "hashtagsBranded": 3-4 brand/service hashtags
-5. "hashtagsNiche": 5-7 niche hashtags
-6. "hashtagsBroad": 3-5 discovery hashtags
-7. "suggestedPostingTime": 1-line strategic recommendation
+   STYLE LINE: cinematic, commercial-grade, modern color grading, sharp focus,
+   ${context.design?.brandStyle || "premium minimalist"} aesthetic, 9:16 vertical.
+   AUDIO LINE: spoken voiceover (one short sentence, max 12 words, natural tone)
+   AND subtle musical underscore + ambient sound. Specify the EXACT words to
+   speak in quotes.
+   NEGATIVE LINE: no text artifacts, no warped faces, no watermarks, no
+   choppy cuts, no jarring transitions.
+
+   The whole prompt is one paragraph using Veo-friendly cinematic language
+   (camera type, lens, lighting, color grade, motion). Avoid lists.
+
+2. "coverImagePrompt": (max 200 words) instructions for a 9:16 vertical Reel
+   COVER STILL frame. In-image typography: punchy headline (3-5 words) + service
+   name. Brand color treatment. No fake logos.
+
+3. "script": human-readable shot list for the user (NOT for Veo). Object with:
+   - "hook" — opening line / on-screen text the audience reads first (max 80 chars)
+   - "scenes" — array of EXACTLY 3 scenes (visual + voiceover + durationSec=2-3 each)
+   - "cta" — final on-screen / spoken CTA
+
+4. "caption": ONE persuasive caption in ${language === "es" ? "Spanish" : "English"} (max 220 chars).
+5. "hashtagsBranded": 3-4 brand/service hashtags
+6. "hashtagsNiche": 5-7 niche hashtags
+7. "hashtagsBroad": 3-5 discovery hashtags
+8. "suggestedPostingTime": 1-line strategic recommendation
 
 Respond ONLY with valid JSON.`;
 
     const schema = {
       type: Type.OBJECT,
       properties: {
+        videoPrompt: { type: Type.STRING },
         coverImagePrompt: { type: Type.STRING },
         script: {
           type: Type.OBJECT,
@@ -1896,6 +1929,7 @@ Respond ONLY with valid JSON.`;
         suggestedPostingTime: { type: Type.STRING },
       },
       required: [
+        "videoPrompt",
         "coverImagePrompt",
         "script",
         "caption",
@@ -1918,17 +1952,21 @@ Respond ONLY with valid JSON.`;
     });
     const parsed = JSON.parse(briefResp.text || "{}");
 
-    // Build the Veo video prompt: stitch hook + scenes + CTA into one
-    // continuous shot description so Veo produces a coherent ~8s clip.
+    // Use the dedicated Veo-optimized single-shot prompt the model just wrote.
+    // Falls back to a stitched script if the field is missing for any reason.
     const scenesArr = (parsed.script?.scenes || []) as Array<{ visual: string; voiceover: string; durationSec: number }>;
-    const veoPrompt = [
-      `9:16 vertical Instagram Reel for ${context.brand.name} (${context.brand.industry || "general"}).`,
-      `Brand color: ${context.design?.colors?.primary || "n/a"}.`,
-      `Hook (3s): ${parsed.script?.hook || ""}`,
-      ...scenesArr.map((s, i) => `Scene ${i + 1} (${s.durationSec}s): ${s.visual}. Voiceover: "${s.voiceover}".`),
-      `CTA (3s): ${parsed.script?.cta || ""}`,
-      `Cinematic, modern, high-end commercial aesthetic. Sharp focus. Smooth camera moves.`,
-    ].join("\n");
+    const veoPrompt =
+      typeof parsed.videoPrompt === "string" && parsed.videoPrompt.trim()
+        ? parsed.videoPrompt
+        : [
+            `9:16 vertical Instagram Reel for ${context.brand.name} (${context.brand.industry || "general"}).`,
+            `Brand color: ${context.design?.colors?.primary || "n/a"}.`,
+            `One continuous cinematic 8-second shot — slow camera push-in.`,
+            `Opening (0-2s): ${parsed.script?.hook || "strong visual hook"}.`,
+            `Middle (2-6s): ${scenesArr[0]?.visual || "core demonstration"}. Voiceover: "${scenesArr[0]?.voiceover || ""}".`,
+            `Ending (6-8s): camera lands on the CTA "${parsed.script?.cta || brief.extracted.cta || "Book now"}" rendered as a clean pill button over brand color.`,
+            `Cinematic, commercial-grade, sharp focus, modern color grade.`,
+          ].join("\n");
 
     // Run video gen + cover image in parallel to mask Veo's ~30-60s latency
     // behind the cover gen we'd be doing anyway.
@@ -1989,25 +2027,41 @@ Respond ONLY with valid JSON.`;
     };
   }
 
-  // Submit a Veo video generation job and poll until it returns a downloadable
-  // URI, then fetch the bytes and return as a data URL the client can render
-  // in a <video> tag. Veo can take 30-90s — caller should run it in parallel
-  // with other slow work.
+  // Submit a Veo video generation job and poll until the mp4 is downloadable.
+  // Uses full veo-3.0-generate-001 (NOT the fast variant) for better motion,
+  // composition, and audio. Adds a negative prompt to suppress common
+  // artifacts that made earlier reels look cheap.
   private async generateVideoWithVeo(prompt: string): Promise<string | null> {
     const ai = getAI();
-    let op: any = await (ai.models as any).generateVideos({
-      model: "veo-3.0-fast-generate-001",
-      prompt,
-      config: { aspectRatio: "9:16", numberOfVideos: 1 },
-    });
+    let op: any;
+    try {
+      op = await (ai.models as any).generateVideos({
+        model: "veo-3.0-generate-001",
+        prompt,
+        config: {
+          aspectRatio: "9:16",
+          numberOfVideos: 1,
+          negativePrompt:
+            "blurry, low quality, distorted faces, warped hands, watermark, text artifacts, glitches, choppy cuts, stuttering motion, garbled letters, fake logos, generic stock-photo look",
+        },
+      });
+    } catch (e: any) {
+      console.warn("[Boosty/Veo] Submit failed:", e?.message || e);
+      return null;
+    }
     const startedAt = Date.now();
-    const TIMEOUT_MS = 4 * 60_000;
+    const TIMEOUT_MS = 8 * 60_000; // Full Veo 3 can take 2-5 min
     while (!op.done && Date.now() - startedAt < TIMEOUT_MS) {
-      await new Promise((r) => setTimeout(r, 6000));
-      op = await (ai as any).operations.getVideosOperation({ operation: op });
+      await new Promise((r) => setTimeout(r, 8000));
+      try {
+        op = await (ai as any).operations.getVideosOperation({ operation: op });
+      } catch (e: any) {
+        console.warn("[Boosty/Veo] Poll error:", e?.message || e);
+        return null;
+      }
     }
     if (!op.done) {
-      console.warn("[Boosty/Veo] Generation timed out after 4 minutes");
+      console.warn("[Boosty/Veo] Generation timed out after 8 minutes");
       return null;
     }
     const generated = op.response?.generatedVideos || [];
@@ -2016,8 +2070,6 @@ Respond ONLY with valid JSON.`;
       console.warn("[Boosty/Veo] No video in response (likely safety-filtered)");
       return null;
     }
-    // The download URI requires the API key as a query param OR an
-    // x-goog-api-key header. Append the key — it's already in the URL host.
     const sep = uri.includes("?") ? "&" : "?";
     const downloadUrl = `${uri}${sep}key=${process.env.GEMINI_API_KEY}`;
     const res = await fetch(downloadUrl);
