@@ -50,9 +50,18 @@ interface LayoutPlan {
 interface ImagePromptResult {
   basePhotoPrompt: string;
   layoutPlan: LayoutPlan;
-  caption: string;
-  hashtags: string;
+  // Editorial mode keeps the legacy single fields. Campaign mode populates
+  // the rich variation fields too.
+  caption: string;          // Primary / first option
+  hashtags: string;         // Combined string for backwards compat
   editorialMode: boolean;
+  // Campaign mode extras:
+  captionOptions?: string[];
+  hashtagsBranded?: string;
+  hashtagsNiche?: string;
+  hashtagsBroad?: string;
+  suggestedPostingTime?: string;
+  scheduleHint?: string;
 }
 
 // Asset interface for image generation (same pattern as postGenerator.ts)
@@ -1304,27 +1313,36 @@ CAMPAIGN BRIEF (extract from the request — do NOT invent missing fields):
 - Date range: ${datesText || "(unspecified)"}
 - Call to action: ${ctaText || "(suggest one fitting the offer)"}
 
-Your job is to produce a JSON object with:
+Produce a JSON object with these fields, no others:
 
-1. "imagePrompt": A specific, vivid English description (max 220 words) for an actual Instagram Story-style ad creative. The description MUST instruct the image model to render:
+1. "imagePrompt": A specific, vivid English description (max 220 words) for an actual Instagram Story-style ad creative. Instruct the image model to render:
    - A high-quality hero photo (a relevant model / scene / product detail — pick what fits the brief)
    - The brand primary color as the dominant background or accent panel
    - A BIG bold HEADLINE in ${context.design?.fonts?.primary || "a modern sans-serif"} that says the offer or service in 2-4 words${promotionDetails ? ` — feature "${promotionDetails}" in oversized type` : ""}
    - A sub-headline with the service name${serviceName ? ` ("${serviceName}")` : ""}${datesText ? ` and the date range ("${datesText}")` : ""}
-   - A clean CTA button at the bottom that says "${ctaText || "Book now"}"
-   - The brand logo clearly placed in the top corner (use the supplied logo reference image)
+   - A clean pill-shaped CTA button at the bottom-center that says "${ctaText || "Book now"}"
+   - ${context.design?.hasLogo ? "The brand logo cleanly in the top corner (use the supplied logo reference image)" : "Clean corners — no fake logos"}
    - Professional ad layout, NOT a moody editorial shot — closer to a polished Apple/Nike/Sephora ad
    - 4:5 vertical composition, instagram-ready, sharp typography hierarchy
 
-2. "caption": A persuasive caption in ${language === "es" ? "Spanish" : "English"} (max 220 chars).
-   - Lead with a hook tied to the offer or theme
+2. "captionOptions": EXACTLY 3 distinct caption variations in ${language === "es" ? "Spanish" : "English"} (each max 220 chars). Each must:
+   - Lead with a different hook (question / bold claim / emotional pull)
    - Mention the service, the offer (if any), and the date range (if any) by name
    - End with the CTA "${ctaText || "DM us to book"}"
-   - Use 1-2 emojis max, never generic ones
+   - Use 1-2 emojis, never generic ones
+   - Have a distinct voice: option 1 punchy & direct, option 2 emotional/aspirational, option 3 educational/informative
 
-3. "hashtags": 7-12 hashtags that are SPECIFIC: brand name, service, city/region (if any), event/theme${themeName ? ` ("${themeName}")` : ""}. No generic #love #beauty.
+3. "hashtagsBranded": 3-4 hashtags specific to this BRAND/SERVICE/PROMO (e.g. #${context.brand.name.replace(/\s+/g, "")}, #service-name-camelCase, #event-name).
 
-Respond ONLY with valid JSON.`;
+4. "hashtagsNiche": 5-7 hashtags that target the specific NICHE community (e.g. #aesthetictreatments, #facialharmonization, #botoxbeforeandafter — niche-specific, not generic).
+
+5. "hashtagsBroad": 3-5 broader hashtags for discovery (e.g. #beautyroutine, #selfcare, #wellness — popular but related).
+
+6. "suggestedPostingTime": A short 1-line strategic recommendation in ${language === "es" ? "Spanish" : "English"} of when to post this for max reach (e.g. "Lunes 9-11 AM — picos de engagement de mujeres 30-45"). Base it on common Instagram engagement patterns + the campaign's urgency.
+
+7. "scheduleHint": A short suggested ISO-8601 datetime${datesText ? ` aligned with the campaign dates (${datesText})` : " 24-48 hours from now in the user's local morning"} — just one date, format YYYY-MM-DDTHH:mm.
+
+Respond ONLY with valid JSON. No prose, no markdown.`;
 
     // Schema-locked JSON output. With responseSchema the model is guaranteed
     // to return parseable JSON with these exact fields populated — no need
@@ -1355,10 +1373,26 @@ Respond ONLY with valid JSON.`;
           type: Type.OBJECT,
           properties: {
             imagePrompt: { type: Type.STRING },
-            caption: { type: Type.STRING },
-            hashtags: { type: Type.STRING },
+            captionOptions: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+              minItems: 3,
+              maxItems: 3,
+            },
+            hashtagsBranded: { type: Type.STRING },
+            hashtagsNiche: { type: Type.STRING },
+            hashtagsBroad: { type: Type.STRING },
+            suggestedPostingTime: { type: Type.STRING },
+            scheduleHint: { type: Type.STRING },
           },
-          required: ["imagePrompt", "caption", "hashtags"],
+          required: [
+            "imagePrompt",
+            "captionOptions",
+            "hashtagsBranded",
+            "hashtagsNiche",
+            "hashtagsBroad",
+            "suggestedPostingTime",
+          ],
         };
 
     const response = await generateContentWithRetry(getAI(), {
@@ -1393,6 +1427,18 @@ Respond ONLY with valid JSON.`;
       };
     }
 
+    const captionOptions: string[] = Array.isArray(parsed.captionOptions)
+      ? parsed.captionOptions.filter((c: any) => typeof c === "string" && c.trim())
+      : [];
+    const combinedHashtags = [
+      parsed.hashtagsBranded,
+      parsed.hashtagsNiche,
+      parsed.hashtagsBroad,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+
     return {
       basePhotoPrompt: parsed.imagePrompt,
       layoutPlan: {
@@ -1403,9 +1449,15 @@ Respond ONLY with valid JSON.`;
         alignment: "center" as const,
         theme: "light" as const,
       },
-      caption: parsed.caption,
-      hashtags: parsed.hashtags,
+      caption: captionOptions[0] || "",
+      hashtags: combinedHashtags,
       editorialMode: false,
+      captionOptions,
+      hashtagsBranded: parsed.hashtagsBranded,
+      hashtagsNiche: parsed.hashtagsNiche,
+      hashtagsBroad: parsed.hashtagsBroad,
+      suggestedPostingTime: parsed.suggestedPostingTime,
+      scheduleHint: parsed.scheduleHint,
     };
   }
 
@@ -1501,8 +1553,18 @@ Respond ONLY with valid JSON.`;
         conversationHistory,
       );
 
-      const { basePhotoPrompt, layoutPlan, caption, hashtags, editorialMode } =
-        promptResult;
+      const {
+        basePhotoPrompt,
+        layoutPlan,
+        caption,
+        hashtags,
+        editorialMode,
+        captionOptions,
+        hashtagsBranded,
+        hashtagsNiche,
+        hashtagsBroad,
+        suggestedPostingTime,
+      } = promptResult;
 
       const generatedImage = await this.generateImage(
         basePhotoPrompt,
@@ -1511,15 +1573,69 @@ Respond ONLY with valid JSON.`;
       );
 
       if (generatedImage) {
-        // Include layout plan info in text for editorial mode
-        const layoutInfo = editorialMode
-          ? `\n\n**Layout Plan** (for text overlay):\n- Headline: ${layoutPlan.headline}\n- Subhead: ${layoutPlan.subhead}${layoutPlan.cta ? `\n- CTA: ${layoutPlan.cta}` : ""}`
-          : "";
+        // Editorial mode keeps the simple legacy format.
+        // Campaign mode renders rich variations: 3 captions + tiered hashtags + posting strategy.
+        let textResponse: string;
+        if (editorialMode) {
+          const layoutInfo = `\n\n**Layout Plan** (for text overlay):\n- Headline: ${layoutPlan.headline}\n- Subhead: ${layoutPlan.subhead}${layoutPlan.cta ? `\n- CTA: ${layoutPlan.cta}` : ""}`;
+          textResponse =
+            language === "es"
+              ? `¡Aquí está tu imagen editorial! 🎨${layoutInfo}\n\n**Caption sugerido:**\n${caption}\n\n**Hashtags:**\n${hashtags}\n\n¿Te gustaría que haga algún ajuste o genere otra versión?`
+              : `Here's your editorial image! 🎨${layoutInfo}\n\n**Suggested caption:**\n${caption}\n\n**Hashtags:**\n${hashtags}\n\nWould you like me to make any adjustments or generate another version?`;
+        } else {
+          const isSpanish = language === "es";
+          const opts =
+            captionOptions && captionOptions.length > 0
+              ? captionOptions
+              : caption
+                ? [caption]
+                : [];
+          const captionLabels = isSpanish
+            ? ["A · Directa", "B · Emocional", "C · Educativa"]
+            : ["A · Punchy", "B · Emotional", "C · Educational"];
+          const captionsBlock = opts
+            .map((c, i) => `**${captionLabels[i] ?? `Option ${i + 1}`}**\n${c}`)
+            .join("\n\n");
 
-        const textResponse =
-          language === "es"
-            ? `¡Aquí está tu imagen${editorialMode ? " editorial" : ""}! 🎨${layoutInfo}\n\n**Caption sugerido:**\n${caption}\n\n**Hashtags:**\n${hashtags}\n\n¿Te gustaría que haga algún ajuste o genere otra versión?`
-            : `Here's your${editorialMode ? " editorial" : ""} image! 🎨${layoutInfo}\n\n**Suggested caption:**\n${caption}\n\n**Hashtags:**\n${hashtags}\n\nWould you like me to make any adjustments or generate another version?`;
+          const tagSections: string[] = [];
+          if (hashtagsBranded)
+            tagSections.push(
+              `${isSpanish ? "🏷️ Marca/Servicio" : "🏷️ Branded / Service"}: ${hashtagsBranded}`,
+            );
+          if (hashtagsNiche)
+            tagSections.push(
+              `${isSpanish ? "🎯 Nicho" : "🎯 Niche"}: ${hashtagsNiche}`,
+            );
+          if (hashtagsBroad)
+            tagSections.push(
+              `${isSpanish ? "🌐 Amplios" : "🌐 Broad reach"}: ${hashtagsBroad}`,
+            );
+          const hashtagsBlock = tagSections.length
+            ? tagSections.join("\n")
+            : hashtags;
+
+          const heading = isSpanish
+            ? `¡Aquí está tu creativo! 🎨\n\n**Captions — elige tu favorito:**`
+            : `Here's your creative! 🎨\n\n**Captions — pick your favorite:**`;
+          const tagHeading = isSpanish ? `**Hashtags por capa:**` : `**Hashtags by tier:**`;
+          const timingHeading = isSpanish
+            ? `**Mejor momento para publicar:**`
+            : `**Best time to post:**`;
+          const closing = isSpanish
+            ? `Dime si quieres ajustar la imagen, cambiar de caption, o si lo programo en tu calendario.`
+            : `Tell me if you want to tweak the image, swap captions, or schedule it on your calendar.`;
+
+          textResponse = [
+            heading,
+            captionsBlock,
+            tagHeading,
+            hashtagsBlock,
+            suggestedPostingTime ? `${timingHeading}\n${suggestedPostingTime}` : "",
+            closing,
+          ]
+            .filter(Boolean)
+            .join("\n\n");
+        }
 
         return {
           text: textResponse,
