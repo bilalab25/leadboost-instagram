@@ -1425,9 +1425,13 @@ Respond ONLY with valid JSON.`;
     language = effectiveLanguage;
     const systemPrompt = this.buildSystemPrompt(context, language);
 
-    // Image-request detection: explicit current message OR multi-turn
-    // continuation (last assistant turn was Boosty's brief-questions intro and
-    // the current user message looks like the answer to it).
+    // Image-request detection covers three cases:
+    //   A) Explicit fresh request ("create story X with Y...")
+    //   B) Multi-turn continuation: last assistant turn asked for brief,
+    //      current user message is the answer.
+    //   C) Refinement: last assistant turn delivered an image, current
+    //      user message asks to change/re-generate it ("make headline
+    //      bigger", "another version", "change color", etc.)
     const explicitImageReq = this.isImageRequest(message, language);
     const lastAssistant = [...conversationHistory]
       .reverse()
@@ -1437,8 +1441,6 @@ Respond ONLY with valid JSON.`;
       /(necesito un par de detalles|i just need a couple of details)/i.test(
         lastAssistant.content,
       );
-    // Continuation candidate: previous turn asked for brief AND current
-    // message contains at least one brief axis.
     const continuationBrief = wasAskingForBrief
       ? detectCampaignBrief(message)
       : null;
@@ -1450,7 +1452,17 @@ Respond ONLY with valid JSON.`;
         continuationBrief.hasService ||
         continuationBrief.hasCTA ||
         continuationBrief.hasDates);
-    const wantsImage = explicitImageReq || isContinuation;
+
+    const lastDeliveredImage =
+      !!lastAssistant &&
+      /(here'?s your image|aqu[ií] est[aá] tu imagen)/i.test(
+        lastAssistant.content,
+      );
+    const refinementKeywords =
+      /\b(another|different|new|otra|otro|distinta?|distinto)\s+(version|option|variant|versi[oó]n|opci[oó]n)\b|\b(make|hacer|haz)\s+(it|the|el|la|los|las)?\s*\w*\s*(bigger|smaller|bolder|larger|stronger|darker|lighter|brighter|cleaner|warmer|cooler|m[aá]s\s+\w+)\b|\b(change|cambia(r)?|switch|reemplaza(r)?)\s+(the|el|la)?\s*(color|background|font|layout|headline|text|image|imagen|fondo|fuente|texto|tipograf[ií]a|color)\b|\b(add|agrega(r)?|a[nñ]ade|incluye|put)\s+(a|an|un|una)?\s*(badge|button|logo|text|element|texto|bot[oó]n|insignia|elemento)\b|\b(remove|quita(r)?|elimina(r)?|borra(r)?|delete)\b|\b(redo|regenerate|try\s+again|otra\s+vez|de\s+nuevo|haz\s+otra|regenera(r)?|haz\s+una\s+nueva)\b|\b(another\s+take|try\s+a\s+different|generate\s+(a|another))\b/i;
+    const isRefinement = lastDeliveredImage && refinementKeywords.test(message);
+
+    const wantsImage = explicitImageReq || isContinuation || isRefinement;
 
     if (wantsImage) {
       // Before generating, check if the user gave us a real campaign brief.
