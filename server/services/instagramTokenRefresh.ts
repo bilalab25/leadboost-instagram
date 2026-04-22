@@ -136,6 +136,19 @@ class InstagramTokenRefreshService {
       { signal: AbortSignal.timeout(30_000) },
     );
 
+    if (!refreshRes.ok) {
+      const bodyText = await refreshRes.text().catch(() => "");
+      // Try to parse as JSON for a structured error message
+      let errMsg = `HTTP ${refreshRes.status}`;
+      try {
+        const parsed = JSON.parse(bodyText);
+        if (parsed?.error?.message) errMsg = parsed.error.message;
+      } catch {
+        if (bodyText) errMsg = bodyText.slice(0, 200);
+      }
+      throw new Error(`Token refresh failed: ${errMsg}`);
+    }
+
     const refreshData = await refreshRes.json();
 
     if (refreshData.error) {

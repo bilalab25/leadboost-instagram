@@ -290,22 +290,30 @@ export default function Settings() {
       if (res.ok) {
         const data = await res.json();
         toast({
-          title: "✅ Perfil actualizado",
-          description: "Tus cambios se guardaron correctamente.",
+          title: isSpanish ? "✅ Perfil actualizado" : "✅ Profile updated",
+          description: isSpanish
+            ? "Tus cambios se guardaron correctamente."
+            : "Your changes have been saved successfully.",
         });
       } else {
         const err = await res.json();
         toast({
-          title: "⚠️ Error al actualizar",
-          description: err.message || "No se pudo actualizar tu perfil.",
+          title: isSpanish ? "⚠️ Error al actualizar" : "⚠️ Update failed",
+          description:
+            err.message ||
+            (isSpanish
+              ? "No se pudo actualizar tu perfil."
+              : "We couldn't update your profile."),
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error("Error actualizando perfil:", error);
       toast({
-        title: "⚠️ Error inesperado",
-        description: "Intenta de nuevo más tarde.",
+        title: isSpanish ? "⚠️ Error inesperado" : "⚠️ Unexpected error",
+        description: isSpanish
+          ? "Intenta de nuevo más tarde."
+          : "Please try again later.",
         variant: "destructive",
       });
     }
@@ -318,8 +326,10 @@ export default function Settings() {
 
       if (!user) {
         toast({
-          title: "No autenticado",
-          description: "Debes iniciar sesión para cambiar tu contraseña.",
+          title: isSpanish ? "No autenticado" : "Not authenticated",
+          description: isSpanish
+            ? "Debes iniciar sesión para cambiar tu contraseña."
+            : "You must sign in to change your password.",
           variant: "destructive",
         });
         return;
@@ -329,33 +339,46 @@ export default function Settings() {
       const providerId = user.providerData[0]?.providerId;
       if (providerId !== "password") {
         toast({
-          title: "Cambio de contraseña no disponible",
-          description:
-            "Tu cuenta usa un proveedor externo (Google, Apple o Microsoft). Por favor cambia tu contraseña desde ese servicio.",
+          title: isSpanish
+            ? "Cambio de contraseña no disponible"
+            : "Password change unavailable",
+          description: isSpanish
+            ? "Tu cuenta usa un proveedor externo (Google, Apple o Microsoft). Por favor cambia tu contraseña desde ese servicio."
+            : "Your account uses an external provider (Google, Apple, or Microsoft). Please change your password from that service.",
           variant: "destructive",
         });
         return;
       }
 
       // ✅ Pedir nueva contraseña
-      const newPassword = prompt("Introduce tu nueva contraseña:");
+      const newPassword = prompt(
+        isSpanish
+          ? "Introduce tu nueva contraseña:"
+          : "Enter your new password:",
+      );
       if (!newPassword) {
         toast({
-          title: "Operación cancelada",
-          description: "No se cambió la contraseña.",
+          title: isSpanish ? "Operación cancelada" : "Operation cancelled",
+          description: isSpanish
+            ? "No se cambió la contraseña."
+            : "Password was not changed.",
         });
         return;
       }
 
       // 🔑 Pedir contraseña actual para reautenticar (seguridad)
       const currentPassword = prompt(
-        "Introduce tu contraseña actual para confirmar:",
+        isSpanish
+          ? "Introduce tu contraseña actual para confirmar:"
+          : "Enter your current password to confirm:",
       );
 
       if (!currentPassword) {
         toast({
-          title: "Operación cancelada",
-          description: "Debes ingresar tu contraseña actual para continuar.",
+          title: isSpanish ? "Operación cancelada" : "Operation cancelled",
+          description: isSpanish
+            ? "Debes ingresar tu contraseña actual para continuar."
+            : "You must enter your current password to continue.",
         });
         return;
       }
@@ -378,24 +401,35 @@ export default function Settings() {
       });
 
       toast({
-        title: "Contraseña actualizada",
-        description: "Tu contraseña ha sido cambiada correctamente.",
+        title: isSpanish ? "Contraseña actualizada" : "Password updated",
+        description: isSpanish
+          ? "Tu contraseña ha sido cambiada correctamente."
+          : "Your password has been changed successfully.",
       });
     } catch (error: any) {
       console.error("Error cambiando contraseña:", error);
-      let message = "Ocurrió un error inesperado.";
+      let message = isSpanish
+        ? "Ocurrió un error inesperado."
+        : "An unexpected error occurred.";
 
       if (error.code === "auth/wrong-password") {
-        message = "La contraseña actual es incorrecta.";
+        message = isSpanish
+          ? "La contraseña actual es incorrecta."
+          : "The current password is incorrect.";
       } else if (error.code === "auth/weak-password") {
-        message = "La nueva contraseña es demasiado débil.";
+        message = isSpanish
+          ? "La nueva contraseña es demasiado débil."
+          : "The new password is too weak.";
       } else if (error.code === "auth/requires-recent-login") {
-        message =
-          "Por seguridad, vuelve a iniciar sesión antes de cambiar tu contraseña.";
+        message = isSpanish
+          ? "Por seguridad, vuelve a iniciar sesión antes de cambiar tu contraseña."
+          : "For security, please sign in again before changing your password.";
       }
 
       toast({
-        title: "Error al cambiar contraseña",
+        title: isSpanish
+          ? "Error al cambiar contraseña"
+          : "Failed to change password",
         description: message,
         variant: "destructive",
       });

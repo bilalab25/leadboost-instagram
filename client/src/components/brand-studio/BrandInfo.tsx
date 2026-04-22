@@ -627,7 +627,7 @@ export default function BrandIdentity() {
                         <SelectItem value="zh">中文 (简体)</SelectItem>
                         <SelectItem value="ja">日本語</SelectItem>
                         <SelectItem value="ko">한국어</SelectItem>
-                        <SelectItem value="ar">ا �عربية</SelectItem>
+                        <SelectItem value="ar">العربية</SelectItem>
                         <SelectItem value="hi">हिन्दी</SelectItem>
                       </SelectContent>
                     </Select>

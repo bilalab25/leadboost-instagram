@@ -19,6 +19,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CreditCard, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useBrand } from "@/contexts/BrandContext";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface PaymentRequiredModalProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ interface PaymentRequiredModalProps {
 function PaymentForm({ brandId, onSuccess }: { brandId: string; onSuccess: () => void }) {
   const stripe = useStripe();
   const elements = useElements();
+  const { isSpanish } = useLanguage();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,7 +58,12 @@ function PaymentForm({ brandId, onSuccess }: { brandId: string; onSuccess: () =>
     try {
       const { error: submitError } = await elements.submit();
       if (submitError) {
-        setError(submitError.message || "Error submitting payment details");
+        setError(
+          submitError.message ||
+            (isSpanish
+              ? "Error al enviar los datos de pago"
+              : "Error submitting payment details"),
+        );
         setIsProcessing(false);
         return;
       }
@@ -70,7 +77,12 @@ function PaymentForm({ brandId, onSuccess }: { brandId: string; onSuccess: () =>
       });
 
       if (confirmError) {
-        setError(confirmError.message || "Error confirming payment method");
+        setError(
+          confirmError.message ||
+            (isSpanish
+              ? "Error al confirmar el método de pago"
+              : "Error confirming payment method"),
+        );
         setIsProcessing(false);
         return;
       }
@@ -78,7 +90,12 @@ function PaymentForm({ brandId, onSuccess }: { brandId: string; onSuccess: () =>
       // Payment method added successfully
       confirmMutation.mutate();
     } catch (err: any) {
-      setError(err.message || "An unexpected error occurred");
+      setError(
+        err.message ||
+          (isSpanish
+            ? "Ocurrió un error inesperado"
+            : "An unexpected error occurred"),
+      );
       setIsProcessing(false);
     }
   };
@@ -102,12 +119,12 @@ function PaymentForm({ brandId, onSuccess }: { brandId: string; onSuccess: () =>
         {isProcessing || confirmMutation.isPending ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Procesando...
+            {isSpanish ? "Procesando..." : "Processing..."}
           </>
         ) : (
           <>
             <CreditCard className="mr-2 h-4 w-4" />
-            Agregar método de pago
+            {isSpanish ? "Agregar método de pago" : "Add payment method"}
           </>
         )}
       </Button>
@@ -117,6 +134,7 @@ function PaymentForm({ brandId, onSuccess }: { brandId: string; onSuccess: () =>
 
 export function PaymentRequiredModal({ isOpen, onClose, onSuccess }: PaymentRequiredModalProps) {
   const { activeBrandId } = useBrand();
+  const { isSpanish } = useLanguage();
   const [step, setStep] = useState<"info" | "payment" | "success">("info");
   const [stripePromise, setStripePromise] = useState<Promise<any> | null>(null);
 
@@ -166,35 +184,45 @@ export function PaymentRequiredModal({ isOpen, onClose, onSuccess }: PaymentRequ
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <CreditCard className="h-5 w-5 text-primary" />
-                Créditos de imágenes agotados
+                {isSpanish
+                  ? "Créditos de imágenes agotados"
+                  : "Image credits exhausted"}
               </DialogTitle>
               <DialogDescription>
-                Has utilizado tus 10 imágenes gratuitas. Para continuar generando contenido de alta calidad, necesitas agregar un método de pago.
+                {isSpanish
+                  ? "Has utilizado tus 10 imágenes gratuitas. Para continuar generando contenido de alta calidad, necesitas agregar un método de pago."
+                  : "You've used your 10 free images. To continue generating high-quality content, please add a payment method."}
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-4 py-4">
               <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                <h4 className="font-medium">Precio por imagen</h4>
+                <h4 className="font-medium">
+                  {isSpanish ? "Precio por imagen" : "Price per image"}
+                </h4>
                 <p className="text-2xl font-bold text-primary">$0.12 USD</p>
                 <p className="text-sm text-muted-foreground">
-                  Se cobra cada 2 días por las imágenes generadas
+                  {isSpanish
+                    ? "Se cobra cada 2 días por las imágenes generadas"
+                    : "Billed every 2 days for images generated"}
                 </p>
               </div>
-              
+
               <Alert>
                 <AlertDescription>
-                  Tu tarjeta solo será cargada por las imágenes que generes. Sin cargos mensuales fijos.
+                  {isSpanish
+                    ? "Tu tarjeta solo será cargada por las imágenes que generes. Sin cargos mensuales fijos."
+                    : "Your card is only charged for images you generate. No fixed monthly fees."}
                 </AlertDescription>
               </Alert>
             </div>
 
             <div className="flex gap-2">
               <Button variant="outline" onClick={handleClose} className="flex-1">
-                Cancelar
+                {isSpanish ? "Cancelar" : "Cancel"}
               </Button>
               <Button onClick={handleStartPayment} className="flex-1" disabled={!stripeConfig?.publishableKey}>
-                Agregar tarjeta
+                {isSpanish ? "Agregar tarjeta" : "Add card"}
               </Button>
             </div>
           </>
@@ -203,9 +231,13 @@ export function PaymentRequiredModal({ isOpen, onClose, onSuccess }: PaymentRequ
         {step === "payment" && stripePromise && setupIntentMutation.data && (
           <>
             <DialogHeader>
-              <DialogTitle>Agregar método de pago</DialogTitle>
+              <DialogTitle>
+                {isSpanish ? "Agregar método de pago" : "Add payment method"}
+              </DialogTitle>
               <DialogDescription>
-                Ingresa los datos de tu tarjeta de crédito o débito
+                {isSpanish
+                  ? "Ingresa los datos de tu tarjeta de crédito o débito"
+                  : "Enter your credit or debit card details"}
               </DialogDescription>
             </DialogHeader>
             
@@ -234,16 +266,26 @@ export function PaymentRequiredModal({ isOpen, onClose, onSuccess }: PaymentRequ
         {step === "payment" && setupIntentMutation.isPending && (
           <div className="py-8 flex flex-col items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">Preparando formulario de pago...</p>
+            <p className="text-muted-foreground">
+              {isSpanish
+                ? "Preparando formulario de pago..."
+                : "Preparing payment form..."}
+            </p>
           </div>
         )}
 
         {step === "success" && (
           <div className="py-8 flex flex-col items-center justify-center text-center">
             <CheckCircle className="h-12 w-12 text-green-500 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">¡Método de pago agregado!</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              {isSpanish
+                ? "¡Método de pago agregado!"
+                : "Payment method added!"}
+            </h3>
             <p className="text-muted-foreground">
-              Ahora puedes generar imágenes ilimitadas. Se te cobrará cada 2 días.
+              {isSpanish
+                ? "Ahora puedes generar imágenes ilimitadas. Se te cobrará cada 2 días."
+                : "You can now generate unlimited images. You'll be billed every 2 days."}
             </p>
           </div>
         )}
@@ -252,26 +294,32 @@ export function PaymentRequiredModal({ isOpen, onClose, onSuccess }: PaymentRequ
   );
 }
 
-export function PaymentRequiredAlert({ 
+export function PaymentRequiredAlert({
   freeRemaining = 0,
-  onAddPayment 
-}: { 
+  onAddPayment
+}: {
   freeRemaining?: number;
   onAddPayment: () => void;
 }) {
+  const { isSpanish } = useLanguage();
   if (freeRemaining > 3) return null;
+
+  const warningText =
+    freeRemaining === 0
+      ? isSpanish
+        ? "Has agotado tus imágenes gratuitas."
+        : "You've used all your free images."
+      : isSpanish
+        ? `Te quedan ${freeRemaining} imagen${freeRemaining === 1 ? "" : "es"} gratis.`
+        : `You have ${freeRemaining} free image${freeRemaining === 1 ? "" : "s"} left.`;
 
   return (
     <Alert className={freeRemaining === 0 ? "border-destructive" : "border-yellow-500"}>
       <CreditCard className="h-4 w-4" />
       <AlertDescription className="flex items-center justify-between">
-        <span>
-          {freeRemaining === 0 
-            ? "Has agotado tus imágenes gratuitas." 
-            : `Te quedan ${freeRemaining} imagen${freeRemaining === 1 ? '' : 'es'} gratis.`}
-        </span>
+        <span>{warningText}</span>
         <Button variant="outline" size="sm" onClick={onAddPayment}>
-          Agregar tarjeta
+          {isSpanish ? "Agregar tarjeta" : "Add card"}
         </Button>
       </AlertDescription>
     </Alert>

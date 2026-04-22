@@ -3814,12 +3814,15 @@ export default function ContentCalendar() {
           onOpenChange={() => setFullscreenImage(null)}
         >
           <DialogContent className="max-w-4xl p-0 bg-transparent border-none shadow-none">
+            <DialogTitle className="sr-only">Full size preview</DialogTitle>
             <div className="relative">
-              <img
-                src={fullscreenImage || ""}
-                alt="Full size preview"
-                className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
-              />
+              {fullscreenImage ? (
+                <img
+                  src={fullscreenImage}
+                  alt="Full size preview"
+                  className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
+                />
+              ) : null}
               <button
                 onClick={() => setFullscreenImage(null)}
                 className="absolute top-2 right-2 bg-black/70 hover:bg-black/90 text-white rounded-full p-2 transition-colors"

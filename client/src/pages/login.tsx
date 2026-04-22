@@ -118,6 +118,7 @@ export default function LoginPage() {
 
   // --- LOCAL EMAIL/PASSWORD AUTH ---
   const [localAuthLoading, setLocalAuthLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
 
   const onLogin = async (data: LoginForm) => {
     setLocalAuthLoading(true);
@@ -252,7 +253,11 @@ export default function LoginPage() {
           <CardTitle className="text-2xl font-bold">
             Your AI Workspace
           </CardTitle>
-          <CardDescription>Sign in to your account</CardDescription>
+          <CardDescription>
+            {activeTab === "signup"
+              ? "Create your account"
+              : "Sign in to your account"}
+          </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
@@ -294,7 +299,11 @@ export default function LoginPage() {
           </div>
 
           {/* Tabs for login/signup */}
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={(v) => setActiveTab(v as "login" | "signup")}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>

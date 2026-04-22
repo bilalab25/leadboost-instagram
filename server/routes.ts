@@ -724,6 +724,21 @@ async function performInstagramDirectSync(
     );
 
     const convoRes = await fetch(convoUrl);
+    if (!convoRes.ok) {
+      const bodyText = await convoRes.text().catch(() => "");
+      let errInfo: any = { status: convoRes.status };
+      try {
+        const parsed = JSON.parse(bodyText);
+        errInfo = { status: convoRes.status, ...parsed };
+      } catch {
+        errInfo.body = bodyText.slice(0, 300);
+      }
+      console.error(
+        `❌ Initial sync HTTP error for instagram_direct:`,
+        errInfo,
+      );
+      return;
+    }
     const convoData = await convoRes.json();
 
     if (convoData.error) {
@@ -748,6 +763,12 @@ async function performInstagramDirectSync(
       // This avoids the N+1 pattern of fetching each message individually
       const messagesUrl = `https://graph.instagram.com/v24.0/${convo.id}?fields=messages.limit(50){id,created_time,from,to,message,attachments}&access_token=${accessToken}`;
       const msgRes = await fetch(messagesUrl);
+      if (!msgRes.ok) {
+        console.error(
+          `⚠️ HTTP ${msgRes.status} fetching messages for conversation ${convo.id}`,
+        );
+        continue;
+      }
       const msgData = await msgRes.json();
 
       if (msgData.error) {
@@ -4003,12 +4024,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }),
         },
       );
+      if (!tokenRes.ok) {
+        const bodyText = await tokenRes.text().catch(() => "");
+        console.error(
+          "[Instagram Direct OAuth] Token exchange failed:",
+          tokenRes.status,
+          bodyText,
+        );
+        const qs = `error=token_failed&provider=instagram`;
+        if (origin === "onboarding") {
+          return res.redirect(`/onboarding?step=4&${qs}`);
+        }
+        return res.redirect(`/integrations?${qs}`);
+      }
       const tokenData = await tokenRes.json();
 
-      if (tokenData.error_type || tokenData.error_message) {
-        return res
-          .status(500)
-          .redirect(`/integrations?error=token_failed`);
+      if (tokenData.error_type || tokenData.error_message || !tokenData.access_token) {
+        console.error(
+          "[Instagram Direct OAuth] Token response error:",
+          tokenData.error_type,
+          tokenData.error_message,
+        );
+        const qs = `error=token_failed&provider=instagram`;
+        if (origin === "onboarding") {
+          return res.redirect(`/onboarding?step=4&${qs}`);
+        }
+        return res.redirect(`/integrations?${qs}`);
       }
 
       const shortLivedToken = tokenData.access_token;
@@ -6861,7 +6902,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     );
                   },
                 );
-                const allConvoMessages = await Promise.all(whatsappPromises);
+                const settled = await Promise.allSettled(whatsappPromises);
+                const allConvoMessages = settled
+                  .filter((r): r is PromiseFulfilledResult<any> => {
+                    if (r.status === "rejected") {
+                      console.error(
+                        "[Webhook:whatsapp] conversation fetch failed:",
+                        r.reason,
+                      );
+                      return false;
+                    }
+                    return true;
+                  })
+                  .map((r) => r.value);
                 messages = allConvoMessages.flat();
                 break;
               }

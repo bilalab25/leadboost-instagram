@@ -2945,7 +2945,7 @@ export default function Onboarding() {
                             <SelectItem value="zh">中文 (简体)</SelectItem>
                             <SelectItem value="ja">日本語</SelectItem>
                             <SelectItem value="ko">한국어</SelectItem>
-                            <SelectItem value="ar">ا �عربية</SelectItem>
+                            <SelectItem value="ar">العربية</SelectItem>
                             <SelectItem value="hi">हिन्दी</SelectItem>
                           </SelectContent>
                         </Select>
@@ -3184,6 +3184,9 @@ export default function Onboarding() {
                                   </div>
                                 </DialogTrigger>
                                 <DialogContent className="max-w-3xl max-h-screen overflow-y-auto p-0">
+                                  <DialogTitle className="sr-only">
+                                    {`${style.name} Preview`}
+                                  </DialogTitle>
                                   <img
                                     src={styleImages[style.id]}
                                     alt={`${style.name} Preview`}
