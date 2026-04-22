@@ -2048,7 +2048,11 @@ Respond ONLY with valid JSON.`;
     let op: any;
     try {
       op = await (ai.models as any).generateVideos({
-        model: "veo-3.0-generate-001",
+        // Latest Veo model in this account. 3.1 produces noticeably better
+        // motion + composition than 3.0. Audio is native to Veo 3.x.
+        // Hard API limit on every Veo model is 4-8 seconds per clip — for
+        // longer reels we'd need to stitch multiple clips with ffmpeg.
+        model: "veo-3.1-generate-preview",
         prompt,
         config: {
           aspectRatio: "9:16",
