@@ -363,6 +363,7 @@ This image should look like a luxury skincare or fashion editorial, NOT a promot
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
+  image?: string; // optional data URL or remote URL for assistant turns that delivered an image
 }
 
 interface ChatResponse {
@@ -466,6 +467,109 @@ function detectCampaignBrief(message: string, history: ChatMessage[] = []): Camp
       theme: themeMatch?.[0],
     },
   };
+}
+
+// Detect what kind of post the user is asking for. Defaults to "post"
+// (a single 4:5 feed image). Carousels return multiple slides; reels
+// return a 9:16 cover frame + a video script.
+type PostKind = "post" | "story" | "carousel" | "reel";
+function detectPostKind(message: string): PostKind {
+  const m = message.toLowerCase();
+  if (/\b(carousel|carrusel|carrousel|multi[\s-]?slide|slides?|swipe[\s-]?through|\d+\s*-?slide)\b/i.test(m)) return "carousel";
+  if (/\b(reel|reels|tiktok|short\s*video|video\s*corto|reel\s*for|reel\s*about)\b/i.test(m)) return "reel";
+  if (/\b(story|stories|historia)\b/i.test(m)) return "story";
+  return "post";
+}
+
+// Detect a schedule request. Returns ISO datetime if a future moment is
+// confidently parsed from the message, otherwise null.
+function parseScheduleIntent(message: string, now = new Date()): string | null {
+  const m = message.toLowerCase();
+  // Must contain a scheduling verb.
+  if (!/\b(schedule|programa(r)?|programalo|publish|publica(r)?|post\s+(?:it|this|on)|s[uú]belo|sub[ií]r|put\s+(?:it|this)\s+up|launch|lanzar)\b/i.test(m))
+    return null;
+
+  // Pull a time-of-day if present, default to 10:00.
+  const timeMatch = m.match(/\b(\d{1,2})(?::(\d{2}))?\s*(am|pm|a\.m\.|p\.m\.)?\b/);
+  let hour = 10, minute = 0;
+  if (timeMatch) {
+    hour = parseInt(timeMatch[1], 10);
+    minute = timeMatch[2] ? parseInt(timeMatch[2], 10) : 0;
+    const ampm = timeMatch[3];
+    if (ampm && /pm/i.test(ampm) && hour < 12) hour += 12;
+    if (ampm && /am/i.test(ampm) && hour === 12) hour = 0;
+  }
+
+  const target = new Date(now);
+  target.setSeconds(0, 0);
+
+  // Specific weekday: "Friday", "Monday"...
+  const weekdayMatch = m.match(/\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)\b/i);
+  if (weekdayMatch) {
+    const map: Record<string, number> = {
+      sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6,
+      domingo: 0, lunes: 1, martes: 2, miercoles: 3, miércoles: 3, jueves: 4, viernes: 5, sabado: 6, sábado: 6,
+    };
+    const wantedDow = map[weekdayMatch[1].toLowerCase()];
+    let daysAhead = (wantedDow - now.getDay() + 7) % 7;
+    if (daysAhead === 0) daysAhead = 7;
+    if (/\bnext\b|\bpr[oó]ximo\b/.test(m)) daysAhead = daysAhead === 0 ? 7 : daysAhead;
+    target.setDate(now.getDate() + daysAhead);
+    target.setHours(hour, minute, 0, 0);
+    return target.toISOString();
+  }
+
+  // tomorrow
+  if (/\b(tomorrow|ma[ñn]ana)\b/.test(m)) {
+    target.setDate(now.getDate() + 1);
+    target.setHours(hour, minute, 0, 0);
+    return target.toISOString();
+  }
+  // today
+  if (/\b(today|hoy)\b/.test(m)) {
+    target.setDate(now.getDate());
+    target.setHours(hour, minute, 0, 0);
+    if (target.getTime() <= now.getTime()) target.setDate(now.getDate() + 1);
+    return target.toISOString();
+  }
+
+  // Explicit ISO date
+  const iso = m.match(/(\d{4})-(\d{2})-(\d{2})(?:[\sT](\d{1,2}):(\d{2}))?/);
+  if (iso) {
+    const d = new Date(
+      parseInt(iso[1], 10),
+      parseInt(iso[2], 10) - 1,
+      parseInt(iso[3], 10),
+      iso[4] ? parseInt(iso[4], 10) : hour,
+      iso[5] ? parseInt(iso[5], 10) : minute,
+    );
+    return d.toISOString();
+  }
+
+  // Month + day: "March 15", "15 de marzo"
+  const monthMap: Record<string, number> = {
+    jan: 0, january: 0, feb: 1, february: 1, mar: 2, march: 2, apr: 3, april: 3,
+    may: 4, jun: 5, june: 5, jul: 6, july: 6, aug: 7, august: 7, sep: 8, september: 8,
+    oct: 9, october: 9, nov: 10, november: 10, dec: 11, december: 11,
+    enero: 0, febrero: 1, marzo: 2, abril: 3, mayo: 4, junio: 5, julio: 6,
+    agosto: 7, septiembre: 8, octubre: 9, noviembre: 10, diciembre: 11,
+  };
+  const enMonthDay = m.match(/\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+(\d{1,2})(?:,\s*(\d{4}))?/i);
+  const esMonthDay = m.match(/\b(\d{1,2})\s+de\s+(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)(?:\s+de\s+(\d{4}))?/i);
+  const md = enMonthDay
+    ? { month: monthMap[enMonthDay[1].toLowerCase()], day: parseInt(enMonthDay[2], 10), year: enMonthDay[3] ? parseInt(enMonthDay[3], 10) : undefined }
+    : esMonthDay
+      ? { month: monthMap[esMonthDay[2].toLowerCase()], day: parseInt(esMonthDay[1], 10), year: esMonthDay[3] ? parseInt(esMonthDay[3], 10) : undefined }
+      : null;
+  if (md) {
+    const year = md.year ?? now.getFullYear();
+    const d = new Date(year, md.month, md.day, hour, minute);
+    if (d.getTime() < now.getTime()) d.setFullYear(year + 1);
+    return d.toISOString();
+  }
+
+  // Schedule verb but no date — refuse so we don't guess.
+  return null;
 }
 
 // Returns the bullet list of the questions Boosty should still ask. Empty
@@ -900,6 +1004,91 @@ ${capabilities}`;
     if (/[ñáéíóúü¿¡]/i.test(message)) esHits += 2;
     if (esHits === 0 && enHits === 0) return fallback;
     return esHits > enHits ? "es" : "en";
+  }
+
+  // Schedule the last generated image from this conversation to publish at
+  // a specific time. Uploads the base64 image to Cloudinary, creates an
+  // aiGeneratedPosts row with status="accepted" and scheduledPublishTime,
+  // and returns a confirmation chat message. The publisher cron picks it up.
+  private async handleScheduleIntent(
+    brandId: string,
+    scheduledIso: string,
+    message: string,
+    history: ChatMessage[],
+    language: "es" | "en",
+  ): Promise<ChatResponse | null> {
+    // Walk back through history looking for the most recent assistant turn
+    // that delivered an image (the client now passes m.image alongside
+    // m.content per turn).
+    const lastImageTurn = [...history]
+      .reverse()
+      .find((m) => m.role === "assistant" && !!m.image);
+    const imageDataUri = lastImageTurn?.image;
+
+    if (!imageDataUri) {
+      const text =
+        language === "es"
+          ? `Para programar la publicación necesito que primero generes (o adjuntes) la imagen. Cuando esté lista, dime "programa para ${new Date(scheduledIso).toLocaleString("es")}".`
+          : `To schedule the post I need an image first — generate (or attach) one, then tell me "schedule for ${new Date(scheduledIso).toLocaleString("en")}".`;
+      return { text };
+    }
+
+    // Recover the most recent caption + hashtags from history (we wrote them
+    // as the chat reply, so parse them back out).
+    const lastTextWithCaption = lastImageTurn?.content || "";
+    const capMatch = lastTextWithCaption.match(/(?:Caption sugerido|Suggested caption|A · (?:Punchy|Directa))[:\s]+([^\n]+)/i);
+    const titulo = capMatch?.[1]?.slice(0, 80) || (language === "es" ? "Publicación programada" : "Scheduled post");
+    const tagsMatch = lastTextWithCaption.match(/Hashtags(?:\s+por\s+capa|\s+by\s+tier)?:\s*([^]+?)(?:\n\n|$)/i);
+    const hashtags = tagsMatch?.[1]?.replace(/[🏷️🎯🌐]/g, "").trim() || "";
+
+    try {
+      const cloudinary = (await import("../cloudinary")).default;
+      const upload = await cloudinary.uploader.upload(imageDataUri, {
+        folder: `leadboost/boosty/${brandId}`,
+        resource_type: "image",
+      });
+
+      const { createPostGeneratorJob } = await import("../storage/postGeneratorJobs");
+      const { createAiGeneratedPost, updateAiGeneratedPostStatus } = await import("../storage/aiGeneratedPosts");
+
+      const job = await createPostGeneratorJob(brandId);
+      const scheduledDate = new Date(scheduledIso);
+      const dia = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"][scheduledDate.getDay()];
+
+      const post = await createAiGeneratedPost({
+        jobId: job.id,
+        brandId,
+        platform: "instagram",
+        titulo,
+        content: capMatch?.[1] || titulo,
+        imageUrl: upload.secure_url,
+        cloudinaryPublicId: upload.public_id,
+        dia,
+        hashtags,
+        status: "accepted",
+        isSample: false,
+        type: "image",
+        scheduledPublishTime: scheduledIso as any,
+      });
+      await updateAiGeneratedPostStatus(post.id, "accepted", scheduledIso);
+
+      const when = scheduledDate.toLocaleString(
+        language === "es" ? "es-MX" : "en-US",
+        { weekday: "long", month: "long", day: "numeric", hour: "numeric", minute: "2-digit" },
+      );
+      const text =
+        language === "es"
+          ? `✅ Listo. Programé la publicación para **${when}** en Instagram. Aparecerá en tu calendario y se publicará automáticamente. Si quieres cambiar la fecha o cancelarla, ve a tu calendario.`
+          : `✅ Done. I scheduled the post for **${when}** on Instagram. It now lives in your calendar and will publish automatically. To change or cancel, head to the calendar.`;
+      return { text };
+    } catch (err) {
+      console.error("[Boosty] handleScheduleIntent error:", err);
+      const text =
+        language === "es"
+          ? `No pude programar la publicación: ${err instanceof Error ? err.message : "error desconocido"}. Intenta desde el calendario.`
+          : `I couldn't schedule the post: ${err instanceof Error ? err.message : "unknown error"}. Try from the calendar instead.`;
+      return { text };
+    }
   }
 
   // Helper function to fetch an image from URL and convert to base64
@@ -1477,6 +1666,22 @@ Respond ONLY with valid JSON. No prose, no markdown.`;
     const effectiveLanguage = this.detectMessageLanguage(message, language);
     language = effectiveLanguage;
     const systemPrompt = this.buildSystemPrompt(context, language);
+
+    // ---- D) Schedule intent. If the user just asked us to schedule the last
+    // generated image to a specific date/time, do it: upload the image to
+    // Cloudinary and create an accepted aiGeneratedPosts entry. The cron
+    // publisher will pick it up at scheduledPublishTime.
+    const scheduleAt = parseScheduleIntent(message);
+    if (scheduleAt) {
+      const result = await this.handleScheduleIntent(
+        brandId,
+        scheduleAt,
+        message,
+        conversationHistory,
+        language,
+      );
+      if (result) return result;
+    }
 
     // Image-request detection covers three cases:
     //   A) Explicit fresh request ("create story X with Y...")

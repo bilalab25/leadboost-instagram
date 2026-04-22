@@ -248,6 +248,7 @@ export default function Waterfall() {
         conversationHistory: messages.map((m) => ({
           role: m.role,
           content: m.content,
+          image: m.image,
         })),
         language,
         attachmentBase64,
