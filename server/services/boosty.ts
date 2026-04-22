@@ -405,17 +405,19 @@ interface CampaignBrief {
 
 // Pattern matchers shared with isImageRequest so we know if a message itself
 // starts a fresh creative request.
+// Verb (any tense, any language) within ~40 chars of a creative-asset noun.
+// Robust to "create a 5-slide carousel", "make me 3 stories about...", etc.
+const CREATIVE_ASSET_NOUN =
+  "image|photo|post|publicaci[oó]n|contenido|visual|dise[ñn]o|gr[aá]fica|banner|story|stories|historia|reel|reels|carousel|carrousel|carrusel|imagen|foto|gr[aá]fico|publicacion";
+const CREATIVE_VERBS_EN =
+  "generate|create|make|design|build|put together|whip up|i\\s*(?:want|need)\\s*(?:to)?\\s*(?:make|create|design|generate|build|whip\\s*up|put\\s*together)";
+const CREATIVE_VERBS_ES =
+  "genera(?:r|me)?|crea(?:r|me)?|haz(?:me)?|hazme|dise[ñn]a(?:r|me)?|quiero|necesito|arma(?:r|me)?";
 const IMAGE_REQUEST_ALL = [
-  /genera(r)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel|reels|carrusel|carousel|carrousel)/i,
-  /crea(r)?\s*(la|el|un[ao]?|esa?|\d+\s*-?slide\s*)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel|reels|carrusel|carousel|carrousel)/i,
-  /haz(me)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel|reels|carrusel|carousel|carrousel)/i,
-  /quiero\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|carrusel|reel)/i,
-  /necesito\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|carrusel|reel)/i,
-  /generate\s*(the|an?|that|this|\d+\s*-?slide)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel|reels|carousel|carrousel)/i,
-  /create\s*(the|an?|that|this|\d+\s*-?slide)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel|reels|carousel|carrousel)/i,
-  /make\s*(me\s*)?(the|an?|that|this|\d+\s*-?slide)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel|reels|carousel|carrousel)/i,
-  /i\s*(want|need)\s*to\s*(make|create|design|generate)\s*(a|an|the|\d+\s*-?slide)?\s*(image|photo|post|visual|story|reel|reels|design|graphic|banner|carousel|carrousel)/i,
-  /design\s*(me\s*)?(the|an?|that|this)?\s*(image|photo|post|visual|carousel|reel)/i,
+  new RegExp(`\\b(?:${CREATIVE_VERBS_EN})\\b[\\s\\w\\-,]{0,60}\\b(?:${CREATIVE_ASSET_NOUN})\\b`, "i"),
+  new RegExp(`\\b(?:${CREATIVE_VERBS_ES})\\b[\\s\\w\\-,áéíóúñ]{0,60}\\b(?:${CREATIVE_ASSET_NOUN})\\b`, "i"),
+  // Bare "generate it" / "make another one" follow-ups
+  /\b(generate|create|make|design|haz|crea|genera)\b\s+(it|this|that|that one|otro|otra|esto|eso)\b/i,
 ];
 
 function isFreshImageRequest(message: string): boolean {
@@ -619,26 +621,11 @@ function missingBriefQuestions(
   return questions;
 }
 
+// Per-language patterns kept for compatibility but isImageRequest now uses
+// the unified IMAGE_REQUEST_ALL list above which covers both languages.
 const IMAGE_REQUEST_PATTERNS = {
-  es: [
-    /genera(r)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel|reels|carrusel|carousel|carrousel)/i,
-    /crea(r)?\s*(la|el|una?|esa?|un|\d+\s*-?slide\s*)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel|reels|carrusel|carousel|carrousel)/i,
-    /haz(me)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel|reels|carrusel|carousel|carrousel)/i,
-    /quiero\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|carrusel|reel)/i,
-    /necesito\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|carrusel|reel)/i,
-    /dise[ñn]a(me)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|carrusel|reel)/i,
-    /genera(r)?\s*(eso|esto)/i,
-  ],
-  en: [
-    /generate\s*(the|an?|that|this|\d+\s*-?slide)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel|reels|carousel|carrousel)/i,
-    /create\s*(the|an?|that|this|\d+\s*-?slide)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel|reels|carousel|carrousel)/i,
-    /make\s*(me\s*)?(the|an?|that|this|\d+\s*-?slide)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel|reels|carousel|carrousel)/i,
-    /i\s*(want|need)\s*(the|an?|that|this|\d+\s*-?slide)?\s*(image|photo|post|visual|carousel|reel|story)/i,
-    /design\s*(me\s*)?(the|an?|that|this)?\s*(image|photo|post|visual|carousel|reel)/i,
-    /please\s+generate/i,
-    /can\s+you\s+generate/i,
-    /generate\s+(it|that|this)/i,
-  ],
+  es: IMAGE_REQUEST_ALL,
+  en: IMAGE_REQUEST_ALL,
 };
 
 export class BoostyService {
