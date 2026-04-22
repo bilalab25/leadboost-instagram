@@ -251,6 +251,7 @@ export default function Waterfall() {
           role: m.role,
           content: m.content,
           image: m.image,
+          images: m.images,
         })),
         language,
         attachmentBase64,

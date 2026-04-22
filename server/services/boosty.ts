@@ -363,7 +363,8 @@ This image should look like a luxury skincare or fashion editorial, NOT a promot
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
-  image?: string; // optional data URL or remote URL for assistant turns that delivered an image
+  image?: string; // optional data URL or remote URL for single-image turns
+  images?: string[]; // optional array for carousel turns
 }
 
 interface ChatResponse {
@@ -1012,12 +1013,17 @@ ${capabilities}`;
     language: "es" | "en",
   ): Promise<ChatResponse | null> {
     // Walk back through history looking for the most recent assistant turn
-    // that delivered an image (the client now passes m.image alongside
-    // m.content per turn).
+    // that delivered an image. Carousels use m.images[]; single posts use
+    // m.image. Either works — we schedule the cover slide.
     const lastImageTurn = [...history]
       .reverse()
-      .find((m) => m.role === "assistant" && !!m.image);
-    const imageDataUri = lastImageTurn?.image;
+      .find(
+        (m: any) =>
+          m.role === "assistant" && (!!m.image || (Array.isArray(m.images) && m.images.length > 0)),
+      ) as any;
+    const imageDataUri =
+      lastImageTurn?.image ||
+      (Array.isArray(lastImageTurn?.images) ? lastImageTurn.images[0] : undefined);
 
     if (!imageDataUri) {
       const text =
