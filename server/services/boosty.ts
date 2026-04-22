@@ -1376,8 +1376,6 @@ Respond ONLY with valid JSON. No prose, no markdown.`;
             captionOptions: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
-              minItems: 3,
-              maxItems: 3,
             },
             hashtagsBranded: { type: Type.STRING },
             hashtagsNiche: { type: Type.STRING },
