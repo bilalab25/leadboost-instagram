@@ -2118,35 +2118,32 @@ Respond ONLY with valid JSON.`;
     // Subline:  semi-bold, center, 3.0-6.0s
     // CTA pill: brand color background with white text, bottom-center, 6.0-7.7s
     // Subtle dark gradient at the bottom keeps text legible over busy frames.
+    // Build chained text overlays. Each l_text needs its placement params
+    // (gravity, offsets, timing) inside the SAME segment — Cloudinary applies
+    // it as a single overlay layer per segment. Don't append fl_layer_apply
+    // for video text overlays unless using a separate g_/y_ in another step.
     const enc = (s: string) => encodeURIComponent(s);
-    const transforms: string[] = [];
-
-    // Subtle dark gradient overlay full-duration for legibility.
-    transforms.push(
-      "l_gradient:vertical_top_to_bottom:0:60,o_55,fl_relative,w_1.0,h_1.0",
-      "fl_layer_apply",
-    );
-
+    const transformations: any[] = [];
     if (headline) {
-      transforms.push(
-        `l_text:${cloudFont}_120_bold:${enc(headline)},co_white,b_rgb:000000A0,bo_2px_solid_rgb:${brandColor},so_0.3,eo_3.0,g_north,y_180`,
-      );
+      transformations.push({
+        raw_transformation: `l_text:${cloudFont}_110_bold:${enc(headline)},co_white,bo_3px_solid_rgb:${brandColor},so_0.3,eo_3.0,g_north,y_180`,
+      });
     }
     if (subline) {
-      transforms.push(
-        `l_text:${cloudFont}_56:${enc(subline)},co_white,b_rgb:00000080,so_3.0,eo_6.0,g_center,y_0`,
-      );
+      transformations.push({
+        raw_transformation: `l_text:${cloudFont}_54:${enc(subline)},co_white,bo_2px_solid_rgb:${brandColor},so_3.0,eo_6.0,g_center,y_0`,
+      });
     }
     if (cta) {
-      // Pill button effect: white text on rounded brand-color rectangle.
-      transforms.push(
-        `l_text:${cloudFont}_72_bold:${enc(cta)},co_white,b_rgb:${brandColor},bo_4px_solid_rgb:ffffff,r_max,so_6.0,eo_7.7,g_south,y_180`,
-      );
+      // Pill-style: white text on a brand-color rounded background.
+      transformations.push({
+        raw_transformation: `l_text:${cloudFont}_72_bold:${enc(cta)},co_white,b_rgb:${brandColor},r_max,so_6.0,eo_7.7,g_south,y_180`,
+      });
     }
 
     const overlayUrl = cloudinary.url(upload.public_id, {
       resource_type: "video",
-      transformation: transforms.map((raw) => ({ raw_transformation: raw })),
+      transformation: transformations,
       secure: true,
     });
     return overlayUrl;
