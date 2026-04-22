@@ -1284,29 +1284,50 @@ Respond ONLY with valid JSON.`;
       parts: userParts,
     });
 
-    try {
-      const response = await getAI().models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: messages,
-        config: {
-          // Bug 19: Use systemInstruction instead of injecting as user message
-          systemInstruction: systemPrompt,
-          temperature: 0.8,
-          maxOutputTokens: 2048,
-        },
-      });
-
-      return {
-        text:
-          response.text ||
-          (language === "es"
-            ? "Lo siento, no pude procesar tu mensaje. ¿Podrías intentar de nuevo?"
-            : "Sorry, I couldn't process your message. Could you try again?"),
-      };
-    } catch (error) {
-      console.error("[Boosty] Error generating response:", error);
-      throw error;
+    let response: any;
+    let lastError: any;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        response = await getAI().models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: messages,
+          config: {
+            // Bug 19: Use systemInstruction instead of injecting as user message
+            systemInstruction: systemPrompt,
+            temperature: 0.8,
+            maxOutputTokens: 2048,
+          },
+        });
+        lastError = null;
+        break;
+      } catch (err: any) {
+        lastError = err;
+        const msg = err?.message || JSON.stringify(err);
+        const isRetriable =
+          msg.includes('"code":503') ||
+          msg.includes('"code":429') ||
+          msg.includes("UNAVAILABLE") ||
+          msg.includes("RESOURCE_EXHAUSTED");
+        if (!isRetriable || attempt === 2) break;
+        console.warn(
+          `[Boosty] Gemini transient error (attempt ${attempt + 1}/3), retrying...`,
+        );
+        await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 1000));
+      }
     }
+
+    if (lastError) {
+      console.error("[Boosty] Error generating response:", lastError);
+      throw lastError;
+    }
+
+    return {
+      text:
+        response.text ||
+        (language === "es"
+          ? "Lo siento, no pude procesar tu mensaje. ¿Podrías intentar de nuevo?"
+          : "Sorry, I couldn't process your message. Could you try again?"),
+    };
   }
 
   async getQuickSuggestions(

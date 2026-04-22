@@ -10316,8 +10316,20 @@ Respond ONLY in JSON with this exact format:
           image: chatResponse.image,
           imagePrompt: chatResponse.imagePrompt,
         });
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error in Boosty chat:", error);
+        const msg = error?.message || JSON.stringify(error);
+        const isUpstreamUnavailable =
+          msg.includes('"code":503') ||
+          msg.includes('"code":429') ||
+          msg.includes("UNAVAILABLE") ||
+          msg.includes("RESOURCE_EXHAUSTED");
+        if (isUpstreamUnavailable) {
+          return res.status(503).json({
+            error:
+              "AI service is temporarily busy. Please try again in a moment.",
+          });
+        }
         res.status(500).json({ error: "Failed to process chat message" });
       }
     },
