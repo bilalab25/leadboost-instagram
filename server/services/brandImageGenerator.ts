@@ -6,6 +6,7 @@ import sharp from "sharp";
 import { db } from "../db";
 import { brandAssets } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { generateContentWithRetry } from "./aiRetry";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY!,
@@ -719,7 +720,7 @@ Generate a single, stunning, scroll-stopping social media image.`;
       );
 
       const response = useSimplePrompt
-        ? await ai.models.generateContent({
+        ? await generateContentWithRetry(ai, {
             model: "gemini-2.5-flash-image",
             contents: [
               {
@@ -744,7 +745,7 @@ Generate a single, stunning, scroll-stopping social media image.`;
               },
             },
           })
-        : await ai.models.generateContent({
+        : await generateContentWithRetry(ai, {
             model: "gemini-2.5-flash-image",
             contents: [
               {

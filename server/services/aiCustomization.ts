@@ -7,6 +7,7 @@ import {
   approvalPipelines,
 } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import { generateContentWithRetry } from "./aiRetry";
 
 /**
  * AI Customization Engine
@@ -107,7 +108,7 @@ RESPONSE FORMAT:
   ]
 }`;
 
-  const response = await ai.models.generateContent({
+  const response = await generateContentWithRetry(ai, {
     model: "gemini-2.0-flash",
     contents: [
       { role: "user", parts: [{ text: systemPrompt }] },

@@ -1,5 +1,6 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 import { storage } from "../storage";
+import { generateContentWithRetry } from "./aiRetry";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY!,
@@ -218,7 +219,7 @@ export const generateAILogo = async (
       
       const prompt = await generatePrompt(brandId, userId, options);
 
-      const response = await ai.models.generateContent({
+      const response = await generateContentWithRetry(ai, {
         model: "gemini-2.5-flash-image",
         contents: prompt,
         config: {

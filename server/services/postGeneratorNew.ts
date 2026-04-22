@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import cloudinary from "../cloudinary";
+import { generateContentWithRetry } from "./aiRetry";
 
 let _ai: GoogleGenAI | null = null;
 function getAI(): GoogleGenAI {
@@ -91,7 +92,7 @@ Interpret the brand's niche and define a premium/editorial scene with:
   ];
 
   try {
-    const resp = await getAI().models.generateContent({
+    const resp = await generateContentWithRetry(getAI(), {
       model: "gemini-2.5-flash",
       contents: [{ role: "user", parts }],
       config: {
@@ -120,7 +121,7 @@ export async function generateImageBrandOnly(brand: BrandInput): Promise<string 
   try {
     const imagePrompt = await buildImagePromptFromBrand(brand);
 
-    const response = await getAI().models.generateContent({
+    const response = await generateContentWithRetry(getAI(), {
       model: "gemini-2.5-flash-image",
       contents: [
         {
@@ -168,7 +169,7 @@ export async function generateImageBrandOnlyWithLogo(brand: BrandInput): Promise
       text: `IMAGE_PROMPT:\n${imagePrompt}\nLogo must be integrated naturally and remain unchanged.`,
     });
 
-    const response = await getAI().models.generateContent({
+    const response = await generateContentWithRetry(getAI(), {
       model: "gemini-2.5-flash-image",
       contents: [{ role: "user", parts: renderParts }],
       config: {
@@ -229,7 +230,7 @@ Add copy related to the brand in the negative space.
   });
 
   try {
-    const resp = await getAI().models.generateContent({
+    const resp = await generateContentWithRetry(getAI(), {
       model: "gemini-2.5-flash",
       contents: [{ role: "user", parts }],
       config: {
@@ -277,7 +278,7 @@ export async function generateImageWithReferences(brand: BrandInput): Promise<st
       text: `IMAGE_PROMPT:\n${imagePrompt}\n\nOutput: Instagram-ready 1:1 image.`,
     });
 
-    const response = await getAI().models.generateContent({
+    const response = await generateContentWithRetry(getAI(), {
       model: "gemini-2.5-flash-image",
       contents: [{ role: "user", parts: renderParts }],
       config: {

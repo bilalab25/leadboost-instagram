@@ -540,6 +540,7 @@ export default function IntegrationsPage() {
     const error = urlParams.get("error");
     const provider = urlParams.get("provider");
     const message = urlParams.get("message");
+    const username = urlParams.get("username");
     const connected = urlParams.get("connected");
 
     // Handle successful connection
@@ -618,14 +619,25 @@ export default function IntegrationsPage() {
             message ||
             "Error al guardar la integración. Por favor, inténtalo de nuevo.",
         },
-        duplicate: {
-          en: message
-            ? decodeURIComponent(message)
-            : "This account is already connected to another brand in the platform. Please use a different account or disconnect it first from the other brand.",
-          es: message
-            ? decodeURIComponent(message)
-            : "Esta cuenta ya está conectada a otra marca en la plataforma. Por favor usa una cuenta diferente o desconéctala primero de la otra marca.",
-        },
+        duplicate: (() => {
+          const providerLabel =
+            provider === "instagram" || provider === "instagram_direct"
+              ? "Instagram"
+              : provider === "whatsapp"
+                ? "WhatsApp Business"
+                : "";
+          const accountRef = username ? ` (@${username})` : "";
+          const subject = providerLabel
+            ? `This ${providerLabel} account${accountRef}`
+            : "This account";
+          const subjectEs = providerLabel
+            ? `Esta cuenta de ${providerLabel}${accountRef}`
+            : "Esta cuenta";
+          return {
+            en: `${subject} is already connected to another brand on the platform. Please use a different account, or disconnect it from the other brand first.`,
+            es: `${subjectEs} ya está conectada a otra marca en la plataforma. Por favor usa una cuenta diferente o desconéctala primero de la otra marca.`,
+          };
+        })(),
       };
 
       const errorMessage = errorMessages[error] || {

@@ -3,6 +3,7 @@ import { storage } from "../storage";
 import type { BrandDesign, Brand, BrandAsset } from "@shared/schema";
 import cloudinary from "../cloudinary";
 import { languageInstruction } from "./postGenerator";
+import { generateContentWithRetry } from "./aiRetry";
 import {
   createPostGeneratorJob,
   updatePostGeneratorJob,
@@ -160,7 +161,7 @@ CLASSIFICATION RULES
 Return JSON: { intent: string, reasoning: string }`;
 
   try {
-    const response = await getAI().models.generateContent({
+    const response = await generateContentWithRetry(getAI(), {
       model: "gemini-2.5-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       config: {
@@ -515,7 +516,7 @@ Return a JSON object with posts array containing objects with these fields:
 - imagePrompt: A detailed description for generating a professional marketing image that matches this post. ${hasProducts ? "Include the brand products in the scene." : "Focus on brand lifestyle and atmosphere."}`;
 
   try {
-    const response = await getAI().models.generateContent({
+    const response = await generateContentWithRetry(getAI(), {
       model: "gemini-2.5-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       config: {
@@ -741,7 +742,7 @@ NOT like an advertisement or brand poster. Think Instagram feed, not billboard.`
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        const response = await getAI().models.generateContent({
+        const response = await generateContentWithRetry(getAI(), {
           model: "gemini-3-pro-image-preview",
           contents: contentParts,
           config: {
@@ -847,7 +848,7 @@ Create THAT kind of image - organic, engaging, real.`;
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        const response = await getAI().models.generateContent({
+        const response = await generateContentWithRetry(getAI(), {
           model: "gemini-3-pro-image-preview",
           contents: [{ text: simplePrompt }],
           config: {

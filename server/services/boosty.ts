@@ -1,4 +1,5 @@
 import { GoogleGenAI, Modality } from "@google/genai";
+import { generateContentWithRetry } from "./aiRetry";
 import { db } from "../db";
 import {
   brands,
@@ -920,7 +921,7 @@ Create a professional marketing image suitable for social media.
       contentParts.push({ text: enhancedPrompt });
 
       // Call Gemini with multimodal content
-      const response = await getAI().models.generateContent({
+      const response = await generateContentWithRetry(getAI(), {
         model: "gemini-3-pro-image-preview",
         contents: contentParts,
         config: {
@@ -1118,7 +1119,7 @@ Generate a JSON with:
 Respond ONLY with valid JSON.`;
 
     try {
-      const response = await getAI().models.generateContent({
+      const response = await generateContentWithRetry(getAI(), {
         model: "gemini-2.5-flash",
         contents: prompt,
         config: {
@@ -1285,40 +1286,20 @@ Respond ONLY with valid JSON.`;
     });
 
     let response: any;
-    let lastError: any;
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        response = await getAI().models.generateContent({
-          model: "gemini-2.5-flash",
-          contents: messages,
-          config: {
-            // Bug 19: Use systemInstruction instead of injecting as user message
-            systemInstruction: systemPrompt,
-            temperature: 0.8,
-            maxOutputTokens: 2048,
-          },
-        });
-        lastError = null;
-        break;
-      } catch (err: any) {
-        lastError = err;
-        const msg = err?.message || JSON.stringify(err);
-        const isRetriable =
-          msg.includes('"code":503') ||
-          msg.includes('"code":429') ||
-          msg.includes("UNAVAILABLE") ||
-          msg.includes("RESOURCE_EXHAUSTED");
-        if (!isRetriable || attempt === 2) break;
-        console.warn(
-          `[Boosty] Gemini transient error (attempt ${attempt + 1}/3), retrying...`,
-        );
-        await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 1000));
-      }
-    }
-
-    if (lastError) {
-      console.error("[Boosty] Error generating response:", lastError);
-      throw lastError;
+    try {
+      response = await generateContentWithRetry(getAI(), {
+        model: "gemini-2.5-flash",
+        contents: messages,
+        config: {
+          // Bug 19: Use systemInstruction instead of injecting as user message
+          systemInstruction: systemPrompt,
+          temperature: 0.8,
+          maxOutputTokens: 2048,
+        },
+      }, { label: "Boosty" });
+    } catch (err) {
+      console.error("[Boosty] Error generating response:", err);
+      throw err;
     }
 
     return {

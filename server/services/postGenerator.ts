@@ -3,6 +3,7 @@ import { storage } from "../storage";
 import type { BrandDesign, BrandAsset, Integration } from "@shared/schema";
 import sharp from "sharp";
 import OpenAI from "openai";
+import { generateContentWithRetry } from "./aiRetry";
 import cloudinary from "../cloudinary";
 import { BillingService } from "../stripe/billingService";
 
@@ -1226,7 +1227,7 @@ export async function generatePostsWithGemini(
     if (generationMode === "full") {
       const prompt = buildTextPrompt(context);
 
-      const response = await getAI().models.generateContent({
+      const response = await generateContentWithRetry(getAI(), {
         model: "gemini-2.5-flash",
         contents: prompt,
         config: {
@@ -1247,7 +1248,7 @@ export async function generatePostsWithGemini(
     if (generationMode === "skeleton") {
       const prompt = buildPostsSkeletonPrompt(context);
 
-      const response = await getAI().models.generateContent({
+      const response = await generateContentWithRetry(getAI(), {
         model: "gemini-2.5-flash",
         contents: prompt,
         config: {
@@ -1277,7 +1278,7 @@ export async function generatePostsWithGemini(
       const visionMimeType = dataUrlMatch?.[1] || "image/png";
       const visionBase64 = dataUrlMatch?.[2] || context.imageDataUrl;
 
-      const response = await getAI().models.generateContent({
+      const response = await generateContentWithRetry(getAI(), {
         model: "gemini-2.5-flash",
         contents: [
           {
@@ -2061,7 +2062,7 @@ If ANY item is ❌, DO NOT generate. Adjust and verify again.
     // Add the main prompt (once — previously was duplicated)
     contentParts.push({ text: structuredPrompt });
 
-    const response = await getAI().models.generateContent({
+    const response = await generateContentWithRetry(getAI(), {
       model: "gemini-2.5-flash-image",
       contents: contentParts,
       config: {
@@ -2308,7 +2309,7 @@ ${logoPlacementBlock}
       contentParts.push({ text: enhancedPrompt });
     }
 
-    const response = await getAI().models.generateContent({
+    const response = await generateContentWithRetry(getAI(), {
       model: "gemini-2.5-flash-image",
       contents: contentParts,
       config: {
@@ -2510,7 +2511,7 @@ CONTENT:
 ${JSON.stringify(content)}
 `;
 
-  const response = await getAI().models.generateContent({
+  const response = await generateContentWithRetry(getAI(), {
     model: "gemini-2.5-flash",
     contents: prompt,
     config: {
@@ -2602,7 +2603,7 @@ RETURN VALID JSON WITH:
 
   // 🔁 Hasta 2 intentos “naturales”
   for (let attempt = 1; attempt <= 2; attempt++) {
-    const response = await getAI().models.generateContent({
+    const response = await generateContentWithRetry(getAI(), {
       model: "gemini-2.5-flash",
       contents: [
         {
@@ -2660,7 +2661,7 @@ RETURN VALID JSON WITH:
     "[RefineCopy] Forcing translation to target language as fallback",
   );
 
-  const fallback = await getAI().models.generateContent({
+  const fallback = await generateContentWithRetry(getAI(), {
     model: "gemini-2.5-flash",
     contents: [
       {

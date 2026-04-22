@@ -779,15 +779,21 @@ export default function Onboarding() {
 
     if (error) {
       const message = urlParams.get("message");
+      const username = urlParams.get("username");
       let errorDescription = "";
 
       if (error === "duplicate") {
         // Account already connected to another brand
-        errorDescription = message
-          ? decodeURIComponent(message)
-          : isSpanish
-            ? "Esta cuenta ya está conectada a otra marca en la plataforma. Por favor usa una cuenta diferente o desconéctala primero de la otra marca."
-            : "This account is already connected to another brand in the platform. Please use a different account or disconnect it first from the other brand.";
+        const providerLabel =
+          provider === "instagram"
+            ? "Instagram"
+            : provider === "whatsapp"
+              ? "WhatsApp Business"
+              : isSpanish ? "Esta cuenta" : "This account";
+        const accountRef = username ? ` (@${username})` : "";
+        errorDescription = isSpanish
+          ? `Esta cuenta de ${providerLabel}${accountRef} ya está conectada a otra marca en la plataforma. Por favor usa una cuenta diferente o desconéctala primero de la otra marca.`
+          : `This ${providerLabel} account${accountRef} is already connected to another brand on the platform. Please use a different account, or disconnect it from the other brand first.`;
       } else {
         errorDescription = isSpanish
           ? `No se pudo conectar ${provider || "la integración"}: ${message || error}`

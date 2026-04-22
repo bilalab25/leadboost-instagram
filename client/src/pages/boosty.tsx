@@ -88,13 +88,26 @@ export default function BoostyPage() {
 
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
-      const response = await apiRequest("POST", "/api/boosty/chat", {
+      const body = {
         brandId: activeBrandId,
         message,
         conversationHistory: messages.map(m => ({ role: m.role, content: m.content })),
         language
-      });
-      return response.json();
+      };
+      const attempt = async () => {
+        const response = await apiRequest("POST", "/api/boosty/chat", body);
+        return response.json();
+      };
+      try {
+        return await attempt();
+      } catch (err: any) {
+        const status = err?.status;
+        if (status === 503 || status === 429 || status === 502 || status === 504) {
+          await new Promise((r) => setTimeout(r, 2000));
+          return await attempt();
+        }
+        throw err;
+      }
     },
     onSuccess: (data) => {
       setMessages(prev => [...prev, {

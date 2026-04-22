@@ -49,6 +49,7 @@ import { posIntegrationService } from "./services/posIntegrations";
 import { lightspeedService } from "./services/lightspeed";
 import { boostyService } from "./services/boosty";
 import { generateBrandEssence } from "./services/generateBrandEssence";
+import { generateContentWithRetry } from "./services/aiRetry";
 import { registerStripeRoutes } from "./stripe/stripeRoutes";
 import { billingService } from "./stripe/billingService";
 import {
@@ -1188,7 +1189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { GoogleGenAI } = await import("@google/genai");
         const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
-        const response = await genAI.models.generateContent({
+        const response = await generateContentWithRetry(genAI, {
           model: "gemini-2.5-flash",
           contents: [
             {
@@ -2764,7 +2765,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!billingCheck.allowed) {
           return res.status(402).json({
             success: false,
+            code: "PAYMENT_REQUIRED",
             message:
+              "You've used your 10 free images. Please connect a payment method to continue generating content.",
+            messageEs:
               "Has agotado tus 10 imágenes gratuitas. Por favor, conecta un método de pago para continuar generando contenido.",
             requiresPayment: true,
             freeRemaining: billingCheck.freeRemaining,
@@ -2787,7 +2791,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ) {
           return res.status(400).json({
             success: false,
+            code: "PAST_MONTH",
             message:
+              "Cannot generate AI content for past months. Please select the current month or a future month.",
+            messageEs:
               "No se puede generar contenido de IA para meses pasados. Por favor selecciona el mes actual o un mes futuro.",
           });
         }
@@ -3208,7 +3215,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!billingCheck.allowed) {
           return res.status(402).json({
             success: false,
+            code: "PAYMENT_REQUIRED",
             message:
+              "You've used your 10 free images. Please connect a payment method to continue generating content.",
+            messageEs:
               "Has agotado tus 10 imágenes gratuitas. Por favor, conecta un método de pago para continuar generando contenido.",
             requiresPayment: true,
             freeRemaining: billingCheck.freeRemaining,
@@ -4068,17 +4078,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       if (existingIntegration) {
-        const errorMsg = encodeURIComponent(
-          `Esta cuenta de Instagram (@${igUsername}) ya está conectada a otra marca en la plataforma. Por favor usa una cuenta diferente o desconéctala primero de la otra marca.`,
-        );
+        const usernameParam = encodeURIComponent(igUsername || "");
+        const qs = `error=duplicate&provider=instagram&username=${usernameParam}`;
         if (origin === "onboarding") {
-          return res.redirect(
-            `/onboarding?step=4&error=duplicate&message=${errorMsg}`,
-          );
+          return res.redirect(`/onboarding?step=4&${qs}`);
         }
-        return res.redirect(
-          `/integrations?error=duplicate&message=${errorMsg}`,
-        );
+        return res.redirect(`/integrations?${qs}`);
       }
 
       // 6️⃣ Save Instagram Direct Integration
@@ -4376,17 +4381,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       if (existingIntegration) {
-        const errorMsg = encodeURIComponent(
-          `Esta cuenta de WhatsApp Business ya está conectada a otra marca en la plataforma. Por favor usa una cuenta diferente o desconéctala primero de la otra marca.`,
-        );
+        const qs = `error=duplicate&provider=whatsapp`;
         if (origin === "onboarding") {
-          return res.redirect(
-            `/onboarding?step=4&error=duplicate&message=${errorMsg}`,
-          );
+          return res.redirect(`/onboarding?step=4&${qs}`);
         }
-        return res.redirect(
-          `/integrations?error=duplicate&message=${errorMsg}`,
-        );
+        return res.redirect(`/integrations?${qs}`);
       }
 
       // 6️⃣ Guardar la integración en tu storage
@@ -8230,7 +8229,7 @@ IMPORTANT: ALL content MUST be written in ${languageLabel}. Do NOT use any other
 Respond ONLY in JSON with this exact format:
 {"titulo": "short catchy title (max 8 words)", "content": "persuasive Instagram caption (2-3 sentences, include emojis)", "hashtags": "#hashtag1 #hashtag2 #hashtag3 #hashtag4 #hashtag5"}`;
 
-            const captionResponse = await ai.models.generateContent({
+            const captionResponse = await generateContentWithRetry(ai, {
               model: "gemini-2.5-flash",
               contents: [{ role: "user", parts: [{ text: captionPrompt }] }],
               config: { responseMimeType: "application/json" },

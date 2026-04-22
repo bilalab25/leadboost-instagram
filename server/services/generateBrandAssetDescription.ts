@@ -1,4 +1,5 @@
 import { GoogleGenAI, Modality } from "@google/genai";
+import { generateContentWithRetry } from "./aiRetry";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY!,
@@ -66,7 +67,7 @@ export async function generateBrandAssetDescription(
     - The output MUST start with '### SECTION A:'.
     `;
 
-    const result = await ai.models.generateContent({
+    const result = await generateContentWithRetry(ai, {
       model: "gemini-2.5-flash",
       contents: [
         {

@@ -1,6 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { storage } from "../storage";
 import type { BrandEssence } from "@shared/schema";
+import { generateContentWithRetry } from "./aiRetry";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY!,
@@ -65,7 +66,7 @@ Return structured JSON in this schema:
 Produce concise but powerful descriptions.
 `;
 
-  const response = await ai.models.generateContent({
+  const response = await generateContentWithRetry(ai, {
     model: "gemini-2.5-flash",
     contents: prompt,
     config: {
