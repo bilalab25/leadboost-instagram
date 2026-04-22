@@ -148,7 +148,7 @@ function detectEditorialMode(
 
   // Explicit flyer/poster/text-heavy request = NOT editorial
   const flyerPatterns = [
-    /\b(flyer|poster|cartel|volante|panfleto|banner|afiche)\b/i,
+    /\b(flyer|poster|cartel|volante|panfleto|banner|afiche|story|stories|ad|anuncio|promo|promotion|campaign|campa[nñ]a)\b/i,
     /\b(text\s*overlay|texto\s*sobre|letras\s*grandes|bold\s*text|texto\s*promocional)\b/i,
     /\b(include\s*text|incluir\s*texto|con\s*texto|texto\s*llamativo)\b/i,
     /\b(graphic|infographic|gráfico|infografía)\b/i,
@@ -158,19 +158,27 @@ function detectEditorialMode(
     return false;
   }
 
+  // Any concrete promotional brief (offer, dates, discount) → NOT editorial.
+  // The user wants ad creative with text, dates, CTA — not a moody photo.
+  const promoSignals = [
+    /\b\d{1,2}\s*%\s*(?:off|de\s*descuento|descuento|menos)\b/i,
+    /\b(2x1|3x2|combo|bundle|free\s+\w+|gratis\s+\w+)\b/i,
+    /\b(oferta|promoci[oó]n|descuento|sale|deal|discount)\b/i,
+    /\b(v[aá]lido|valid|del?\s*\d{1,2}\s*(?:al|to|hasta)\s*\d{1,2})\b/i,
+    /\b(book|agenda|reserva|sign\s*up|reg[ií]strate|swipe up)\b/i,
+  ];
+  if (promoSignals.some((p) => p.test(userMessage))) {
+    return false;
+  }
+
   // Editorial mode only for premium brand styles or explicit editorial keywords
   const editorialTriggers = [
-    /\b(editorial|luxury|premium|high.?end|elegant|minimal|magazine|elegante|lujoso|sofisticado)\b/i,
-    /\b(clinic|spa|beauty|aesthetic|cosmetic|skincare|clínica|estética)\b/i,
-    /\b(clean\s*image|imagen\s*limpia|photo|fotografía|professional\s*photo)\b/i,
+    /\b(editorial|magazine|brand\s*photo|lifestyle\s*photo|photoshoot|sesi[oó]n\s*de\s*fotos)\b/i,
+    /\b(clean\s*image|imagen\s*limpia|just\s*a\s*photo|s[oó]lo\s*una\s*foto)\b/i,
   ];
 
-  const styleEditorial =
-    /\b(minimal|elegant|luxury|premium|sofisticado|elegante|lujoso|high.?end)\b/i.test(
-      lowerStyle,
-    );
+  const styleEditorial = false; // brand style alone shouldn't force editorial — too many beauty brands
 
-  // Promotions alone do NOT trigger editorial mode - must have explicit triggers
   return editorialTriggers.some((p) => p.test(lowerMsg)) || styleEditorial;
 }
 
@@ -354,6 +362,111 @@ interface ChatResponse {
   imagePrompt?: string;
   layoutPlan?: LayoutPlan;
   editorialMode?: boolean;
+}
+
+// ========================================
+// CAMPAIGN BRIEF DETECTION
+// ========================================
+// Looks at the user's request + recent chat history to figure out if they've
+// given enough specifics to produce real ad creative, or if Boosty should
+// ask clarifying questions first.
+interface CampaignBrief {
+  hasOffer: boolean;       // % off / promo / discount / sale / free / 2x1
+  hasDates: boolean;       // month names, date ranges, "this week", etc.
+  hasService: boolean;     // specific product or treatment named
+  hasCTA: boolean;         // book / agenda / DM / sign up / etc.
+  hasTheme: boolean;       // FIFA / Black Friday / Christmas / Valentine's
+  completeness: number;    // 0..1
+  extracted: {
+    offer?: string;
+    service?: string;
+    cta?: string;
+    dates?: string;
+    theme?: string;
+  };
+}
+
+function detectCampaignBrief(message: string, history: ChatMessage[] = []): CampaignBrief {
+  // Combine current message with recent assistant→user exchanges so multi-turn
+  // briefs also count (e.g., user said "create story", we asked for offer, they
+  // said "20% off armonización facial").
+  const recent = history.slice(-6).map((m) => m.content).join(" ");
+  const text = `${message} ${recent}`;
+  const lower = text.toLowerCase();
+
+  const offerMatch = text.match(/\b(\d{1,2}\s*%\s*(?:off|de\s*descuento|descuento|menos)|2x1|3x2|free\s+\w+|gratis\s+\w+|combo|bundle)\b/i);
+  const hasOffer = !!offerMatch || /\b(oferta|promoci[oó]n|descuento|sale|deal|discount|promo|special)\b/i.test(lower);
+
+  const dateMatch = text.match(/\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?|enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\b[\s\d\-—a-z]*\d{0,4}/i);
+  const hasDates = !!dateMatch || /\b(\d{1,2}\s*[-—]\s*\d{1,2}|today|tomorrow|this week|next week|this month|next month|hoy|ma[nñ]ana|esta semana|pr[oó]xima semana|este mes|pr[oó]ximo mes|del?\s*\d{1,2}\s*(?:al|to|hasta)\s*\d{1,2})\b/i.test(lower);
+
+  const serviceMatch = text.match(/\b(botox|filler|relleno|tratamiento|armonizaci[oó]n|facial|consulta|consultation|peeling|lifting|massage|masaje|skincare|cuidado de piel|product|producto|hidrataci[oó]n|microblading|laser|l[aá]ser)\b/i);
+  const hasService = !!serviceMatch;
+
+  const ctaMatch = text.match(/\b(book|agenda|reserva|call|llama|visit|visita|click|swipe up|sign\s*up|reg[ií]strate|order|pide|buy|compra|dm|message us|escr[ií]benos|contacto|contact|inquire|sched(?:ule)?)\b/i);
+  const hasCTA = !!ctaMatch;
+
+  const themeMatch = text.match(/\b(fifa|world cup|black friday|christmas|navidad|valentine|san valent[ií]n|halloween|new year|a[nñ]o nuevo|mother'?s day|d[ií]a de las? madres?|father'?s day|d[ií]a del padre|easter|pascua|summer|verano|winter|invierno|spring|primavera|fall|oto[nñ]o)\b/i);
+  const hasTheme = !!themeMatch;
+
+  const flags = [hasOffer, hasDates, hasService, hasCTA, hasTheme];
+  const completeness = flags.filter(Boolean).length / flags.length;
+
+  return {
+    hasOffer,
+    hasDates,
+    hasService,
+    hasCTA,
+    hasTheme,
+    completeness,
+    extracted: {
+      offer: offerMatch?.[0],
+      service: serviceMatch?.[0],
+      cta: ctaMatch?.[0],
+      dates: dateMatch?.[0],
+      theme: themeMatch?.[0],
+    },
+  };
+}
+
+// Returns the bullet list of the questions Boosty should still ask. Empty
+// array means we have enough to generate.
+function missingBriefQuestions(
+  brief: CampaignBrief,
+  language: "es" | "en",
+  brandName: string,
+): string[] {
+  const isSpanish = language === "es";
+  const questions: string[] = [];
+  if (!brief.hasOffer && !brief.hasTheme) {
+    questions.push(
+      isSpanish
+        ? `¿Qué es lo que estamos promocionando? Una oferta (ej. *20% off*), un combo (ej. *2x1*), un evento (ej. *Mundial 2026*), o el servicio en sí?`
+        : `What are we promoting? An offer (e.g. *20% off*), a bundle (e.g. *2-for-1*), an event (e.g. *FIFA 2026*), or just the service itself?`,
+    );
+  }
+  if (!brief.hasService) {
+    questions.push(
+      isSpanish
+        ? `¿Qué servicio o producto específico de **${brandName}** queremos destacar? (ej. armonización facial, botox, consulta, etc.)`
+        : `Which specific service or product of **${brandName}** are we featuring? (e.g. facial harmonization, botox, consultation, etc.)`,
+    );
+  }
+  if (!brief.hasDates) {
+    questions.push(
+      isSpanish
+        ? `¿Hay fechas específicas? (ej. *válido del 1 al 30 de junio*, *este fin de semana*, *todo diciembre*)`
+        : `Any specific dates? (e.g. *valid June 1-30*, *this weekend*, *all December*)`,
+    );
+  }
+  if (!brief.hasCTA) {
+    questions.push(
+      isSpanish
+        ? `¿Cuál es el call-to-action? (ej. *Agenda tu cita*, *Escríbenos por DM*, *Reserva ahora*)`
+        : `What's the call-to-action? (e.g. *Book your appointment*, *DM us*, *Reserve now*)`,
+    );
+  }
+  return questions;
 }
 
 const IMAGE_REQUEST_PATTERNS = {
@@ -570,8 +683,20 @@ export class BoostyService {
     const isSpanish = language === "es";
 
     const intro = isSpanish
-      ? `Eres Boosty, el asistente de IA amigable y experto en marketing de Lead Boost. Tu personalidad es entusiasta, útil y creativa. Siempre respondes en español.`
-      : `You are Boosty, the friendly and expert marketing AI assistant for Lead Boost. Your personality is enthusiastic, helpful, and creative. Always respond in English.`;
+      ? `Eres Boosty, el director creativo y estratega de marketing de Instagram para Lead Boost. Tu trabajo NO es generar contenido genérico — es entregar creativos publicitarios reales, listos para publicar, que un brand manager humano firmaría sin tocar. Siempre respondes en español.
+
+CÓMO TRABAJAS:
+- Cuando el usuario pide una imagen o post sin detalles ("crea una imagen", "haz un story"), NO generas algo genérico. Pides 2-3 detalles clave: oferta o ángulo, servicio específico, fechas, call-to-action.
+- Cuando ya tienes un brief claro, produces creativos del nivel de Sephora / Apple / Nike: titular grande, sub-texto, CTA, logo, colores de marca.
+- Caption y hashtags siempre específicos al brief — nunca "Innovation. Simplified." ni hashtags genéricos como #love #beauty.
+- Hablas como un creativo senior, no como un chatbot. Directo, con opinión.`
+      : `You are Boosty, the creative director and Instagram marketing strategist for Lead Boost. Your job is NOT to crank out generic content — it's to deliver real, ready-to-post ad creative that a human brand manager would publish unchanged. Always respond in English.
+
+HOW YOU WORK:
+- When the user asks for an image or post WITHOUT details ("create an image", "make a story"), do NOT generate anything generic. Ask for 2-3 specifics: offer or angle, specific service, dates, call-to-action.
+- When you have a clear brief, you produce creative at the level of Sephora / Apple / Nike: oversized headline, sub-text, CTA, logo, brand colors.
+- Captions and hashtags are always specific to the brief — never "Innovation. Simplified." or generic hashtags like #love #beauty.
+- Talk like a senior creative, not a chatbot. Direct, with a point of view.`;
 
     const brandInfo = isSpanish
       ? `
@@ -907,15 +1032,30 @@ This must look like a luxury fashion/beauty editorial, NOT a promotional flyer.
 Generate ONLY the clean base photograph.
 `
         : `
-🎨 IMAGE GENERATION REQUEST FOR "${brandName.toUpperCase()}"
+🎨 INSTAGRAM AD CREATIVE FOR "${brandName.toUpperCase()}"
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ${sanitizedPrompt}
 
-BRAND CONTEXT:
-- Industry: ${industry || "general"}
-- Color Palette: ${colorPalette}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Create a professional marketing image suitable for social media.
+🏷️ BRAND CONTEXT:
+- Brand: ${brandName}
+- Industry: ${industry || "general"}
+- Brand colors (use prominently): ${colorPalette}
+
+📐 OUTPUT REQUIREMENTS:
+- Instagram 4:5 vertical composition (1080×1350)
+- Premium polished AD CREATIVE — like a Sephora / Apple / Nike Instagram Story
+- Sharp, modern typography hierarchy: oversized HEADLINE, smaller SUB, clear CTA button
+- Render ALL the text from the prompt above directly INTO the image as legible typography (no separate overlay needed)
+- The supplied reference image IS the brand logo — place it cleanly in a corner
+- Use the brand color as the dominant background or as a bold accent panel
+- High contrast, easy to read on a phone at thumb-scroll speed
+- Professional commercial photography for the hero subject (not stock-looking)
+
+✅ MUST INCLUDE: bold headline text, sub-text, CTA button, brand logo, brand color
+⛔ AVOID: generic stock-photo composition, busy collage layouts, repeated promo banners, fake QR codes, no-text editorial moodiness
 `;
 
       contentParts.push({ text: enhancedPrompt });
@@ -1020,19 +1160,14 @@ Create a professional marketing image suitable for social media.
     );
     const preset = getEditorialPreset(context, allContext);
 
-    // Extract promotion details
-    const promoMatch = allContext.match(/(\d+x\d+|2x1|3x2)/gi);
-    const promotionDetails = promoMatch ? promoMatch[0].toUpperCase() : "";
-
-    // Detect theme keywords
-    const valentineMatch =
-      /\b(valentine|san\s*valent[ií]n|amor|pareja|couples?|romantic)\b/i.test(
-        allContext,
-      );
-    const serviceMatch = allContext.match(
-      /\b(botox|filler|tratamiento|rellenos?|faciales?|lifting)\b/i,
-    );
-    const serviceName = serviceMatch ? serviceMatch[0] : "";
+    // Pull a structured campaign brief out of the user's message + recent
+    // history so the image generator can compose an actual ad, not a guess.
+    const brief = detectCampaignBrief(userMessage, conversationHistory);
+    const promotionDetails = brief.extracted.offer?.toUpperCase() ?? "";
+    const themeName = brief.extracted.theme ?? "";
+    const serviceName = brief.extracted.service ?? "";
+    const ctaText = brief.extracted.cta ?? "";
+    const datesText = brief.extracted.dates ?? "";
 
     const colorPalette = [
       context.design?.colors?.primary,
@@ -1058,7 +1193,7 @@ EDITORIAL PRESET:
 - Background: ${preset.background}
 
 ${promotionDetails ? `PROMOTION DETECTED: ${promotionDetails}` : ""}
-${valentineMatch ? "THEME: Valentine's Day / Couples / Romance" : ""}
+${themeName ? `THEME: ${themeName}` : ""}
 ${serviceName ? `SERVICE: ${serviceName}` : ""}
 
 Generate a JSON with:
@@ -1095,26 +1230,43 @@ RULES:
 - Image must look like luxury editorial, NOT a flyer
 
 Respond ONLY with valid JSON.`
-      : `You are a marketing visual expert for "${context.brand.name}" (${context.brand.industry || "general business"}).
+      : `You are a senior creative director designing an Instagram Story / Post AD for "${context.brand.name}" (${context.brand.industry || "general business"}).
 
 USER REQUEST: "${userMessage}"
 ${conversationContext ? `\nCONVERSATION CONTEXT:\n${conversationContext}\n` : ""}
 BRAND:
 - Style: ${context.design?.brandStyle || "modern and professional"}
-- Colors: ${colorPalette || "brand colors"}
-- Font: ${context.design?.fonts?.primary || "Roboto"}
+- Primary color: ${context.design?.colors?.primary || "n/a"}
+- Accent color: ${context.design?.colors?.accent1 || "n/a"}
+- Headline font: ${context.design?.fonts?.primary || "modern sans-serif"}
+- Logo available: ${context.design?.hasLogo ? "yes (will be supplied as a reference image)" : "no"}
 
-${promotionDetails ? `PROMOTION: ${promotionDetails}` : ""}
-${valentineMatch ? "THEME: Valentine's Day" : ""}
+CAMPAIGN BRIEF (extract from the request — do NOT invent missing fields):
+- Offer / promo: ${promotionDetails || "(none specified — emphasize the service itself)"}
+- Theme / event: ${themeName || "(none)"}
+- Service / product featured: ${serviceName || "(general brand)"}
+- Date range: ${datesText || "(unspecified)"}
+- Call to action: ${ctaText || "(suggest one fitting the offer)"}
 
-Generate a JSON with:
+Your job is to produce a JSON object with:
 
-1. "imagePrompt": A detailed description in English (max 200 words) for a marketing image.
-   ${promotionDetails ? `- IMPORTANT: Include promotional text "${promotionDetails}" prominently in the image with bold typography and brand colors.` : "- Do NOT include text in the image."}
+1. "imagePrompt": A specific, vivid English description (max 220 words) for an actual Instagram Story-style ad creative. The description MUST instruct the image model to render:
+   - A high-quality hero photo (a relevant model / scene / product detail — pick what fits the brief)
+   - The brand primary color as the dominant background or accent panel
+   - A BIG bold HEADLINE in ${context.design?.fonts?.primary || "a modern sans-serif"} that says the offer or service in 2-4 words${promotionDetails ? ` — feature "${promotionDetails}" in oversized type` : ""}
+   - A sub-headline with the service name${serviceName ? ` ("${serviceName}")` : ""}${datesText ? ` and the date range ("${datesText}")` : ""}
+   - A clean CTA button at the bottom that says "${ctaText || "Book now"}"
+   - The brand logo clearly placed in the top corner (use the supplied logo reference image)
+   - Professional ad layout, NOT a moody editorial shot — closer to a polished Apple/Nike/Sephora ad
+   - 4:5 vertical composition, instagram-ready, sharp typography hierarchy
 
-2. "caption": An engaging caption in ${language === "es" ? "Spanish" : "English"} (max 150 chars).
+2. "caption": A persuasive caption in ${language === "es" ? "Spanish" : "English"} (max 220 chars).
+   - Lead with a hook tied to the offer or theme
+   - Mention the service, the offer (if any), and the date range (if any) by name
+   - End with the CTA "${ctaText || "DM us to book"}"
+   - Use 1-2 emojis max, never generic ones
 
-3. "hashtags": 5-7 relevant hashtags.
+3. "hashtags": 7-12 hashtags that are SPECIFIC: brand name, service, city/region (if any), event/theme${themeName ? ` ("${themeName}")` : ""}. No generic #love #beauty.
 
 Respond ONLY with valid JSON.`;
 
@@ -1158,11 +1310,26 @@ Respond ONLY with valid JSON.`;
             editorialMode: true,
           };
         } else {
-          // Non-editorial: return imagePrompt directly, no layoutPlan needed
+          // Non-editorial / campaign mode: return imagePrompt directly.
+          // Fall back to a brief-driven caption + hashtags if Gemini left them blank.
+          const fallbackCaption =
+            language === "es"
+              ? `${promotionDetails ? promotionDetails + " — " : ""}${serviceName || context.brand.name}${datesText ? ` (${datesText})` : ""}. ${ctaText || "Escríbenos para reservar"} 💬`
+              : `${promotionDetails ? promotionDetails + " — " : ""}${serviceName || context.brand.name}${datesText ? ` (${datesText})` : ""}. ${ctaText || "DM us to book"} 💬`;
+          const fallbackHashtags = [
+            `#${context.brand.name.replace(/\s+/g, "")}`,
+            serviceName ? `#${serviceName.replace(/\s+/g, "")}` : "",
+            themeName ? `#${themeName.replace(/\s+/g, "")}` : "",
+            promotionDetails ? `#${promotionDetails.replace(/\s+/g, "")}` : "",
+            "#instagram",
+          ]
+            .filter(Boolean)
+            .join(" ");
+
           return {
             basePhotoPrompt:
               parsed.imagePrompt ||
-              "Professional marketing image for " + context.brand.name,
+              `Polished Instagram ad creative for ${context.brand.name}: hero photo, oversized headline "${promotionDetails || serviceName || context.brand.name}", sub-text "${datesText || serviceName}", CTA button "${ctaText || "Book now"}", brand color background, brand logo top-left.`,
             layoutPlan: {
               aspectRatio: "4:5",
               safeAreaPercent: { top: 0, right: 0, bottom: 0, left: 0 },
@@ -1171,8 +1338,8 @@ Respond ONLY with valid JSON.`;
               alignment: "center" as const,
               theme: "light" as const,
             },
-            caption: parsed.caption || "",
-            hashtags: parsed.hashtags || "",
+            caption: parsed.caption || fallbackCaption,
+            hashtags: parsed.hashtags || fallbackHashtags,
             editorialMode: false,
           };
         }
@@ -1216,6 +1383,35 @@ Respond ONLY with valid JSON.`;
     const wantsImage = this.isImageRequest(message, language);
 
     if (wantsImage) {
+      // Before generating, check if the user gave us a real campaign brief.
+      // If not, ask clarifying questions instead of producing generic creative.
+      const brief = detectCampaignBrief(message, conversationHistory);
+      const questions = missingBriefQuestions(
+        brief,
+        language,
+        context.brand.name,
+      );
+      // Need at least 2 of {offer/theme, service, dates, CTA} present to proceed.
+      // (Theme alone counts as offer-like.)
+      const hasMinimum =
+        brief.completeness >= 0.4 &&
+        (brief.hasOffer || brief.hasTheme) &&
+        brief.hasService;
+
+      if (!hasMinimum && questions.length > 0) {
+        const intro =
+          language === "es"
+            ? `¡Genial! Para crear algo que valga la pena publicar y no se vea genérico, necesito un par de detalles. 🎯`
+            : `Awesome! To create something actually worth posting (not generic), I just need a couple of details. 🎯`;
+        const closing =
+          language === "es"
+            ? `\n\nResponde con los detalles y armo el creativo (imagen + caption + hashtags) listo para publicar.`
+            : `\n\nReply with those details and I'll build the creative (image + caption + hashtags) ready to publish.`;
+        return {
+          text: `${intro}\n\n${questions.map((q) => `• ${q}`).join("\n")}${closing}`,
+        };
+      }
+
       const promptResult = await this.generateImagePrompt(
         message,
         context,
