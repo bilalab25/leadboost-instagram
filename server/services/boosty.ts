@@ -386,11 +386,37 @@ interface CampaignBrief {
   };
 }
 
+// Pattern matchers shared with isImageRequest so we know if a message itself
+// starts a fresh creative request.
+const IMAGE_REQUEST_ALL = [
+  /genera(r)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel)/i,
+  /crea(r)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel)/i,
+  /haz(me)?\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual|dise[ñn]o|gr[aá]fica|banner|story|stories|reel)/i,
+  /quiero\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual)/i,
+  /necesito\s*(la|el|una?|esa?)?\s*(imagen|foto|post|publicaci[oó]n|contenido visual)/i,
+  /generate\s*(the|an?|that|this)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel)/i,
+  /create\s*(the|an?|that|this)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel)/i,
+  /make\s*(me\s*)?(the|an?|that|this)?\s*(image|photo|post|visual|design|graphic|banner|story|stories|reel)/i,
+  /i\s*(want|need)\s*to\s*(make|create|design|generate)\s*(a|an|the)?\s*(image|photo|post|visual|story|story|reel|design|graphic|banner)/i,
+  /design\s*(me\s*)?(the|an?|that|this)?\s*(image|photo|post|visual)/i,
+];
+
+function isFreshImageRequest(message: string): boolean {
+  return IMAGE_REQUEST_ALL.some((p) => p.test(message));
+}
+
 function detectCampaignBrief(message: string, history: ChatMessage[] = []): CampaignBrief {
-  // Combine current message with recent assistant→user exchanges so multi-turn
-  // briefs also count (e.g., user said "create story", we asked for offer, they
-  // said "20% off armonización facial").
-  const recent = history.slice(-6).map((m) => m.content).join(" ");
+  // If the user's current message is ITSELF a fresh image-request opener
+  // ("create story", "i want to make a post"), treat the brief as starting
+  // from this message only — don't bleed in stale offers/dates/services from
+  // earlier conversations (e.g. yesterday's Black Friday post leaking into
+  // a new "valentines day" request).
+  // Otherwise (the user is answering Boosty's clarifying questions) merge the
+  // last few turns so the answers count toward the brief.
+  const fresh = isFreshImageRequest(message);
+  const recent = fresh
+    ? ""
+    : history.slice(-6).map((m) => m.content).join(" ");
   const text = `${message} ${recent}`;
   const lower = text.toLowerCase();
 
@@ -1398,7 +1424,33 @@ Respond ONLY with valid JSON.`;
     const effectiveLanguage = this.detectMessageLanguage(message, language);
     language = effectiveLanguage;
     const systemPrompt = this.buildSystemPrompt(context, language);
-    const wantsImage = this.isImageRequest(message, language);
+
+    // Image-request detection: explicit current message OR multi-turn
+    // continuation (last assistant turn was Boosty's brief-questions intro and
+    // the current user message looks like the answer to it).
+    const explicitImageReq = this.isImageRequest(message, language);
+    const lastAssistant = [...conversationHistory]
+      .reverse()
+      .find((m) => m.role === "assistant");
+    const wasAskingForBrief =
+      !!lastAssistant &&
+      /(necesito un par de detalles|i just need a couple of details)/i.test(
+        lastAssistant.content,
+      );
+    // Continuation candidate: previous turn asked for brief AND current
+    // message contains at least one brief axis.
+    const continuationBrief = wasAskingForBrief
+      ? detectCampaignBrief(message)
+      : null;
+    const isContinuation =
+      wasAskingForBrief &&
+      !!continuationBrief &&
+      (continuationBrief.hasOffer ||
+        continuationBrief.hasTheme ||
+        continuationBrief.hasService ||
+        continuationBrief.hasCTA ||
+        continuationBrief.hasDates);
+    const wantsImage = explicitImageReq || isContinuation;
 
     if (wantsImage) {
       // Before generating, check if the user gave us a real campaign brief.
