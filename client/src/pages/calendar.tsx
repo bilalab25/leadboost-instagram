@@ -3,6 +3,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useBrand } from "@/contexts/BrandContext";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useToast } from "@/hooks/use-toast";
+import Sidebar from "@/components/Sidebar";
+import TopHeader from "@/components/TopHeader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -1848,7 +1850,9 @@ export default function ContentCalendar() {
       </Dialog>
 
       <div className="min-h-screen bg-gray-50">
+        <TopHeader pageName={isSpanish ? "Calendario" : "Calendar"} />
         <div className="flex h-screen overflow-hidden bg-gray-50">
+          <Sidebar />
           <div className="flex flex-col w-0 flex-1 overflow-hidden">
             <main className="flex-1 relative overflow-y-auto focus:outline-none">
               <div className="py-6">

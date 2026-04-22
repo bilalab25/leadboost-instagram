@@ -56,6 +56,9 @@ export default function AccountTab({
   // ✅ Hook de autenticación
   const { user } = useAuth();
   const provider = user?.provider || "password";
+  // Local email/password users (provider === "local" or "password") can change their password.
+  // External providers (google, apple, microsoft, firebase-*) must change it with the provider.
+  const isLocalPasswordUser = provider === "local" || provider === "password";
   const userId = user?.id || "";
   const [phoneError, setPhoneError] = useState<string | null>(null);
 
@@ -191,17 +194,17 @@ export default function AccountTab({
             <Button
               variant="outline"
               onClick={() => setIsPasswordDialogOpen(true)}
-              disabled={provider !== "password"}
+              disabled={!isLocalPasswordUser}
               className={
-                provider !== "password" ? "opacity-60 cursor-not-allowed" : ""
+                !isLocalPasswordUser ? "opacity-60 cursor-not-allowed" : ""
               }
             >
               {isSpanish ? "Cambiar Contraseña" : "Change Password"}
             </Button>
           </div>
 
-          {/* Mostrar alerta si el proveedor no es "password" */}
-          {provider !== "password" && (
+          {/* Mostrar alerta si el proveedor es externo */}
+          {!isLocalPasswordUser && (
             <Alert className="mt-3 border-yellow-300 bg-yellow-50">
               <AlertCircle className="h-4 w-4 text-yellow-600" />
               <AlertTitle className="font-semibold text-yellow-700">

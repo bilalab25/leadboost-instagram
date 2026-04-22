@@ -1,6 +1,5 @@
-export function loadGoogleMapsScript(): Promise<void> {
+export function loadGoogleMapsScript(language: "en" | "es" = "en"): Promise<void> {
   return new Promise((resolve, reject) => {
-    // Si ya está cargado, no lo cargues de nuevo
     if ((window as any).google?.maps) {
       resolve();
       return;
@@ -14,11 +13,11 @@ export function loadGoogleMapsScript(): Promise<void> {
       return;
     }
 
-    // Crea el script dinámicamente
+    const region = language === "es" ? "MX" : "US";
     const script = document.createElement("script");
     script.src = `https://maps.googleapis.com/maps/api/js?key=${
       import.meta.env.VITE_GOOGLE_MAPS_API_KEY
-    }&libraries=places&v=weekly&language=es&region=MX`;
+    }&libraries=places&v=weekly&language=${language}&region=${region}&loading=async`;
     script.async = true;
     script.defer = true;
     script.onload = () => resolve();

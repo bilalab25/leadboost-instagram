@@ -132,6 +132,9 @@ export default function Sidebar() {
       const response = await fetch("/api/logout", { method: "POST" });
 
       if (response.ok) {
+        // Clear per-user state so next login doesn't inherit previous user's brand
+        localStorage.removeItem("campaigner_active_brand");
+        queryClient.clear();
         queryClient.setQueryData(["/api/auth/user"], null);
         toast({
           title: "Logged out",

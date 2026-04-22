@@ -82,13 +82,13 @@ export function InboxSubscriptionOverlay({
             </div>
             <CardTitle className="text-2xl">
               {isSpanish
-                ? "Desbloquea el Inbox Unificado"
-                : "Unlock the Unified Inbox"}
+                ? "Desbloquea el Inbox de Instagram"
+                : "Unlock the Instagram Inbox"}
             </CardTitle>
             <CardDescription className="text-base mt-2">
               {isSpanish
-                ? "Centraliza todas tus conversaciones de Instagram, Facebook y WhatsApp en un solo lugar"
-                : "Centralize all your Instagram, Facebook, and WhatsApp conversations in one place"}
+                ? "Responde a todas tus conversaciones de Instagram DM en un solo lugar"
+                : "Respond to all your Instagram DM conversations in one place"}
             </CardDescription>
           </CardHeader>
 
@@ -106,13 +106,13 @@ export function InboxSubscriptionOverlay({
             <div className="space-y-3">
               <Feature>
                 {isSpanish
-                  ? "Bandeja de entrada unificada para todas las plataformas"
-                  : "Unified inbox for all platforms"}
+                  ? "Bandeja de entrada dedicada para Instagram"
+                  : "Dedicated Instagram inbox"}
               </Feature>
               <Feature>
                 {isSpanish
-                  ? "Responde mensajes de Instagram, Facebook y WhatsApp"
-                  : "Respond to messages from Instagram, Facebook, and WhatsApp"}
+                  ? "Responde mensajes directos de Instagram al instante"
+                  : "Respond to Instagram direct messages instantly"}
               </Feature>
               <Feature>
                 {isSpanish

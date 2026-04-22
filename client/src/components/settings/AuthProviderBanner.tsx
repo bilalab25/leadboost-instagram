@@ -12,9 +12,10 @@ interface AuthProviderBannerProps {
 export default function AuthProviderBanner({
   provider,
   email,
-  isSpanish = true,
+  isSpanish = false,
 }: AuthProviderBannerProps) {
-  if (provider === "password") return null; // nada para usuarios normales
+  // Local email/password accounts don't need a provider banner
+  if (provider === "password" || provider === "local") return null;
 
   const icon =
     provider === "google.com" ? (

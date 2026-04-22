@@ -78,6 +78,17 @@ export default function Analytics() {
     retry: false,
   });
 
+  const { data: brandIntegrations = [] } = useQuery<any[]>({
+    queryKey: ["/api/integrations", { brandId: activeBrandId }],
+    enabled: !!activeBrandId,
+    retry: false,
+  });
+  const hasInstagramIntegration = brandIntegrations.some(
+    (i: any) =>
+      (i.provider === "instagram" || i.provider === "instagram_direct") &&
+      i.isActive,
+  );
+
   // Transform flat rows into a metrics map: { metricName: value }
   const igMetrics = useMemo(() => {
     const metrics: Record<string, number> = {};
@@ -436,14 +447,22 @@ export default function Analytics() {
                           <SiInstagram className="h-8 w-8 text-pink-500" />
                         </div>
                         <h3 className="text-lg font-medium text-gray-900 mb-2">
-                          {isSpanish
-                            ? "Esperando datos de Instagram"
-                            : "Waiting for Instagram data"}
+                          {hasInstagramIntegration
+                            ? isSpanish
+                              ? "Esperando datos de Instagram"
+                              : "Waiting for Instagram data"
+                            : isSpanish
+                              ? "Conecta Instagram para ver analíticas"
+                              : "Connect Instagram to see analytics"}
                         </h3>
                         <p className="text-gray-500 max-w-md mx-auto mb-4">
-                          {isSpanish
-                            ? "Los datos de analytics se sincronizan automáticamente cada día. Conecta tu cuenta de Instagram y publica contenido para ver métricas aquí."
-                            : "Analytics data syncs automatically every day. Connect your Instagram account and publish content to see metrics here."}
+                          {hasInstagramIntegration
+                            ? isSpanish
+                              ? "Los datos se sincronizan automáticamente cada día. Publica contenido para empezar a ver métricas."
+                              : "Data syncs automatically every day. Publish content to start seeing metrics."
+                            : isSpanish
+                              ? "Conecta tu cuenta de Instagram desde Integraciones para empezar a ver métricas."
+                              : "Connect your Instagram account from Integrations to start seeing metrics."}
                         </p>
                         <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
                           <Clock className="h-4 w-4" />

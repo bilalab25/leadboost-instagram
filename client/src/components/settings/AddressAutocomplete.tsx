@@ -5,7 +5,7 @@ import { loadGoogleMapsScript } from "@/utils/loadGoogleMaps";
 export default function AddressAutocomplete({
   value,
   onChange,
-  isSpanish = true,
+  isSpanish = false,
 }: {
   value: string;
   onChange: (val: string) => void;
@@ -15,7 +15,7 @@ export default function AddressAutocomplete({
   const autocompleteRef = useRef<any>(null);
 
   useEffect(() => {
-    loadGoogleMapsScript()
+    loadGoogleMapsScript(isSpanish ? "es" : "en")
       .then(() => {
         if (!(window as any).google?.maps?.places || !inputRef.current) return;
 
@@ -23,7 +23,6 @@ export default function AddressAutocomplete({
           inputRef.current,
           {
             types: ["geocode"],
-            componentRestrictions: { country: "mx" },
           },
         );
 
