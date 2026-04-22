@@ -838,9 +838,33 @@ ${activityInfo}
 ${capabilities}`;
   }
 
-  private isImageRequest(message: string, language: "es" | "en"): boolean {
-    const patterns = IMAGE_REQUEST_PATTERNS[language];
-    return patterns.some((pattern) => pattern.test(message));
+  private isImageRequest(message: string, _language: "es" | "en"): boolean {
+    // Check both language patterns — users frequently write in a language
+    // that doesn't match their UI setting (Spanish brief on English UI etc).
+    const all = [
+      ...IMAGE_REQUEST_PATTERNS.en,
+      ...IMAGE_REQUEST_PATTERNS.es,
+    ];
+    return all.some((pattern) => pattern.test(message));
+  }
+
+  // Detect language from the message itself when it differs from the UI
+  // setting (e.g. English UI but the user typed in Spanish).
+  private detectMessageLanguage(
+    message: string,
+    fallback: "es" | "en",
+  ): "es" | "en" {
+    const lower = message.toLowerCase();
+    let esHits = 0;
+    let enHits = 0;
+    const esWords = /\b(crea|hacer|haz|imagen|foto|publicaci[oó]n|dise[ñn]o|gr[aá]fica|para|el|la|un|una|con|del|de|que|por|m[aá]s|tambi[eé]n|nuestro|cita|agenda|reserva|escr[ií]benos|contigo|aqu[ií]|gracias|pero|cuando|c[oó]mo|qu[eé])\b/g;
+    const enWords = /\b(create|make|generate|image|photo|post|design|graphic|please|the|and|with|for|that|this|you|your|how|when|what|need|want|book|schedule|today|tomorrow|here|thanks|but)\b/g;
+    esHits = (lower.match(esWords) || []).length;
+    enHits = (lower.match(enWords) || []).length;
+    // Spanish-specific characters/diacritics tip the scale
+    if (/[ñáéíóúü¿¡]/i.test(message)) esHits += 2;
+    if (esHits === 0 && enHits === 0) return fallback;
+    return esHits > enHits ? "es" : "en";
   }
 
   // Helper function to fetch an image from URL and convert to base64
@@ -1369,6 +1393,10 @@ Respond ONLY with valid JSON.`;
     attachmentMimeType?: string,
   ): Promise<ChatResponse> {
     const context = await this.getBrandContext(brandId, userId);
+    // Resolve the effective language from the message itself so a user
+    // typing Spanish on an English UI gets a Spanish response.
+    const effectiveLanguage = this.detectMessageLanguage(message, language);
+    language = effectiveLanguage;
     const systemPrompt = this.buildSystemPrompt(context, language);
     const wantsImage = this.isImageRequest(message, language);
 
