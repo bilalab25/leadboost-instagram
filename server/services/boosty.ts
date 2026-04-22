@@ -371,6 +371,7 @@ interface ChatResponse {
   text: string;
   image?: string;
   images?: string[];           // For carousels — multiple slides
+  video?: string;              // For reels — data URL of generated mp4
   postKind?: "post" | "story" | "carousel" | "reel";
   reelScript?: {
     hook: string;
@@ -1917,11 +1918,30 @@ Respond ONLY with valid JSON.`;
     });
     const parsed = JSON.parse(briefResp.text || "{}");
 
-    const cover = await this.generateImage(parsed.coverImagePrompt, context, false);
+    // Build the Veo video prompt: stitch hook + scenes + CTA into one
+    // continuous shot description so Veo produces a coherent ~8s clip.
+    const scenesArr = (parsed.script?.scenes || []) as Array<{ visual: string; voiceover: string; durationSec: number }>;
+    const veoPrompt = [
+      `9:16 vertical Instagram Reel for ${context.brand.name} (${context.brand.industry || "general"}).`,
+      `Brand color: ${context.design?.colors?.primary || "n/a"}.`,
+      `Hook (3s): ${parsed.script?.hook || ""}`,
+      ...scenesArr.map((s, i) => `Scene ${i + 1} (${s.durationSec}s): ${s.visual}. Voiceover: "${s.voiceover}".`),
+      `CTA (3s): ${parsed.script?.cta || ""}`,
+      `Cinematic, modern, high-end commercial aesthetic. Sharp focus. Smooth camera moves.`,
+    ].join("\n");
+
+    // Run video gen + cover image in parallel to mask Veo's ~30-60s latency
+    // behind the cover gen we'd be doing anyway.
+    const [video, cover] = await Promise.all([
+      this.generateVideoWithVeo(veoPrompt).catch((e) => {
+        console.warn("[Boosty] Veo video gen failed:", e?.message || e);
+        return null;
+      }),
+      this.generateImage(parsed.coverImagePrompt, context, false).catch(() => null),
+    ]);
 
     const isSpanish = language === "es";
-    const scenes = (parsed.script?.scenes || []) as Array<{ visual: string; voiceover: string; durationSec: number }>;
-    const sceneBlock = scenes
+    const sceneBlock = scenesArr
       .map(
         (s, i) =>
           `**${isSpanish ? `Escena` : `Scene`} ${i + 1} (${s.durationSec}s)**\n📹 ${s.visual}\n🎙️ "${s.voiceover}"`,
@@ -1938,8 +1958,12 @@ Respond ONLY with valid JSON.`;
 
     const text = [
       isSpanish
-        ? `¡Reel listo! 🎬 Cover + guion de 15-18 segundos.`
-        : `Reel ready! 🎬 Cover + 15-18 second script.`,
+        ? video
+          ? `¡Reel listo! 🎬 Video + guion de 15-18 segundos.`
+          : `¡Reel listo! 🎬 Cover + guion (Veo no devolvió video — usa el cover y graba siguiendo el guion).`
+        : video
+          ? `Reel ready! 🎬 Video + 15-18 second script.`
+          : `Reel ready! 🎬 Cover + script (Veo didn't return a video — use the cover and shoot following the script).`,
       isSpanish ? `**Hook (0-3s):**` : `**Hook (0-3s):**`,
       parsed.script?.hook,
       sceneBlock,
@@ -1952,9 +1976,6 @@ Respond ONLY with valid JSON.`;
       parsed.suggestedPostingTime
         ? `${isSpanish ? "**Mejor momento para publicar:**" : "**Best time to post:**"}\n${parsed.suggestedPostingTime}`
         : "",
-      isSpanish
-        ? `_La generación de video automatizada requiere Veo y aún no está activa en esta cuenta. Por ahora entrego el cover + guion listo para grabar._`
-        : `_Automated video generation requires Veo, which isn't enabled in this account. For now I deliver a ready-to-shoot cover + script._`,
     ]
       .filter(Boolean)
       .join("\n\n");
@@ -1962,9 +1983,51 @@ Respond ONLY with valid JSON.`;
     return {
       text,
       image: cover || undefined,
+      video: video || undefined,
       postKind: "reel",
       reelScript: parsed.script,
     };
+  }
+
+  // Submit a Veo video generation job and poll until it returns a downloadable
+  // URI, then fetch the bytes and return as a data URL the client can render
+  // in a <video> tag. Veo can take 30-90s — caller should run it in parallel
+  // with other slow work.
+  private async generateVideoWithVeo(prompt: string): Promise<string | null> {
+    const ai = getAI();
+    let op: any = await (ai.models as any).generateVideos({
+      model: "veo-3.0-fast-generate-001",
+      prompt,
+      config: { aspectRatio: "9:16", numberOfVideos: 1 },
+    });
+    const startedAt = Date.now();
+    const TIMEOUT_MS = 4 * 60_000;
+    while (!op.done && Date.now() - startedAt < TIMEOUT_MS) {
+      await new Promise((r) => setTimeout(r, 6000));
+      op = await (ai as any).operations.getVideosOperation({ operation: op });
+    }
+    if (!op.done) {
+      console.warn("[Boosty/Veo] Generation timed out after 4 minutes");
+      return null;
+    }
+    const generated = op.response?.generatedVideos || [];
+    const uri = generated[0]?.video?.uri;
+    if (!uri) {
+      console.warn("[Boosty/Veo] No video in response (likely safety-filtered)");
+      return null;
+    }
+    // The download URI requires the API key as a query param OR an
+    // x-goog-api-key header. Append the key — it's already in the URL host.
+    const sep = uri.includes("?") ? "&" : "?";
+    const downloadUrl = `${uri}${sep}key=${process.env.GEMINI_API_KEY}`;
+    const res = await fetch(downloadUrl);
+    if (!res.ok) {
+      console.warn("[Boosty/Veo] Video download failed:", res.status);
+      return null;
+    }
+    const buf = Buffer.from(await res.arrayBuffer());
+    const mime = res.headers.get("content-type") || "video/mp4";
+    return `data:${mime};base64,${buf.toString("base64")}`;
   }
 
   async chat(

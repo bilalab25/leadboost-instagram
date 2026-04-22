@@ -10434,6 +10434,7 @@ Respond ONLY in JSON with this exact format:
           response: chatResponse.text,
           image: chatResponse.image,
           images: chatResponse.images,
+          video: chatResponse.video,
           postKind: chatResponse.postKind,
           reelScript: chatResponse.reelScript,
           imagePrompt: chatResponse.imagePrompt,

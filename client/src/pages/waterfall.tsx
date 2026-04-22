@@ -140,6 +140,7 @@ export default function Waterfall() {
       content: string;
       image?: string;
       images?: string[]; // For carousels
+      video?: string; // For reels — data URL of mp4
       postKind?: "post" | "story" | "carousel" | "reel";
       attachmentPreview?: string;
       attachmentName?: string;
@@ -281,6 +282,7 @@ export default function Waterfall() {
           content: data.response,
           image: data.image,
           images: data.images,
+          video: data.video,
           postKind: data.postKind,
         },
       ]);
@@ -824,6 +826,49 @@ export default function Waterfall() {
                               >
                                 {msg.role === "assistant" ? (
                                   <>
+                                    {msg.video && (
+                                      <motion.div
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="mb-4"
+                                      >
+                                        <div className="relative group inline-block max-w-md w-full">
+                                          <video
+                                            src={msg.video}
+                                            poster={msg.image}
+                                            controls
+                                            playsInline
+                                            className="w-full h-auto rounded-xl shadow-lg bg-gray-900"
+                                            data-testid="generated-video"
+                                          />
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              if (!msg.video) return;
+                                              const link = document.createElement("a");
+                                              link.href = msg.video;
+                                              link.download = `boosty-reel-${Date.now()}.mp4`;
+                                              document.body.appendChild(link);
+                                              link.click();
+                                              document.body.removeChild(link);
+                                            }}
+                                            className="absolute top-2 right-2 bg-white/90 hover:bg-white text-gray-800 backdrop-blur-sm shadow-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all"
+                                            title={language === "es" ? "Descargar video" : "Download video"}
+                                            data-testid="button-download-video"
+                                          >
+                                            <Download className="w-3.5 h-3.5" />
+                                            {language === "es" ? "Descargar MP4" : "Download MP4"}
+                                          </button>
+                                          <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Badge className="bg-gradient-to-r from-purple-600 to-pink-500 text-white text-xs">
+                                              <Sparkles className="w-3 h-3 mr-1" />
+                                              {language === "es" ? "Veo IA" : "Veo AI"}
+                                            </Badge>
+                                          </div>
+                                        </div>
+                                      </motion.div>
+                                    )}
                                     {msg.images && msg.images.length > 0 && (
                                       <motion.div
                                         initial={{ opacity: 0, scale: 0.95 }}
