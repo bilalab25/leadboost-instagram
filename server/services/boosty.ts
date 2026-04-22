@@ -1398,7 +1398,10 @@ Respond ONLY with valid JSON. No prose, no markdown.`;
       contents: prompt,
       config: {
         temperature: 0.85,
-        maxOutputTokens: 2048,
+        // Need headroom for: 220-word imagePrompt + 3 × 220-char captions
+        // + 3 hashtag tiers + posting time + schedule hint. Without enough
+        // budget the model truncates mid-string and JSON.parse explodes.
+        maxOutputTokens: 4096,
         responseMimeType: "application/json",
         responseSchema: briefSchema as any,
       },
