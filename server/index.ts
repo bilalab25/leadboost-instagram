@@ -105,6 +105,8 @@ app.use(
               "https://graph.facebook.com",
               "https://graph.instagram.com",
               "https://api.stripe.com",
+              "https://widget.trustpilot.com",
+              "https://*.trustpilot.com",
               "wss:",
               "ws:",
             ],
@@ -126,6 +128,7 @@ app.use(
       : false,
     crossOriginResourcePolicy: { policy: "cross-origin" },
     crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
   })
 );
 
