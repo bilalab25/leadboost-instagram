@@ -1276,11 +1276,14 @@ Respond ONLY with valid JSON.`;
         contents: prompt,
         config: {
           temperature: 0.7,
-          maxOutputTokens: 1000,
+          maxOutputTokens: 1500,
+          responseMimeType: "application/json",
         },
       });
 
       const text = response.text || "";
+      // With responseMimeType=json the whole text should be valid JSON, but
+      // sometimes the model still wraps it in code fences — be lenient.
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
@@ -1348,12 +1351,30 @@ Respond ONLY with valid JSON.`;
       console.error("[Boosty] Error generating image prompt:", error);
     }
 
-    // Fallback based on mode
+    // Fallback based on mode — brief-aware so we never return empty caption/hashtags
     if (editorialMode) {
       return this.buildEditorialFallback(userMessage, context, preset);
     } else {
+      const headline =
+        promotionDetails || themeName || serviceName || context.brand.name;
+      const sub = [serviceName, datesText].filter(Boolean).join(" — ");
+      const cta = ctaText || (language === "es" ? "Agenda tu cita" : "Book now");
+      const fallbackBasePrompt = `Polished Instagram 4:5 ad creative for ${context.brand.name}. Hero photo of a relevant ${context.brand.industry || "lifestyle"} subject. The brand's primary color (${context.design?.colors?.primary || "brand color"}) dominates the background or as a bold panel. OVERSIZED HEADLINE in ${context.design?.fonts?.primary || "modern bold sans-serif"} reading "${headline}". Sub-text below reading "${sub || serviceName || context.brand.name}". A clean rounded CTA button at the bottom labeled "${cta}". The brand logo is placed cleanly in the top-left corner. Sharp typography hierarchy, magazine-grade composition, high contrast, professional commercial polish. AVOID generic stock-photo look, busy collage layouts, fake QR codes.`;
+      const fallbackCaption =
+        language === "es"
+          ? `${promotionDetails ? promotionDetails + " — " : ""}${serviceName || context.brand.name}${datesText ? ` (${datesText})` : ""}. ${cta} 💬`
+          : `${promotionDetails ? promotionDetails + " — " : ""}${serviceName || context.brand.name}${datesText ? ` (${datesText})` : ""}. ${cta} 💬`;
+      const fallbackHashtags = [
+        `#${context.brand.name.replace(/\s+/g, "")}`,
+        serviceName ? `#${serviceName.replace(/\s+/g, "")}` : "",
+        themeName ? `#${themeName.replace(/\s+/g, "")}` : "",
+        promotionDetails ? `#${promotionDetails.replace(/[\s%]+/g, "")}` : "",
+        "#instagram",
+      ]
+        .filter(Boolean)
+        .join(" ");
       return {
-        basePhotoPrompt: `Professional marketing image for ${context.brand.name}. ${userMessage}. Style: ${context.design?.brandStyle || "modern"}. Colors: ${colorPalette}.`,
+        basePhotoPrompt: fallbackBasePrompt,
         layoutPlan: {
           aspectRatio: "4:5",
           safeAreaPercent: { top: 0, right: 0, bottom: 0, left: 0 },
@@ -1362,8 +1383,8 @@ Respond ONLY with valid JSON.`;
           alignment: "center" as const,
           theme: "light" as const,
         },
-        caption: "",
-        hashtags: "",
+        caption: fallbackCaption,
+        hashtags: fallbackHashtags,
         editorialMode: false,
       };
     }
