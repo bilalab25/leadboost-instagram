@@ -2382,7 +2382,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (integration.provider === "facebook") {
               const url = `https://graph.facebook.com/v24.0/${integration.accountId}/insights?metric=page_impressions,page_post_engagements,page_posts_impressions_unique&period=day&access_token=${integration.accessToken}`;
               const resFB = await fetch(url);
+              if (!resFB.ok) {
+                console.warn(
+                  `[AI Suggestions] Facebook insights HTTP ${resFB.status} for integration ${integration.id}; skipping`,
+                );
+                continue;
+              }
               const dataFB = await resFB.json();
+              if (dataFB?.error) {
+                console.warn(
+                  `[AI Suggestions] Facebook insights API error for integration ${integration.id}:`,
+                  dataFB.error,
+                );
+                continue;
+              }
 
               const metrics = dataFB.data || [];
               const getMetric = (n: string) =>
