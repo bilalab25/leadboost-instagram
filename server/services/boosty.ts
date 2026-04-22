@@ -1849,63 +1849,78 @@ BRAND:
 - Headline font: ${context.design?.fonts?.primary || "modern sans-serif"}
 
 ═══════════════════════════════════════════════════════════════
-CRITICAL: hard rules for the Veo video prompt
+CRITICAL: how Veo 3 actually works
 ═══════════════════════════════════════════════════════════════
-Veo 3 has known weaknesses you MUST design around — otherwise the output looks
-unmistakably AI:
+• 8-second hard cap. ONE continuous shot only.
+• Veo CANNOT render legible text — text overlays will be added in
+  post-production. So in the video itself: ZERO words, signs, labels,
+  captions, buttons, posters, screens with readable copy.
+• Veo's TTS sounds robotic. NO spoken voiceover or narration. Audio is ONLY
+  ambient diegetic sound + tasteful instrumental underscore.
+• Anchor every shot in REAL-WORLD cinematography (camera/lens, light source,
+  color grade) so it doesn't read as CGI/AI.
 
-• Veo can NOT render legible written text inside the video. Any in-frame text
-  comes out as garbled letterforms. So: ZERO words, signs, labels, captions,
-  buttons-with-text, posters, magazine covers, screens with UI copy, computer
-  screens with readable text — none of it.
-• Veo's spoken voiceover sounds robotic and AI. So: NO spoken dialogue and NO
-  narration. Audio is ONLY ambient sound + a tasteful musical underscore.
-• Veo CANNOT do 3 hard-cut scenes in 8 seconds. Use ONE continuous shot with a
-  single smooth camera move.
-• To avoid the "AI look", anchor every shot in REAL-WORLD cinematography
-  language: film stock or sensor, lens choice, natural light source, real
-  texture, location specifics. Avoid words like "render", "3D", "graphic",
-  "animated", "infographic", "VFX", "CGI", "perfect", "futuristic UI".
+═══════════════════════════════════════════════════════════════
+THE 8 SECONDS MUST TELL A CLEAR VISUAL STORY
+═══════════════════════════════════════════════════════════════
+Without text inside the frame, the VIDEO ITSELF must communicate the brand
+message. Don't write a beautiful but abstract clip — write a STORY beat:
+
+  SUBJECT → ACTION → RESULT/REACTION
+
+Example for a SaaS launch: "30-something founder at her standing desk laughs
+and high-fives a colleague as a clean dashboard scrolls past on her laptop."
+Example for a facial promo: "Close-up of a woman's hand gently touching her
+glowing cheek in front of a soft-lit mirror, she breaks into a satisfied smile
+and looks straight at camera."
+Example for a coffee shop: "A barista carefully pours a perfect tulip into a
+flat-white in a sun-drenched cafe, hands the cup over the counter, customer's
+hands take it with a delighted smile."
 
 Output JSON with these fields, no others:
 
 1. "videoPrompt": (max 250 words) ONE photoreal cinematic single-shot
-   instruction for the Veo 3 video model, written as a paragraph (no bullets).
-   Mandatory structure:
+   instruction for Veo, written as a paragraph (no bullets). Mandatory:
 
-   OPENING BEAT (0-1.5s): a real-world subject doing a real-world action
-   (not a screen, not text) framed for instant readability — describe the
-   subject, the lens (e.g. "shot on a 35mm film camera, anamorphic", or
-   "Sony FX3 with a 50mm prime, T1.4"), the lighting source (window light,
-   golden hour, soft top light), and the depth of field.
-   MIDDLE (1.5-6.5s): ONE continuous camera move — slow push-in, gentle pan,
-   handheld micro-shake, smooth dolly, or rack focus. The subject performs
-   the core demonstration grounded in physical reality. Note color grade
-   (e.g. "warm filmic grade with subtle grain", "Kodak Portra palette").
-   ENDING BEAT (6.5-8s): the camera lands on a clean composition — a
-   product detail, the subject's confident reaction, or a clean negative-space
-   frame washed in the brand color (${context.design?.colors?.primary || "brand color"}). NO TEXT. NO BUTTONS. NO LABELS.
+   • Open with a HUMAN SUBJECT or product close-up that screams the brand
+     category in <1 second. Specify look, age range, mood.
+   • Middle: ONE continuous camera move (slow push-in, gentle pan, handheld
+     micro-shake, smooth dolly, rack focus) while the subject performs an
+     action that demonstrates the value — NOT just standing there.
+   • End with a clear RESULT/REACTION beat: subject's satisfied smile, a
+     confident look at camera, hands lifting the product, or a clean product
+     detail in the brand color (${context.design?.colors?.primary || "brand color"}). The viewer must instantly grasp
+     "oh, this is about ${brief.extracted.service || context.brand.name}".
+   • Camera/lens: e.g. "Sony FX3, 50mm prime, T1.4", "ARRI Alexa Mini, 35mm
+     anamorphic", "shot on 16mm Kodak Vision3".
+   • Lighting source + color grade: e.g. "soft window light from camera-left",
+     "Kodak Portra palette with subtle grain", "modern teal-orange grade".
+   • 9:16 vertical, cinematic, photoreal, ${context.design?.brandStyle || "premium minimalist"}.
+   AUDIO: ONLY ambient diegetic (room tone, footsteps, keyboard taps, coffee
+   pour — match the scene) + tasteful instrumental underscore (warm acoustic /
+   modern lo-fi / uplifting strings). NO voiceover. NO TTS. NO spoken words.
 
-   STYLE: cinematic, commercial-grade, photoreal, ${context.design?.brandStyle || "premium minimalist"}, 9:16 vertical.
-   AUDIO: ONLY ambient diegetic sound (room tone, soft footsteps, paper
-   shuffle, keyboard taps, coffee pour, etc. — match the scene) plus a
-   tasteful instrumental underscore (specify mood: warm acoustic, modern lo-fi,
-   uplifting strings). NO voiceover. NO narration. NO spoken words. NO TTS.
+2. "overlay": object with the text we will burn into the video in
+   post-production (max 4 words per field, sharp + readable):
+   - "headline": the offer or theme in 2-4 BIG words (e.g. "20% OFF",
+     "FREE TRIAL", "NEW LAUNCH")
+   - "subline": 3-6 supporting words (e.g. "Armonización Facial · Junio 1-30")
+   - "cta": button copy in 2-3 words (e.g. "Book Now", "Sign Up")
 
-2. "coverImagePrompt": (max 200 words) instructions for a 9:16 vertical Reel
-   COVER STILL frame. In-image typography: punchy headline (3-5 words) + service
-   name. Brand color treatment. No fake logos.
+3. "coverImagePrompt": (max 200 words) instructions for a 9:16 vertical Reel
+   COVER STILL frame. In-image typography: punchy headline (3-5 words) +
+   service name. Brand color treatment. No fake logos.
 
-3. "script": human-readable shot list for the user (NOT for Veo). Object with:
-   - "hook" — opening line / on-screen text the audience reads first (max 80 chars)
-   - "scenes" — array of EXACTLY 3 scenes (visual + voiceover + durationSec=2-3 each)
-   - "cta" — final on-screen / spoken CTA
+4. "script": human-readable shot list for the user (NOT for Veo). Object with:
+   - "hook" — opening line (max 80 chars)
+   - "scenes" — array of 3 scenes (visual + voiceover + durationSec=2-3 each)
+   - "cta" — final CTA
 
-4. "caption": ONE persuasive caption in ${language === "es" ? "Spanish" : "English"} (max 220 chars).
-5. "hashtagsBranded": 3-4 brand/service hashtags
-6. "hashtagsNiche": 5-7 niche hashtags
-7. "hashtagsBroad": 3-5 discovery hashtags
-8. "suggestedPostingTime": 1-line strategic recommendation
+5. "caption": ONE persuasive caption in ${language === "es" ? "Spanish" : "English"} (max 220 chars).
+6. "hashtagsBranded": 3-4 brand/service hashtags
+7. "hashtagsNiche": 5-7 niche hashtags
+8. "hashtagsBroad": 3-5 discovery hashtags
+9. "suggestedPostingTime": 1-line strategic recommendation
 
 Respond ONLY with valid JSON.`;
 
@@ -1913,6 +1928,15 @@ Respond ONLY with valid JSON.`;
       type: Type.OBJECT,
       properties: {
         videoPrompt: { type: Type.STRING },
+        overlay: {
+          type: Type.OBJECT,
+          properties: {
+            headline: { type: Type.STRING },
+            subline: { type: Type.STRING },
+            cta: { type: Type.STRING },
+          },
+          required: ["headline", "subline", "cta"],
+        },
         coverImagePrompt: { type: Type.STRING },
         script: {
           type: Type.OBJECT,
@@ -1942,6 +1966,7 @@ Respond ONLY with valid JSON.`;
       },
       required: [
         "videoPrompt",
+        "overlay",
         "coverImagePrompt",
         "script",
         "caption",
@@ -1982,13 +2007,30 @@ Respond ONLY with valid JSON.`;
 
     // Run video gen + cover image in parallel to mask Veo's ~30-60s latency
     // behind the cover gen we'd be doing anyway.
-    const [video, cover] = await Promise.all([
+    const [rawVideo, cover] = await Promise.all([
       this.generateVideoWithVeo(veoPrompt).catch((e) => {
         console.warn("[Boosty] Veo video gen failed:", e?.message || e);
         return null;
       }),
       this.generateImage(parsed.coverImagePrompt, context, false).catch(() => null),
     ]);
+
+    // Burn the headline + subline + CTA into the raw Veo clip via Cloudinary's
+    // video text-overlay transforms. Veo can't render text legibly itself, so
+    // we add it in post — that way the viewer instantly understands what the
+    // 8 seconds is about.
+    let video: string | null = rawVideo;
+    if (rawVideo && parsed.overlay) {
+      try {
+        video = await this.addTextOverlayToVideo(
+          rawVideo,
+          parsed.overlay as { headline?: string; subline?: string; cta?: string },
+          context,
+        );
+      } catch (e) {
+        console.warn("[Boosty] Cloudinary overlay failed, returning raw video:", (e as any)?.message || e);
+      }
+    }
 
     const isSpanish = language === "es";
     const sceneBlock = scenesArr
@@ -2043,6 +2085,73 @@ Respond ONLY with valid JSON.`;
   // Uses full veo-3.0-generate-001 (NOT the fast variant) for better motion,
   // composition, and audio. Adds a negative prompt to suppress common
   // artifacts that made earlier reels look cheap.
+  // Upload the raw Veo mp4 to Cloudinary and apply timed text overlays
+  // (headline 0.3-3s, subline 3-6s, CTA 6-7.7s) so the viewer instantly
+  // grasps what the reel is about. Returns the public mp4 URL of the
+  // composited video. Falls back to the raw video if upload fails.
+  private async addTextOverlayToVideo(
+    videoDataUrl: string,
+    overlay: { headline?: string; subline?: string; cta?: string },
+    context: BrandContext,
+  ): Promise<string> {
+    const cloudinary = (await import("../cloudinary")).default;
+
+    const headline = (overlay.headline || "").trim();
+    const subline = (overlay.subline || "").trim();
+    const cta = (overlay.cta || "").trim();
+    const brandColor = (context.design?.colors?.primary || "#2563eb").replace("#", "");
+    const fontPrimary = context.design?.fonts?.primary || "Roboto";
+    // Cloudinary expects font names with underscores, not spaces.
+    const cloudFont = fontPrimary.replace(/\s+/g, "_");
+
+    // Step 1: upload raw video to Cloudinary so we can apply transforms.
+    const upload = await cloudinary.uploader.upload(videoDataUrl, {
+      resource_type: "video",
+      folder: "leadboost/boosty/reels",
+      // Enable eager transformation so the composited mp4 is ready immediately.
+    });
+
+    // Step 2: build a chained URL transformation that overlays headline,
+    // subline, and CTA pill at the right timestamps. Cloudinary's `l_text`
+    // overlay supports `so_` (start_offset) and `eo_` (end_offset).
+    // Headline: bold, top-center, 0.3-3.0s
+    // Subline:  semi-bold, center, 3.0-6.0s
+    // CTA pill: brand color background with white text, bottom-center, 6.0-7.7s
+    // Subtle dark gradient at the bottom keeps text legible over busy frames.
+    const enc = (s: string) => encodeURIComponent(s);
+    const transforms: string[] = [];
+
+    // Subtle dark gradient overlay full-duration for legibility.
+    transforms.push(
+      "l_gradient:vertical_top_to_bottom:0:60,o_55,fl_relative,w_1.0,h_1.0",
+      "fl_layer_apply",
+    );
+
+    if (headline) {
+      transforms.push(
+        `l_text:${cloudFont}_120_bold:${enc(headline)},co_white,b_rgb:000000A0,bo_2px_solid_rgb:${brandColor},so_0.3,eo_3.0,g_north,y_180`,
+      );
+    }
+    if (subline) {
+      transforms.push(
+        `l_text:${cloudFont}_56:${enc(subline)},co_white,b_rgb:00000080,so_3.0,eo_6.0,g_center,y_0`,
+      );
+    }
+    if (cta) {
+      // Pill button effect: white text on rounded brand-color rectangle.
+      transforms.push(
+        `l_text:${cloudFont}_72_bold:${enc(cta)},co_white,b_rgb:${brandColor},bo_4px_solid_rgb:ffffff,r_max,so_6.0,eo_7.7,g_south,y_180`,
+      );
+    }
+
+    const overlayUrl = cloudinary.url(upload.public_id, {
+      resource_type: "video",
+      transformation: transforms.map((raw) => ({ raw_transformation: raw })),
+      secure: true,
+    });
+    return overlayUrl;
+  }
+
   private async generateVideoWithVeo(prompt: string): Promise<string | null> {
     const ai = getAI();
     let op: any;
