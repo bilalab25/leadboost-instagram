@@ -1427,9 +1427,17 @@ ${sanitizedPrompt}
     const colorPalette = [
       context.design?.colors?.primary,
       context.design?.colors?.accent1,
+      context.design?.colors?.accent2,
     ]
       .filter(Boolean)
       .join(", ");
+    const fontPrimary = context.design?.fonts?.primary || "modern sans-serif";
+    const fontSecondary = context.design?.fonts?.secondary || fontPrimary;
+    const logoUrl =
+      context.design?.whiteLogoUrl ||
+      context.design?.blackLogoUrl ||
+      context.design?.logoUrl;
+    const hasLogo = !!logoUrl;
 
     // Different prompts for editorial vs non-editorial mode
     const prompt = editorialMode
@@ -1437,9 +1445,11 @@ ${sanitizedPrompt}
 
 USER REQUEST: "${userMessage}"
 ${conversationContext ? `\nCONVERSATION CONTEXT:\n${conversationContext}\n` : ""}
-BRAND:
+BRAND IDENTITY (STRICT):
 - Style: ${context.design?.brandStyle || "modern and professional"}
-- Colors: ${colorPalette || "elegant neutral tones"}
+- Color palette (MUST drive the color grade and wardrobe/prop choices): ${colorPalette || "elegant neutral tones"}
+- Primary font (if any subtle type appears in the frame): ${fontPrimary}
+- Logo: ${hasLogo ? "available — if included, place it small and subtle, never redraw" : "none — do not invent a logo"}
 - Industry: ${context.brand.industry || "lifestyle"}
 
 EDITORIAL PRESET:
@@ -1489,12 +1499,12 @@ Respond ONLY with valid JSON.`
 
 USER REQUEST: "${userMessage}"
 ${conversationContext ? `\nCONVERSATION CONTEXT:\n${conversationContext}\n` : ""}
-BRAND:
+BRAND IDENTITY (STRICT — these are HARD constraints, not suggestions):
 - Style: ${context.design?.brandStyle || "modern and professional"}
-- Primary color: ${context.design?.colors?.primary || "n/a"}
-- Accent color: ${context.design?.colors?.accent1 || "n/a"}
-- Headline font: ${context.design?.fonts?.primary || "modern sans-serif"}
-- Logo available: ${context.design?.hasLogo ? "yes (will be supplied as a reference image)" : "no"}
+- Color palette (MUST dominate the composition): ${colorPalette || "n/a"}
+- Primary font for headlines (MUST be used, reference by name in the prompt): ${fontPrimary}
+- Secondary font for subheads/body: ${fontSecondary}
+- Logo: ${hasLogo ? `Available. Place it small, clean, in a corner — never distort, never invent extra letters, never swap colors.` : "No logo uploaded — do not invent or fake a logo mark."}
 
 CAMPAIGN BRIEF (extract from the request — do NOT invent missing fields):
 - Offer / promo: ${promotionDetails || "(none specified — emphasize the service itself)"}
@@ -1507,11 +1517,11 @@ Produce a JSON object with these fields, no others:
 
 1. "imagePrompt": A specific, vivid English description (max 220 words) for an actual Instagram Story-style ad creative. Instruct the image model to render:
    - A high-quality hero photo (a relevant model / scene / product detail — pick what fits the brief)
-   - The brand primary color as the dominant background or accent panel
-   - A BIG bold HEADLINE in ${context.design?.fonts?.primary || "a modern sans-serif"} that says the offer or service in 2-4 words${promotionDetails ? ` — feature "${promotionDetails}" in oversized type` : ""}
-   - A sub-headline with the service name${serviceName ? ` ("${serviceName}")` : ""}${datesText ? ` and the date range ("${datesText}")` : ""}
-   - A clean pill-shaped CTA button at the bottom-center that says "${ctaText || "Book now"}"
-   - ${context.design?.hasLogo ? "The brand logo cleanly in the top corner (use the supplied logo reference image)" : "Clean corners — no fake logos"}
+   - Brand color palette (${colorPalette || "brand palette"}) MUST dominate — use it for backgrounds, accent panels, pill CTAs, and text color accents. The composition should feel unmistakably "this brand".
+   - A BIG bold HEADLINE set in "${fontPrimary}" that says the offer or service in 2-4 words${promotionDetails ? ` — feature "${promotionDetails}" in oversized type` : ""}. Reference the font name explicitly in the prompt.
+   - A sub-headline set in "${fontSecondary}" with the service name${serviceName ? ` ("${serviceName}")` : ""}${datesText ? ` and the date range ("${datesText}")` : ""}
+   - A clean pill-shaped CTA button at the bottom-center that says "${ctaText || "Book now"}", filled with the brand primary color
+   - ${hasLogo ? "The brand logo cleanly in the top corner (use the supplied logo reference image — do NOT invent or redraw the logo)" : "Clean corners — no fake logos, no placeholder marks"}
    - Professional ad layout, NOT a moody editorial shot — closer to a polished Apple/Nike/Sephora ad
    - 4:5 vertical composition, instagram-ready, sharp typography hierarchy
 
@@ -1652,9 +1662,11 @@ Respond ONLY with valid JSON. No prose, no markdown.`;
     };
   }
 
-  // Generate a 5-slide Instagram carousel: cover → 3 content slides → CTA.
-  // Slides share the brand context but each tells a distinct story beat.
-  // Returns ChatResponse with images: string[].
+  // Generate an Instagram carousel whose SLIDE STRUCTURE is selected dynamically
+  // by the LLM from a catalog of 13 proven formats — not forced into a fixed
+  // hook/problem/solution/proof/cta template. Slide count varies 4-8.
+  // Output schema stays backward-compatible: { slides: [{role, imagePrompt, slideText}], feedCaption, hashtags..., suggestedPostingTime }.
+  // The `role` field is now free-form (e.g. "myth", "truth", "step-1", "mistake-3").
   private async generateCarousel(
     userMessage: string,
     context: BrandContext,
@@ -1666,14 +1678,56 @@ Respond ONLY with valid JSON. No prose, no markdown.`;
       .map((m) => `${m.role}: ${m.content}`)
       .join("\n");
     const brief = detectCampaignBrief(userMessage, conversationHistory);
-    const colorPalette = [context.design?.colors?.primary, context.design?.colors?.accent1]
+    // Full brand palette (not just 2 colors) so the LLM can reference accents.
+    const colorPalette = [
+      context.design?.colors?.primary,
+      context.design?.colors?.accent1,
+      context.design?.colors?.accent2,
+    ]
       .filter(Boolean)
       .join(", ");
+    const logoUrl = context.design?.whiteLogoUrl || context.design?.blackLogoUrl || context.design?.logoUrl;
+    const hasLogo = !!logoUrl;
+    const fontPrimary = context.design?.fonts?.primary || "clean modern sans-serif";
+    const fontSecondary = context.design?.fonts?.secondary || fontPrimary;
 
-    const prompt = `You are a senior creative director designing a 5-slide Instagram CAROUSEL for "${context.brand.name}" (${context.brand.industry || "general"}).
+    // Summarize prior carousel structures in recent history so the LLM can
+    // actively avoid repeating the same angle. Pulls any "role" mentions the
+    // last assistant turn included.
+    const priorStructures = recentHistory
+      .filter((m) => m.role === "assistant")
+      .map((m) => m.content)
+      .join(" ")
+      .match(/\b(educational|myth|step-by-step|mistakes?|before-?after|guide|checklist|problem-?solution|benefits?|objections?|faqs?|perspective|what-to-expect|comparison|story|hook|cover|cta)\b/gi);
+    const priorStructureHint = priorStructures && priorStructures.length > 0
+      ? `Prior carousels in this conversation leaned toward: ${Array.from(new Set(priorStructures.map((s) => s.toLowerCase()))).slice(0, 6).join(", ")}. Pick a DIFFERENT structure this time so the feed feels varied.`
+      : "";
+
+    // CATALOG OF CAROUSEL STRUCTURES — the LLM picks ONE based on brand/topic/goal.
+    // Each describes the narrative shape, typical slide count, and role naming.
+    const structureCatalog = `
+CAROUSEL STRUCTURE CATALOG (pick ONE — do NOT combine):
+
+1. educational-breakdown (5-7 slides) — teaches one concept. Roles: "cover" → "concept-1" → "concept-2" → "concept-3" → "concept-4" → "takeaway". Strong for tutorials, explainers.
+2. myth-vs-truth (4-6 slides) — dispels misconceptions. Roles: "cover" → "myth-1" → "truth-1" → "myth-2" → "truth-2" → "cta". Works for niches with heavy misinformation.
+3. step-by-step (5-8 slides) — walks through a process. Roles: "cover" → "step-1" ... "step-N" → "result". Best for how-to, recipes, workflows, routines.
+4. mistakes-to-avoid (5-7 slides) — lists pitfalls. Roles: "cover" → "mistake-1" → "mistake-2" → ... → "fix". Strong negativity-hook, high save rate.
+5. before-vs-after (4-5 slides) — transformation narrative. Roles: "cover" → "before" → "after" → "how" → "cta". Natural for services with visible results.
+6. guide-checklist (5-7 slides) — compiled list. Roles: "cover" → "item-1" → "item-2" → ... → "save-cta". Feels useful + saveable.
+7. problem-solution (4-5 slides) — classic pain-payoff. Roles: "cover" → "problem" → "solution" → "proof" → "cta". Use when the offer is concrete (a product/service).
+8. benefits-breakdown (5-6 slides) — features laid out. Roles: "cover" → "benefit-1" → "benefit-2" → ... → "cta". For product launches, value props.
+9. objections-faqs (4-6 slides) — answers hesitations. Roles: "cover" → "question-1" → "answer-1" → ... → "cta". Pre-sale / lead-gen.
+10. perspective-shift (4-5 slides) — opinion piece that reframes. Roles: "cover" → "popular-view" → "reframe" → "why" → "invite". Thought-leadership, controversy-driven.
+11. what-to-expect (5-6 slides) — primer for a process/experience. Roles: "cover" → "expect-1" → "expect-2" → "expect-3" → "tip" → "cta". Works for bookings, onboarding, first-time buyers.
+12. comparison (4-6 slides) — A vs B layout. Roles: "cover" → "option-a" → "option-b" → "winner" → "cta". Differentiators, competitor framing.
+13. story-sequence (5-7 slides) — narrative arc. Roles: "cover" → "setup" → "tension" → "turn" → "lesson" → "cta". Best for founder stories, case studies, emotional angles.
+`;
+
+    const prompt = `You are a senior creative director designing a variable-length Instagram CAROUSEL for "${context.brand.name}" (${context.brand.industry || "general"}).
 
 USER REQUEST: "${userMessage}"
 ${conversationContext ? `\nCONVERSATION CONTEXT:\n${conversationContext}\n` : ""}
+${priorStructureHint ? `\nHISTORY NOTE: ${priorStructureHint}\n` : ""}
 
 CAMPAIGN BRIEF:
 - Offer: ${brief.extracted.offer || "(none)"}
@@ -1682,37 +1736,55 @@ CAMPAIGN BRIEF:
 - Dates: ${brief.extracted.dates || "(unspecified)"}
 - CTA: ${brief.extracted.cta || "Book now"}
 
-BRAND:
+BRAND IDENTITY (STRICT — these are HARD constraints, not suggestions):
 - Style: ${context.design?.brandStyle || "modern"}
-- Primary color: ${context.design?.colors?.primary || "n/a"}
-- Headline font: ${context.design?.fonts?.primary || "modern sans-serif"}
+- Color palette (must dominate every slide): ${colorPalette || "n/a"}
+- Primary font (in-image headlines): ${fontPrimary}
+- Secondary font (subheads/body): ${fontSecondary}
+- Logo: ${hasLogo ? `Available at ${logoUrl}. Place it small, bottom-right or bottom-center corner, NEVER altered, NEVER distorted, NEVER with extra letters.` : "No logo uploaded — compose without a logo mark."}
 
-Build EXACTLY 5 slides. Each slide needs a distinct visual + text purpose:
-  Slide 1 — HOOK COVER: bold headline grabs attention, sub-text teases the value.
-  Slide 2 — PROBLEM/CONTEXT: a relatable pain or insight the audience feels.
-  Slide 3 — SOLUTION: how the service/offer solves it, with one concrete benefit.
-  Slide 4 — PROOF/DETAIL: specifics — what's included, before/after vibe, social proof, OR the offer's date range.
-  Slide 5 — CTA CARD: bold CTA button, brand color background, clean minimal design.
+${structureCatalog}
 
-Output JSON with these fields, no others:
+YOUR JOB:
+Step 1 — Pick ONE structure from the catalog above that best fits this brand, topic, goal, and campaign brief. Avoid any structure listed in the HISTORY NOTE.
+Step 2 — Decide on a slide count within that structure's range.
+Step 3 — Write the slides.
 
-1. "slides": array of EXACTLY 5 objects, each:
-   - "role": one of "cover" | "problem" | "solution" | "proof" | "cta"
-   - "imagePrompt": (max 150 words) instructions for an Instagram 4:5 image. Include in-image typography (headline + sub), brand color usage, hero photo style, NO fake logos. The CTA slide must include a pill CTA button with the text "${brief.extracted.cta || "Book now"}".
-   - "slideText": (max 60 chars) the in-image headline copy
+STRUCTURE VARIATION RULES:
+- Do NOT use the same "Hook → Problem → Solution → Proof → CTA" shape unless the chosen structure explicitly calls for it.
+- Slide count varies by structure (4-8 slides). Pick the count that best serves the story, not a fixed default.
+- Hook phrasing MUST be fresh — no "Did you know", "Here's why", "Stop doing X" if it was used recently.
+- The CTA must match the brand's selling style — don't always say "Book now" if the brief doesn't call for a booking.
 
-2. "feedCaption": ONE persuasive caption in ${language === "es" ? "Spanish" : "English"} (max 220 chars) — what the user types under the carousel post. Hook + value + CTA, 1-2 emojis.
+SLIDE-LEVEL DESIGN RULES (every slide):
+- Image composition MUST use the brand color palette (${colorPalette || "brand palette"}) as the dominant visual foundation
+- In-image typography MUST use "${fontPrimary}" for headlines — reference it by name in the imagePrompt
+- ${hasLogo ? "Include the brand logo subtly in a corner of every slide — never invent a different logo" : "Do not include any fake or placeholder logo"}
+- 4:5 Instagram portrait ratio
+- Clean, editorial, not collage-y — avoid cluttered backgrounds
+- No made-up statistics or fake testimonials
 
-3. "hashtagsBranded": 3-4 brand/service/promo hashtags
-4. "hashtagsNiche": 5-7 niche community hashtags
-5. "hashtagsBroad": 3-5 broader discovery hashtags
-6. "suggestedPostingTime": short 1-line strategic recommendation in ${language === "es" ? "Spanish" : "English"}
+Output JSON ONLY with these fields:
+
+1. "chosenStructure": one of: "educational-breakdown" | "myth-vs-truth" | "step-by-step" | "mistakes-to-avoid" | "before-vs-after" | "guide-checklist" | "problem-solution" | "benefits-breakdown" | "objections-faqs" | "perspective-shift" | "what-to-expect" | "comparison" | "story-sequence"
+2. "structureRationale": 1 sentence (${language === "es" ? "Spanish" : "English"}) explaining WHY this structure fits this brand/topic — short.
+3. "slides": array of 4-8 objects, each:
+   - "role": short kebab-case label matching the chosen structure's convention (e.g. "cover", "myth-1", "step-3", "before", "cta")
+   - "imagePrompt": (max 180 words) instructions for an Instagram 4:5 image. MUST reference the brand color palette (${colorPalette || "brand palette"}), MUST reference font "${fontPrimary}" for in-image text, MUST ${hasLogo ? "place the brand logo subtly in a corner (no invention, no distortion)" : "NOT include any fake logo"}. Describe the hero photo/illustration, the overlay text position, and the dominant color block.
+   - "slideText": (max 80 chars) the headline copy that appears in the image
+4. "feedCaption": ONE persuasive caption in ${language === "es" ? "Spanish" : "English"} (max 260 chars). Hook + value + CTA, 1-2 emojis.
+5. "hashtagsBranded": 3-4 brand/service/promo hashtags
+6. "hashtagsNiche": 5-7 niche community hashtags
+7. "hashtagsBroad": 3-5 broader discovery hashtags
+8. "suggestedPostingTime": short 1-line strategic recommendation in ${language === "es" ? "Spanish" : "English"}
 
 Respond ONLY with valid JSON.`;
 
     const schema = {
       type: Type.OBJECT,
       properties: {
+        chosenStructure: { type: Type.STRING },
+        structureRationale: { type: Type.STRING },
         slides: {
           type: Type.ARRAY,
           items: {
@@ -1732,6 +1804,7 @@ Respond ONLY with valid JSON.`;
         suggestedPostingTime: { type: Type.STRING },
       },
       required: [
+        "chosenStructure",
         "slides",
         "feedCaption",
         "hashtagsBranded",
@@ -1779,12 +1852,16 @@ Respond ONLY with valid JSON.`;
     }
 
     const isSpanish = language === "es";
-    const slideLabels = isSpanish
-      ? ["Cover", "Problema", "Solución", "Prueba", "CTA"]
-      : ["Cover", "Problem", "Solution", "Proof", "CTA"];
+    // Slide labels are now driven by the LLM's chosen structure — each slide's
+    // `role` is its own label (e.g. "myth-1", "step-3", "cta"). We humanize it
+    // for display but no longer force Cover/Problem/Solution/Proof/CTA.
+    const humanizeRole = (r: string) =>
+      r.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
     const slidesBlock = slides
-      .map((s, i) => `**${i + 1}. ${slideLabels[i] ?? s.role}** — ${s.slideText}`)
+      .map((s, i) => `**${i + 1}. ${humanizeRole(s.role || `Slide ${i + 1}`)}** — ${s.slideText}`)
       .join("\n");
+    const chosenStructure = parsed.chosenStructure || "custom";
+    const structureRationale = parsed.structureRationale || "";
     const tagSections: string[] = [];
     if (parsed.hashtagsBranded)
       tagSections.push(`${isSpanish ? "🏷️ Marca/Servicio" : "🏷️ Branded / Service"}: ${parsed.hashtagsBranded}`);
@@ -1793,11 +1870,16 @@ Respond ONLY with valid JSON.`;
     if (parsed.hashtagsBroad)
       tagSections.push(`${isSpanish ? "🌐 Amplios" : "🌐 Broad reach"}: ${parsed.hashtagsBroad}`);
 
+    const structureLine = isSpanish
+      ? `**Estructura elegida:** ${humanizeRole(chosenStructure)}${structureRationale ? ` — ${structureRationale}` : ""}`
+      : `**Chosen structure:** ${humanizeRole(chosenStructure)}${structureRationale ? ` — ${structureRationale}` : ""}`;
+
     const text = [
       isSpanish
         ? `¡Carrusel listo! 🎠 ${images.length} slides generados.`
         : `Carousel ready! 🎠 ${images.length} slides generated.`,
-      isSpanish ? `**Estructura del carrusel:**` : `**Carousel structure:**`,
+      structureLine,
+      isSpanish ? `**Secuencia de slides:**` : `**Slide sequence:**`,
       slidesBlock,
       isSpanish ? `**Caption del feed:**` : `**Feed caption:**`,
       parsed.feedCaption,

@@ -6,6 +6,11 @@ import OpenAI from "openai";
 import { generateContentWithRetry } from "./aiRetry";
 import cloudinary from "../cloudinary";
 import { BillingService } from "../stripe/billingService";
+import {
+  buildNormalizedPromptInputs,
+  logPromptDebug,
+  logPreflightWarnings,
+} from "./promptInputs";
 
 // Asset usage tracking for intelligent rotation
 interface AssetUsageTracker {
@@ -196,6 +201,8 @@ export interface PostGenerationContext {
     totalGenerated: number;
   };
   imageDataUrl?: string;
+  /** brand.settings JSONB — used by promptInputs.ts to surface optional profile fields */
+  brandSettings?: unknown;
 }
 
 function fullPostsSchema(languageLabel: string) {
@@ -512,19 +519,39 @@ export function calculatePostingDates(
   return dates;
 }
 
-function buildTextPrompt(context: PostGenerationContext): string {
+export function buildTextPrompt(context: PostGenerationContext): string {
+  // Normalize + audit every prompt variable before interpolation. This guarantees
+  // no [object Object] / empty-string / malformed values reach the LLM and that
+  // we surface missing critical brand fields to the server log.
+  const N = buildNormalizedPromptInputs(context, context.brandSettings);
+  logPreflightWarnings("monthly.full", N);
+
   const {
-    brandName,
-    brandDescription,
     brandDesign,
     brandAssets,
     metaInsights,
-    salesInsights,
     month,
     year,
     postingSchedule,
     connectedPlatforms,
   } = context;
+
+  // Local aliases so the template literal below stays readable. All come from
+  // the normalized inputs — no raw field access into brand/brandDesign.
+  const brandName = N.brandName;
+  const brandDescription = N.brandDescription;
+  const colorPalette = N.colorPalette;
+  const languageLabel = N.languageLabel;
+  const visualContext = N.visualContext;
+  const productContext = N.productContext;
+  const allAssetDescriptions = N.allAssetDescriptions;
+  const logoInfo = N.logoLine;
+  const hasProducts = N.hasProducts;
+  const hasLocation = N.hasLocation;
+  const dateRestriction = N.dateRestriction;
+  const postingScheduleInstructions = N.postingScheduleInstructions;
+  const batchInstruction = N.batchInstruction;
+
   // Filter assets by category AND only use images (not videos or documents)
   const productAssets = brandAssets.filter(
     (a) =>
@@ -546,91 +573,11 @@ function buildTextPrompt(context: PostGenerationContext): string {
     (a) => a.category === "inspiration_templates" && a.assetType === "image",
   );
 
-  // Detect if brand has product images available
-  const hasProducts = productAssets.length > 0;
-
-  // Detect if brand has location images available
-  const hasLocation = locationAssets.length > 0;
-
-  // Visual context for content strategy based on available assets
-  const visualContext = hasProducts
-    ? "The brand has real product images available. These should be featured naturally in the posts - on elegant surfaces, in lifestyle contexts, or being used/worn."
-    : hasLocation
-      ? "The brand has real location images (e.g. clinic, restaurant, store, office). These represent a real physical space and MUST NOT be altered. Use them as-is and build marketing content around them."
-      : "The brand has no real product or location images available. Create lifestyle or brand-focused visuals from scratch that represent the brand's essence.";
-
-  // Product context for content strategy (legacy compatibility)
-  const productContext = hasProducts
-    ? "The brand has product images available. Focus on showcasing products, benefits, and use cases."
-    : "The brand has no product images yet. Focus on brand awareness, lifestyle, and engagement content.";
-
   const monthName = new Date(year, month - 1).toLocaleString("en-US", {
     month: "long",
   });
 
-  // Calculate the start day for content generation
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1;
-  const currentDay = now.getDate();
-
-  // If generating for current month, start from today. Otherwise start from day 1
-  const startDay =
-    year === currentYear && month === currentMonth ? currentDay : 1;
-
-  // Get last day of target month
-  const lastDayOfMonth = new Date(year, month, 0).getDate();
-
-  const dateRestriction =
-    startDay > 1
-      ? `CRITICAL DATE RESTRICTION: Today is ${monthName} ${currentDay}, ${year}. Generate posts ONLY for dates from ${monthName} ${startDay} to ${monthName} ${lastDayOfMonth}. DO NOT generate any posts for dates before ${monthName} ${startDay}.`
-      : `Generate posts for the entire month of ${monthName} (days 1-${lastDayOfMonth}).`;
-
-  // Determine which platforms to generate for (only connected ones)
-  const availablePlatforms =
-    connectedPlatforms && connectedPlatforms.length > 0
-      ? connectedPlatforms
-      : ["instagram", "facebook"]; // Default fallback
-
-  // Format platforms for prompt with variations
-  const platformInstructions = availablePlatforms
-    .map((p) => {
-      if (p === "instagram" || p === "instagram_direct") {
-        return "Instagram (including feed posts, reels, and stories)";
-      }
-      if (p === "facebook") {
-        return "Facebook (page posts)";
-      }
-      return p;
-    })
-    .join(", ");
-  // Use preferredLanguage from brand (context) first, then fallback to brandDesign
-  const preferredLanguage =
-    context.preferredLanguage || context.brandDesign.preferredLanguage || "en";
-
-  const languageLabel = languageInstruction(preferredLanguage);
-
-  const colorPalette = [
-    brandDesign.colorPrimary,
-    brandDesign.colorAccent1,
-    brandDesign.colorAccent2,
-    brandDesign.colorAccent3,
-    brandDesign.colorAccent4,
-  ]
-    .filter(Boolean)
-    .join(", ");
-
-  // Build detailed asset list with URLs for context
-  const assetDetails = brandAssets
-    .map((asset) => {
-      const desc = (asset as any).description
-        ? ` - DESCRIPTION: ${(asset as any).description}`
-        : "";
-      return `  - ${asset.name} (${asset.category || "general"})${desc}: ${asset.url}`;
-    })
-    .join("\n");
-
-  // Group assets by category for quick reference
+  // Group assets by category for quick reference inside template literal below.
   const assetsByCategory = brandAssets.reduce(
     (acc, asset) => {
       const cat = asset.category || "general";
@@ -641,87 +588,20 @@ function buildTextPrompt(context: PostGenerationContext): string {
     {} as Record<string, string[]>,
   );
   const extractSectionA = (description: string) => {
-    // Regex para buscar el inicio de la Sección A y el inicio de la Sección B
     const matchA = description.match(
       /### SECTION A:([\s\S]*?)(?=### SECTION B:|$)/i,
     );
     if (matchA && matchA[1]) {
-      // Limpiamos los encabezados de los subpuntos (1, 2, 3) para obtener solo el texto puro.
       return matchA[1].replace(/(\d\.\s*\*\*.*?\*\*)/g, "").trim();
     }
-    return description; // Fallback si no encuentra la estructura
+    return description;
   };
-  const bestTimes =
-    metaInsights?.bestPostingTimes?.join(", ") || "9:00 AM, 12:00 PM, 6:00 PM";
-
-  // Logo information - use whiteLogoUrl, blackLogoUrl, or deprecated logoUrl
-  const logoUrl =
-    brandDesign.whiteLogoUrl || brandDesign.blackLogoUrl || brandDesign.logoUrl;
-  const logoInfo = logoUrl
-    ? `- Brand Logo URL: ${logoUrl}\n- IMPORTANT: The brand has a logo that should be conceptually referenced in image prompts. Describe elements that complement the logo style.`
-    : "- No logo uploaded";
-
-  const allAssetDescriptions = brandAssets
-    .map((asset) => {
-      const desc = (asset as any).description
-        ? ` - DESCRIPTION: ${(asset as any).description}`
-        : "";
-      return `  - ${asset.name} (${asset.category || "general"})${desc}`;
-    })
-    .join("\n");
-
-  // Reemplaza o modifica la sección graphicStyleSummary:
-  let graphicStyleSummary = "";
-
-  const relevantDescriptions = [...locationAssets, ...inspirationAssets] // Solo Lugar e Inspiración definen el estilo visual
-    .map((asset) => {
-      const desc =
-        (asset as any).description || "No detailed description provided.";
-      return `ASSET: ${asset.name} (Category: ${asset.category})\n  - VISUAL IDENTITY: ${desc}`;
-    })
-    .join("\n\n");
-
-  if (relevantDescriptions) {
-    graphicStyleSummary = `
-  CRITICAL VISUAL STYLE SYNTHESIS INSTRUCTIONS:
-  The following descriptions detail the unique look, feel, colors, and composition of the brand's key visual assets (Location and Inspiration). You MUST synthesize the *dominant* visual identity (specific color schemes, composition style, lighting, and mood) from these examples to generate a cohesive new image that fits the brand's overall aesthetic:
-
-  ${relevantDescriptions}
-  `;
-  }
-  // Build the posting schedule instructions based on social_posting_frequency table
-  let postingScheduleInstructions = "";
-  let totalPosts = 0;
-
-  if (postingSchedule && postingSchedule.length > 0) {
-    const scheduleDetails = postingSchedule
-      .map((schedule) => {
-        const platformName =
-          schedule.platform === "instagram"
-            ? "Instagram"
-            : schedule.platform === "facebook"
-              ? "Facebook"
-              : schedule.platform;
-        totalPosts += schedule.postingDates.length;
-        return `- ${platformName}: Generate ${schedule.postingDates.length} posts on these EXACT dates: ${schedule.postingDates.join(", ")}`;
-      })
-      .join("\n");
-
-    postingScheduleInstructions = `
-POSTING SCHEDULE (from brand settings - DO NOT deviate from these dates):
-${scheduleDetails}
-
-TOTAL POSTS TO GENERATE: ${totalPosts}
-
-CRITICAL: You MUST generate posts ONLY for the dates listed above for each platform. These dates are based on the brand's posting frequency settings. Do NOT generate posts for any other dates.`;
-  } else {
-    // Fallback to default behavior if no schedule is provided
-    postingScheduleInstructions = `
-POSTING SCHEDULE:
-- Generate posts distributed evenly across the month
-- Aim for 3-4 posts per week per platform`;
-    totalPosts = 15; // Fallback default
-  }
+  // Silence unused-variable warnings where kept for future use.
+  void metaInsights;
+  void connectedPlatforms;
+  void locationAssets;
+  void inspirationAssets;
+  void postingSchedule;
 
   // Build learning data section from content preferences (accept/reject history)
   let learningDataSection = "";
@@ -740,26 +620,45 @@ BRAND LEARNING DATA (use to improve content — based on ${cl.totalGenerated} pr
 `;
   }
 
-  return `You are an expert social media strategist and content creator. Generate a comprehensive content calendar for ${monthName} ${year}.
+  const rendered = `You are an expert social media strategist and content creator. Generate a comprehensive content calendar for ${monthName} ${year}.
 
 BRAND IDENTITY:
 - Brand Name: ${brandName}
-- Description: ${brandDescription || "Not specified"}
-- Brand Style: ${brandDesign.brandStyle || "modern"}
+- Description: ${brandDescription}
+- Brand Style: ${N.brandStyle}
+- Category: ${N.brandCategory}
 - Color Palette: ${colorPalette}
-- Primary Font: ${brandDesign.fontPrimary || "Not specified"}
-- Secondary Font: ${brandDesign.fontSecondary || "Not specified"}
+- Primary Font: ${N.fontPrimary}
+- Secondary Font: ${N.fontSecondary}
 ${logoInfo}
 
 BRAND ESSENCE (use this to define all copywriting, tone, emotional feel, and conceptual direction):
-- Tone of Voice: ${context.brandEssence?.tone ?? "Not specified"}
-- Personality: ${context.brandEssence?.personality ?? "Not specified"}
-- Emotional Feel: ${context.brandEssence?.emotion ?? "Not specified"}
-- Visual Keywords: ${context.brandEssence?.visualKeywords ?? "Not specified"}
-- Brand Promise: ${context.brandEssence?.promise ?? "Not specified"}
+- Tone of Voice: ${N.tone}
+- Personality: ${N.personality}
+- Emotional Feel: ${N.emotion}
+- Visual Keywords: ${N.visualKeywords}
+- Brand Promise: ${N.promise}
+
+AUDIENCE & VOICE (apply where tracked; skip lines that say "Not tracked"):
+- Primary Goal: ${N.primaryGoal}
+- Secondary Goal: ${N.secondaryGoal}
+- Target Age Range: ${N.targetAgeRange}
+- Target Income Level: ${N.targetIncomeLevel}
+- Target Awareness Level: ${N.targetAwarenessLevel}
+- Voice Formality: ${N.voiceFormal}
+- Voice Premium-ness: ${N.voicePremium}
+- Voice Emotional weight: ${N.voiceEmotional}
+- Voice Playfulness: ${N.voicePlayful}
+- Voice Description: ${N.voiceDescription}
+- Content Focus: ${N.contentFocus}
+- Selling Style: ${N.sellingStyle}
+- Default Instagram CTA: ${N.instagramCta}
 ${learningDataSection}
 PRODUCT AWARENESS:
 ${productContext}
+
+BATCH GUIDANCE:
+${batchInstruction}
 
 PLATFORM-SPECIFIC WRITING RULES (follow these for each platform):
 - Instagram: Visual-first, emotional or aspirational tone, short to medium caption (2-4 sentences), engaging hooks, relevant hashtags
@@ -819,7 +718,7 @@ REQUIREMENTS:
    - A detailed imagePrompt field (REQUIRED for every post) following IMAGE-FIRST THINKING:
     * **THINK IMAGE FIRST:** Before writing the caption, visualize what image would best represent this post. The imagePrompt drives the content.
     * **CRITICAL:** The prompt MUST describe a **professional, photorealistic marketing image** suitable for social media.
-    * **BRAND ALIGNMENT:** Use brand colors (${colorPalette}) and ${brandDesign.brandStyle || "modern"} style as visual foundation.
+    * **BRAND ALIGNMENT (STRICT):** Brand palette: ${colorPalette}. Brand style: ${N.brandStyle}. Primary font (for any in-image type): ${N.fontPrimary}. These are HARD constraints — do not invent colors, do not invent fonts. Compose the image so these colors dominate.
     * **VISUAL CONTEXT:** ${visualContext}
     * ${hasProducts ? "**WITH PRODUCTS:** Feature brand products naturally in the scene - on elegant surfaces, in lifestyle contexts, or being used/worn. Products may be creatively integrated into different settings." : hasLocation ? "**WITH LOCATION IMAGES:** The provided location images represent a REAL PHYSICAL SPACE (clinic, restaurant, store, office). These MUST NOT be modified, redesigned, or altered. Do NOT change architecture, furniture, layout, walls, or colors. Focus ONLY on lighting, framing, atmosphere, and composition. Do NOT hallucinate environments when real photos are provided." : "**WITHOUT REAL IMAGES:** Focus on lifestyle imagery, brand mood, atmosphere, and aspirational scenes that represent the brand's essence."}
     * **CRÍTICO: FIDELIDAD FÁCTICA DEL PRODUCTO:** When generating the imagePrompt, you MUST describe the product (e.g., the bracelet, the ring, the necklace) with **absolute fidelity** to the material, color, and shape provided in the 'FACTUAL PRODUCT CATALOG'. **DO NOT add details, change colors (e.g., Gold must remain Gold), or modify the object's geometry.** The creative freedom is restricted ONLY to the background and staging elements.
@@ -828,7 +727,7 @@ REQUIREMENTS:
     * References specific products or assets from the brand when relevant (PRODUCT NAME from catalog).
     * ${hasLocation ? "**LOCATION PRESERVATION:** If location images are referenced, describe them as-is without modifications to the physical space." : ""}
 5. Posts should be varied: product showcases, tips, behind-the-scenes, user engagement, trending content
-6. Ensure posts follow the brand style: ${brandDesign.brandStyle || "modern and professional"}
+6. Ensure posts follow the brand style: ${N.brandStyle}
 7. **CRÍTICO:** When creating the imagePrompt, you MUST reference the **specific names** of the top-selling products or relevant visual assets from the BRAND VISUAL ASSETS and TOP SELLING PRODUCTS lists (e.g., "The image must feature the 'Classic Chronos' watch in a leather band, matching the visual style of the reference images provided."). This ensures the final image features the brand's actual catalog.
 8. **LANGUAGE ENFORCEMENT (CRITICAL):**
  - All textual content (titulo, content, hashtags) MUST be written in ${languageLabel}.
@@ -851,30 +750,26 @@ IMPORTANT: Return ONLY valid JSON in this exact format:
       "hashtags": "#brand #hashtag1 #hashtag2",
       "dia": "${year}-${String(month).padStart(2, "0")}-01",
       "optimalTime": "6:00 PM",
-      "imagePrompt": "Detailed description for image generation: [describe scene with brand colors ${colorPalette}, ${brandDesign.brandStyle || "modern"} style, referencing specific brand products/assets]..."
+      "imagePrompt": "Detailed description for image generation: [describe scene with brand colors ${colorPalette}, ${N.brandStyle} style, referencing specific brand products/assets]..."
     }
   ]
 }`;
+
+  logPromptDebug("monthly.full", rendered, N);
+  return rendered;
 }
 
 export function buildPostsSkeletonPrompt(
   context: PostGenerationContext,
 ): string {
-  const {
-    brandName,
-    brandDescription,
-    brandDesign,
-    metaInsights,
-    month,
-    year,
-    postingSchedule,
-    connectedPlatforms,
-  } = context;
+  const N = buildNormalizedPromptInputs(context, context.brandSettings);
+  logPreflightWarnings("monthly.skeleton", N);
 
-  const preferredLanguage =
-    context.preferredLanguage || context.brandDesign.preferredLanguage || "en";
-
-  const languageLabel = languageInstruction(preferredLanguage);
+  const { month, year, metaInsights, postingSchedule, connectedPlatforms } = context;
+  void connectedPlatforms;
+  const brandName = N.brandName;
+  const brandDescription = N.brandDescription;
+  const languageLabel = N.languageLabel;
 
   const monthName = new Date(year, month - 1).toLocaleString("en-US", {
     month: "long",
@@ -895,11 +790,6 @@ export function buildPostsSkeletonPrompt(
     startDay > 1
       ? `Generate posts ONLY from ${monthName} ${startDay} to ${monthName} ${lastDayOfMonth}.`
       : `Generate posts for the entire month of ${monthName}.`;
-
-  const availablePlatforms =
-    connectedPlatforms && connectedPlatforms.length > 0
-      ? connectedPlatforms
-      : ["instagram", "facebook"];
 
   let postingScheduleInstructions = "";
   let totalPosts = 0;
@@ -926,7 +816,7 @@ ${metaInsights?.reach ? `Current reach: ${metaInsights.reach}. Optimize for disc
 Generate content that maximizes engagement based on these real performance signals.
 `;
 
-  return `
+  const rendered = `
 You are an expert social media planner.
 
 Your ONLY task is to generate a POSTS SKELETON for ${monthName} ${year}.
@@ -938,8 +828,11 @@ LANGUAGE (ABSOLUTE):
 
 BRAND:
 - Name: ${brandName}
-- Description: ${brandDescription || "Not specified"}
-- Style: ${brandDesign.brandStyle || "modern"}
+- Description: ${brandDescription}
+- Style: ${N.brandStyle}
+- Color Palette: ${N.colorPalette}
+- Tone: ${N.tone}
+- Personality: ${N.personality}
 
 DATE RULES:
 ${dateRestriction}
@@ -1025,25 +918,45 @@ Return ONLY valid JSON in this format:
   ]
 }
 `;
+
+  logPromptDebug("monthly.skeleton", rendered, N);
+  return rendered;
 }
 export function buildTextFromImageVisionPrompt(
   context: PostGenerationContext,
 ): string {
-  const preferredLanguage =
-    context.preferredLanguage || context.brandDesign.preferredLanguage || "en";
+  const N = buildNormalizedPromptInputs(context, context.brandSettings);
+  logPreflightWarnings("monthly.vision", N);
 
-  const languageLabel = languageInstruction(preferredLanguage);
+  const languageLabel = N.languageLabel;
 
-  return `
-You are an expert social media copywriter.
+  const rendered = `
+You are an expert social media copywriter writing the caption for a post image you can see.
 
 You are provided with an IMAGE.
 
-BRAND ESSENCE (MANDATORY):
-- Tone of Voice: ${context.brandEssence?.tone ?? "Not specified"}
-- Personality: ${context.brandEssence?.personality ?? "Not specified"}
-- Emotional Feel: ${context.brandEssence?.emotion ?? "Not specified"}
-- Brand Promise: ${context.brandEssence?.promise ?? "Not specified"}
+BRAND IDENTITY (MANDATORY — this is WHO is posting, every line of copy must sound like them):
+- Brand Name: ${N.brandName}
+- Description: ${N.brandDescription}
+- Category: ${N.brandCategory}
+- Brand Style: ${N.brandStyle}
+- Color Palette: ${N.colorPalette}
+
+BRAND ESSENCE (defines every word choice):
+- Tone of Voice: ${N.tone}
+- Personality: ${N.personality}
+- Emotional Feel: ${N.emotion}
+- Visual Keywords: ${N.visualKeywords}
+- Brand Promise: ${N.promise}
+
+AUDIENCE & VOICE (apply when tracked; ignore lines that say "Not tracked"):
+- Primary Goal: ${N.primaryGoal}
+- Target Age Range: ${N.targetAgeRange}
+- Target Awareness Level: ${N.targetAwarenessLevel}
+- Voice Description: ${N.voiceDescription}
+- Content Focus: ${N.contentFocus}
+- Selling Style: ${N.sellingStyle}
+- Default CTA (use as inspiration, not verbatim): ${N.instagramCta}
 
 LANGUAGE RULES (ABSOLUTE – NO EXCEPTIONS):
 - ALL generated text MUST be written exclusively in ${languageLabel}
@@ -1053,15 +966,15 @@ LANGUAGE RULES (ABSOLUTE – NO EXCEPTIONS):
 - Hashtags MUST be written in ${languageLabel}
 
 TASK:
-Based ONLY on the visual content of the image and the brand essence:
-1. Generate a catchy title (titulo)
-2. Generate a full caption with emojis (content)
-3. Generate 5–10 relevant hashtags (hashtags)
+Using the visual content of the image AND the brand identity above:
+1. Generate a catchy title (titulo) — in the brand's exact tone, not a generic hook
+2. Generate a full caption with emojis (content) — reflects the personality, emotional feel, and content focus
+3. Generate 5–10 relevant hashtags (hashtags) — mix branded, niche, and broad
 
 IMPORTANT:
-- Do NOT describe the image explicitly
-- Do NOT mention AI
-- Do NOT mention image generation
+- The copy MUST sound like this specific brand — not a generic marketing post
+- Do NOT describe the image explicitly (no "in this photo...")
+- Do NOT mention AI or image generation
 - Emojis are allowed
 - The text must feel native and natural in ${languageLabel}
 
@@ -1073,6 +986,9 @@ Return ONLY valid JSON:
   "hashtags": "#hashtag1 #hashtag2 #hashtag3"
 }
 `;
+
+  logPromptDebug("monthly.vision", rendered, N);
+  return rendered;
 }
 
 // Helper function to clean and parse JSON from LLM response
@@ -2952,6 +2868,9 @@ export async function processPostGeneration(
           }
         : undefined,
       contentLearning,
+      // brand.settings JSONB holds optional audience/voice/CTA profile fields
+      // that promptInputs.ts surfaces into every prompt when present.
+      brandSettings: (brand as any).settings ?? undefined,
     };
 
     const allPosts = await generatePostsWithGemini({

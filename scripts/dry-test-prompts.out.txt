@@ -1,0 +1,827 @@
+npm warn config production Use `--omit=dev` instead.
+
+════════════════════════════════════════════════════════════════════════
+DRY-TEST 1 — buildNormalizedPromptInputs audit
+════════════════════════════════════════════════════════════════════════
+brandId: e172cec4-bb92-4eb4-b203-7322d2387be1
+tracked: 29  missing: 0  not_tracked: 7
+criticalMissing: []
+warnings:
+
+Variable audit:
+  OK brandName                      [brands] len=14 :: LeadBoost Demo
+  OK brandDescription               [brands] len=129 :: An Instagram-first growth platform that helps service busine…
+  nt brandCategory                  [brands]
+  OK brandStyle                     [brand_designs] len=17 :: modern minimalist
+  OK colorPalette                   [derived] len=25 :: #0A0A23, #3B82F6, #F59E0B
+  OK fontPrimary                    [brand_designs] len=14 :: Open Sans Bold
+  OK fontSecondary                  [brand_designs] len=17 :: Open Sans Regular
+  OK tone                           [brand_essence] len=31 :: warm, confident, evidence-based
+  OK personality                    [brand_essence] len=38 :: knowledgeable guide who doesn't preach
+  OK emotion                        [brand_essence] len=36 :: calm reassurance + subtle excitement
+  OK visualKeywords                 [brand_essence] len=54 :: clean, editorial, off-white backgrounds, natural light
+  OK promise                        [brand_essence] len=54 :: Results you can feel within 14 days or your money back
+  OK productContext                 [derived] len=99 :: The brand has product images available. Focus on showcasing …
+  OK primaryGoal                    [brands] len=23 :: book more consultations
+  nt secondaryGoal                  [brands]
+  OK targetAgeRange                 [brands] len=5 :: 28-45
+  nt targetIncomeLevel              [brands]
+  OK targetAwarenessLevel           [brands] len=13 :: problem-aware
+  nt voiceFormal                    [brands]
+  nt voicePremium                   [brands]
+  nt voiceEmotional                 [brands]
+  nt voicePlayful                   [brands]
+  OK voiceDescription               [brands] len=32 :: expert friend, not a salesperson
+  OK contentFocus                   [brands] len=35 :: education > promotion (70/30 split)
+  OK sellingStyle                   [brands] len=24 :: soft pull, not hard push
+  OK allAssetDescriptions           [derived] len=247 :: - clinic-entrance (location): Bright modern clinic entrance …
+  OK productCatalog                 [derived] len=146 :: - PRODUCT: signature-serum. DETAILS: ### SECTION A:
+1. **Col…
+  OK locationCatalog                [derived] len=113 :: - LOCATION: clinic-entrance. Environment: Bright modern clin…
+  OK assetCategoriesSummary         [derived] len=61 :: - location: clinic-entrance
+- product_images: signature-seru…
+  OK visualContext                  [derived] len=133 :: The brand has real product images available. Feature them na…
+  OK productOrLocationGuidance      [derived] len=103 :: Focus visuals on product hero shots and contextual lifestyle…
+  OK batchInstruction               [derived] len=157 :: Produce 4 total posts across instagram, each distinct in ang…
+  OK postingScheduleInstructions    [derived] len=286 :: POSTING SCHEDULE (from brand settings - DO NOT deviate from …
+  OK dateRestriction                [derived] len=55 :: Generate posts for the entire month of May (days 1-31).
+  OK instagramCta                   [brands] len=26 :: Tap to book a free consult
+  OK languageLabel                  [derived] len=12 :: English (US)
+
+════════════════════════════════════════════════════════════════════════
+DRY-TEST 2 — buildTextPrompt (FULL mode) rendered output
+════════════════════════════════════════════════════════════════════════
+
+════════════════════════════════════════════════════════════════════════
+[PromptDebug:monthly.full] brandId=e172cec4-bb92-4eb4-b203-7322d2387be1  at=2026-04-23T11:49:47.121Z
+────────────────────────────────────────────────────────────────────────
+[PromptDebug] Variable audit:
+  OK brandName                      [brands] len=14 :: LeadBoost Demo
+  OK brandDescription               [brands] len=129 :: An Instagram-first growth platform that helps service busine…
+  nt brandCategory                  [brands]
+  OK brandStyle                     [brand_designs] len=17 :: modern minimalist
+  OK colorPalette                   [derived] len=25 :: #0A0A23, #3B82F6, #F59E0B
+  OK fontPrimary                    [brand_designs] len=14 :: Open Sans Bold
+  OK fontSecondary                  [brand_designs] len=17 :: Open Sans Regular
+  OK tone                           [brand_essence] len=31 :: warm, confident, evidence-based
+  OK personality                    [brand_essence] len=38 :: knowledgeable guide who doesn't preach
+  OK emotion                        [brand_essence] len=36 :: calm reassurance + subtle excitement
+  OK visualKeywords                 [brand_essence] len=54 :: clean, editorial, off-white backgrounds, natural light
+  OK promise                        [brand_essence] len=54 :: Results you can feel within 14 days or your money back
+  OK productContext                 [derived] len=99 :: The brand has product images available. Focus on showcasing …
+  OK primaryGoal                    [brands] len=23 :: book more consultations
+  nt secondaryGoal                  [brands]
+  OK targetAgeRange                 [brands] len=5 :: 28-45
+  nt targetIncomeLevel              [brands]
+  OK targetAwarenessLevel           [brands] len=13 :: problem-aware
+  nt voiceFormal                    [brands]
+  nt voicePremium                   [brands]
+  nt voiceEmotional                 [brands]
+  nt voicePlayful                   [brands]
+  OK voiceDescription               [brands] len=32 :: expert friend, not a salesperson
+  OK contentFocus                   [brands] len=35 :: education > promotion (70/30 split)
+  OK sellingStyle                   [brands] len=24 :: soft pull, not hard push
+  OK allAssetDescriptions           [derived] len=247 :: - clinic-entrance (location): Bright modern clinic entrance …
+  OK productCatalog                 [derived] len=146 :: - PRODUCT: signature-serum. DETAILS: ### SECTION A:
+1. **Col…
+  OK locationCatalog                [derived] len=113 :: - LOCATION: clinic-entrance. Environment: Bright modern clin…
+  OK assetCategoriesSummary         [derived] len=61 :: - location: clinic-entrance
+- product_images: signature-seru…
+  OK visualContext                  [derived] len=133 :: The brand has real product images available. Feature them na…
+  OK productOrLocationGuidance      [derived] len=103 :: Focus visuals on product hero shots and contextual lifestyle…
+  OK batchInstruction               [derived] len=157 :: Produce 4 total posts across instagram, each distinct in ang…
+  OK postingScheduleInstructions    [derived] len=286 :: POSTING SCHEDULE (from brand settings - DO NOT deviate from …
+  OK dateRestriction                [derived] len=55 :: Generate posts for the entire month of May (days 1-31).
+  OK instagramCta                   [brands] len=26 :: Tap to book a free consult
+  OK languageLabel                  [derived] len=12 :: English (US)
+────────────────────────────────────────────────────────────────────────
+[PromptDebug] Rendered prompt:
+You are an expert social media strategist and content creator. Generate a comprehensive content calendar for May 2026.
+
+BRAND IDENTITY:
+- Brand Name: LeadBoost Demo
+- Description: An Instagram-first growth platform that helps service businesses turn followers into booked clients through AI-generated content.
+- Brand Style: modern minimalist
+- Category: Not tracked in brand profile yet
+- Color Palette: #0A0A23, #3B82F6, #F59E0B
+- Primary Font: Open Sans Bold
+- Secondary Font: Open Sans Regular
+- Brand Logo URL: https://example.com/logo-white.png
+- IMPORTANT: Incorporate the brand logo as a subtle, non-distorted element (engraving, small emblem on packaging, watermark) — never alter its shape or invent variants.
+
+BRAND ESSENCE (use this to define all copywriting, tone, emotional feel, and conceptual direction):
+- Tone of Voice: warm, confident, evidence-based
+- Personality: knowledgeable guide who doesn't preach
+- Emotional Feel: calm reassurance + subtle excitement
+- Visual Keywords: clean, editorial, off-white backgrounds, natural light
+- Brand Promise: Results you can feel within 14 days or your money back
+
+AUDIENCE & VOICE (apply where tracked; skip lines that say "Not tracked"):
+- Primary Goal: book more consultations
+- Secondary Goal: Not tracked in brand profile yet
+- Target Age Range: 28-45
+- Target Income Level: Not tracked in brand profile yet
+- Target Awareness Level: problem-aware
+- Voice Formality: Not tracked in brand profile yet
+- Voice Premium-ness: Not tracked in brand profile yet
+- Voice Emotional weight: Not tracked in brand profile yet
+- Voice Playfulness: Not tracked in brand profile yet
+- Voice Description: expert friend, not a salesperson
+- Content Focus: education > promotion (70/30 split)
+- Selling Style: soft pull, not hard push
+- Default Instagram CTA: Tap to book a free consult
+
+PRODUCT AWARENESS:
+The brand has product images available. Focus on showcasing products, benefits, and real use cases.
+
+BATCH GUIDANCE:
+Produce 4 total posts across instagram, each distinct in angle and visual direction. No two posts should share the same hook, image concept, or CTA phrasing.
+
+PLATFORM-SPECIFIC WRITING RULES (follow these for each platform):
+- Instagram: Visual-first, emotional or aspirational tone, short to medium caption (2-4 sentences), engaging hooks, relevant hashtags
+- Facebook: More informative and conversational, encourages discussion and comments, can be longer form, community-focused
+- WhatsApp: Direct and promotional, clear call-to-action, no hashtags, concise message suitable for broadcast
+
+LANGUAGE REQUIREMENTS (ABSOLUTE – NO EXCEPTIONS):
+- ALL generated text MUST be written exclusively in English (US).
+- This includes:
+  • Titles (titulo)
+  • Captions/content
+  • Hashtags
+  • Calls to action
+- DO NOT mix languages.
+- DO NOT include English words unless the language is English.
+- Hashtags MUST also be written in English (US).
+
+IMPORTANT:
+All written content MUST follow the tone of voice and emotional feel described here.
+All image prompts MUST reflect the visual keywords and emotional feel.
+SPECIAL LANGUAGE RULES:
+- If the language is Chinese, Japanese, Korean, Arabic or Hindi:
+  • DO NOT use English hashtags
+  • Use native script ONLY
+  • Emojis are allowed
+  • Do NOT transliterate unless explicitly required
+
+BRAND VISUAL ASSETS:
+The brand has uploaded the following assets. Use this list for factual and conceptual reference:
+
+- clinic-entrance (location): Bright modern clinic entrance with large glass doors and warm lighting.
+- signature-serum (product_images): ### SECTION A:
+1. **Color**: translucent amber
+2. **Size**: 30ml glass dropper
+### SECTION B:
+Marketing copy. 
+
+---
+FACTUAL PRODUCT CATALOG (CRITICAL: Reference these products by name and details in the imagePrompt):
+- PRODUCT: signature-serum. DETAILS: : translucent amber
+: 30ml glass dropper
+LOCATION ASSETS (CRITICAL: Use this environment as the setting for all relevant posts):
+- LOCATION: clinic-entrance. Environment: Bright modern clinic entrance with large glass doors and warm lighting.
+
+ASSET CATEGORIES SUMMARY:
+- location: clinic-entrance
+- product_images: signature-serum
+POSTING SCHEDULE (from brand settings - DO NOT deviate from these dates):
+- Instagram: Generate 4 posts on these EXACT dates: 2026-05-04, 2026-05-06, 2026-05-08, 2026-05-11
+
+TOTAL POSTS TO GENERATE: 4
+
+CRITICAL: You MUST generate posts ONLY for the dates listed above for each platform.
+
+REQUIREMENTS:
+1. Generate posts for the entire month of May (days 1-31).
+2. IMPORTANT: Only generate posts for the platforms and dates specified in the POSTING SCHEDULE above.
+3. For each post, YOU suggest the optimal posting time based on audience insights (e.g., "9:00 AM", "6:00 PM"). The dates are fixed but you choose the best time.
+4. Each post must include:
+   - A catchy title/hook (titulo)
+   - Full post caption/content with emojis
+   - Relevant hashtags (5-10 per post)
+   - Optimal posting time based on insights (optimalTime field)
+   * **CRITICAL LOGO INTEGRATION (MANDATORY):** The image MUST incorporate a **physical, non-distorted representation of the brand's logo or unique primary symbol** (e.g., if the logo is a stylized 'T', it must appear as a subtle 'T' element). It should be integrated **naturally and subtly** into the scene, appearing as **engraving, debossing, or as a small, polished metal emblem** on one of the products, packaging, or an element of the staging (e.g., a jewelry box, a marble surface, a coffee cup). **DO NOT alter the logo's original shape or add extra letters.**
+   - A detailed imagePrompt field (REQUIRED for every post) following IMAGE-FIRST THINKING:
+    * **THINK IMAGE FIRST:** Before writing the caption, visualize what image would best represent this post. The imagePrompt drives the content.
+    * **CRITICAL:** The prompt MUST describe a **professional, photorealistic marketing image** suitable for social media.
+    * **BRAND ALIGNMENT (STRICT):** Brand palette: #0A0A23, #3B82F6, #F59E0B. Brand style: modern minimalist. Primary font (for any in-image type): Open Sans Bold. These are HARD constraints — do not invent colors, do not invent fonts. Compose the image so these colors dominate.
+    * **VISUAL CONTEXT:** The brand has real product images available. Feature them naturally — on elegant surfaces, in lifestyle contexts, or being used/worn.
+    * **WITH PRODUCTS:** Feature brand products naturally in the scene - on elegant surfaces, in lifestyle contexts, or being used/worn. Products may be creatively integrated into different settings.
+    * **CRÍTICO: FIDELIDAD FÁCTICA DEL PRODUCTO:** When generating the imagePrompt, you MUST describe the product (e.g., the bracelet, the ring, the necklace) with **absolute fidelity** to the material, color, and shape provided in the 'FACTUAL PRODUCT CATALOG'. **DO NOT add details, change colors (e.g., Gold must remain Gold), or modify the object's geometry.** The creative freedom is restricted ONLY to the background and staging elements.
+    * **TEXT IN IMAGES:** Avoid large blocks of text in images. If text is needed, limit to 1-3 subtle words only (brand name or short tagline).
+    * **COMPOSITION:** Use professional composition suitable for social media - clean backgrounds, good lighting, visually appealing arrangement.
+    * References specific products or assets from the brand when relevant (PRODUCT NAME from catalog).
+    * **LOCATION PRESERVATION:** If location images are referenced, describe them as-is without modifications to the physical space.
+5. Posts should be varied: product showcases, tips, behind-the-scenes, user engagement, trending content
+6. Ensure posts follow the brand style: modern minimalist
+7. **CRÍTICO:** When creating the imagePrompt, you MUST reference the **specific names** of the top-selling products or relevant visual assets from the BRAND VISUAL ASSETS and TOP SELLING PRODUCTS lists (e.g., "The image must feature the 'Classic Chronos' watch in a leather band, matching the visual style of the reference images provided."). This ensures the final image features the brand's actual catalog.
+8. **LANGUAGE ENFORCEMENT (CRITICAL):**
+ - All textual content (titulo, content, hashtags) MUST be written in English (US).
+ - Emojis are allowed.
+ - No bilingual output.
+
+9. PLATFORM MAPPING: Use these exact platform values in the JSON:
+   - For Instagram posts: "instagram"
+   - For Instagram Stories: "instagram_story"
+   - For Instagram Reels: "instagram_reel"
+   - For Facebook: "facebook"
+
+IMPORTANT: Return ONLY valid JSON in this exact format:
+{
+  "posts": [
+    {
+      "platform": "instagram",
+      "titulo": "Eye-catching hook or title",
+      "content": "Full caption with emojis and call to action...",
+      "hashtags": "#brand #hashtag1 #hashtag2",
+      "dia": "2026-05-01",
+      "optimalTime": "6:00 PM",
+      "imagePrompt": "Detailed description for image generation: [describe scene with brand colors #0A0A23, #3B82F6, #F59E0B, modern minimalist style, referencing specific brand products/assets]..."
+    }
+  ]
+}
+════════════════════════════════════════════════════════════════════════
+
+You are an expert social media strategist and content creator. Generate a comprehensive content calendar for May 2026.
+
+BRAND IDENTITY:
+- Brand Name: LeadBoost Demo
+- Description: An Instagram-first growth platform that helps service businesses turn followers into booked clients through AI-generated content.
+- Brand Style: modern minimalist
+- Category: Not tracked in brand profile yet
+- Color Palette: #0A0A23, #3B82F6, #F59E0B
+- Primary Font: Open Sans Bold
+- Secondary Font: Open Sans Regular
+- Brand Logo URL: https://example.com/logo-white.png
+- IMPORTANT: Incorporate the brand logo as a subtle, non-distorted element (engraving, small emblem on packaging, watermark) — never alter its shape or invent variants.
+
+BRAND ESSENCE (use this to define all copywriting, tone, emotional feel, and conceptual direction):
+- Tone of Voice: warm, confident, evidence-based
+- Personality: knowledgeable guide who doesn't preach
+- Emotional Feel: calm reassurance + subtle excitement
+- Visual Keywords: clean, editorial, off-white backgrounds, natural light
+- Brand Promise: Results you can feel within 14 days or your money back
+
+AUDIENCE & VOICE (apply where tracked; skip lines that say "Not tracked"):
+- Primary Goal: book more consultations
+- Secondary Goal: Not tracked in brand profile yet
+- Target Age Range: 28-45
+- Target Income Level: Not tracked in brand profile yet
+- Target Awareness Level: problem-aware
+- Voice Formality: Not tracked in brand profile yet
+- Voice Premium-ness: Not tracked in brand profile yet
+- Voice Emotional weight: Not tracked in brand profile yet
+- Voice Playfulness: Not tracked in brand profile yet
+- Voice Description: expert friend, not a salesperson
+- Content Focus: education > promotion (70/30 split)
+- Selling Style: soft pull, not hard push
+- Default Instagram CTA: Tap to book a free consult
+
+PRODUCT AWARENESS:
+The brand has product images available. Focus on showcasing products, benefits, and real use cases.
+
+BATCH GUIDANCE:
+Produce 4 total posts across instagram, each distinct in angle and visual direction. No two posts should share the same hook, image concept, or CTA phrasing.
+
+PLATFORM-SPECIFIC WRITING RULES (follow these for each platform):
+- Instagram: Visual-first, emotional or aspirational tone, short to medium caption (2-4 sentences), engaging hooks, relevant hashtags
+- Facebook: More informative and conversational, encourages discussion and comments, can be longer form, community-focused
+- WhatsApp: Direct and promotional, clear call-to-action, no hashtags, concise message suitable for broadcast
+
+LANGUAGE REQUIREMENTS (ABSOLUTE – NO EXCEPTIONS):
+- ALL generated text MUST be written exclusively in English (US).
+- This includes:
+  • Titles (titulo)
+  • Captions/content
+  • Hashtags
+  • Calls to action
+- DO NOT mix languages.
+- DO NOT include English words unless the language is English.
+- Hashtags MUST also be written in English (US).
+
+IMPORTANT:
+All written content MUST follow the tone of voice and emotional feel described here.
+All image prompts MUST reflect the visual keywords and emotional feel.
+SPECIAL LANGUAGE RULES:
+- If the language is Chinese, Japanese, Korean, Arabic or Hindi:
+  • DO NOT use English hashtags
+  • Use native script ONLY
+  • Emojis are allowed
+  • Do NOT transliterate unless explicitly required
+
+BRAND VISUAL ASSETS:
+The brand has uploaded the following assets. Use this list for factual and conceptual reference:
+
+- clinic-entrance (location): Bright modern clinic entrance with large glass doors and warm lighting.
+- signature-serum (product_images): ### SECTION A:
+1. **Color**: translucent amber
+2. **Size**: 30ml glass dropper
+### SECTION B:
+Marketing copy. 
+
+---
+FACTUAL PRODUCT CATALOG (CRITICAL: Reference these products by name and details in the imagePrompt):
+- PRODUCT: signature-serum. DETAILS: : translucent amber
+: 30ml glass dropper
+LOCATION ASSETS (CRITICAL: Use this environment as the setting for all relevant posts):
+- LOCATION: clinic-entrance. Environment: Bright modern clinic entrance with large glass doors and warm lighting.
+
+ASSET CATEGORIES SUMMARY:
+- location: clinic-entrance
+- product_images: signature-serum
+POSTING SCHEDULE (from brand settings - DO NOT deviate from these dates):
+- Instagram: Generate 4 posts on these EXACT dates: 2026-05-04, 2026-05-06, 2026-05-08, 2026-05-11
+
+TOTAL POSTS TO GENERATE: 4
+
+CRITICAL: You MUST generate posts ONLY for the dates listed above for each platform.
+
+REQUIREMENTS:
+1. Generate posts for the entire month of May (days 1-31).
+2. IMPORTANT: Only generate posts for the platforms and dates specified in the POSTING SCHEDULE above.
+3. For each post, YOU suggest the optimal posting time based on audience insights (e.g., "9:00 AM", "6:00 PM"). The dates are fixed but you choose the best time.
+4. Each post must include:
+   - A catchy title/hook (titulo)
+   - Full post caption/content with emojis
+   - Relevant hashtags (5-10 per post)
+   - Optimal posting time based on insights (optimalTime field)
+   * **CRITICAL LOGO INTEGRATION (MANDATORY):** The image MUST incorporate a **physical, non-distorted representation of the brand's logo or unique primary symbol** (e.g., if the logo is a stylized 'T', it must appear as a subtle 'T' element). It should be integrated **naturally and subtly** into the scene, appearing as **engraving, debossing, or as a small, polished metal emblem** on one of the products, packaging, or an element of the staging (e.g., a jewelry box, a marble surface, a coffee cup). **DO NOT alter the logo's original shape or add extra letters.**
+   - A detailed imagePrompt field (REQUIRED for every post) following IMAGE-FIRST THINKING:
+    * **THINK IMAGE FIRST:** Before writing the caption, visualize what image would best represent this post. The imagePrompt drives the content.
+    * **CRITICAL:** The prompt MUST describe a **professional, photorealistic marketing image** suitable for social media.
+    * **BRAND ALIGNMENT (STRICT):** Brand palette: #0A0A23, #3B82F6, #F59E0B. Brand style: modern minimalist. Primary font (for any in-image type): Open Sans Bold. These are HARD constraints — do not invent colors, do not invent fonts. Compose the image so these colors dominate.
+    * **VISUAL CONTEXT:** The brand has real product images available. Feature them naturally — on elegant surfaces, in lifestyle contexts, or being used/worn.
+    * **WITH PRODUCTS:** Feature brand products naturally in the scene - on elegant surfaces, in lifestyle contexts, or being used/worn. Products may be creatively integrated into different settings.
+    * **CRÍTICO: FIDELIDAD FÁCTICA DEL PRODUCTO:** When generating the imagePrompt, you MUST describe the product (e.g., the bracelet, the ring, the necklace) with **absolute fidelity** to the material, color, and shape provided in the 'FACTUAL PRODUCT CATALOG'. **DO NOT add details, change colors (e.g., Gold must remain Gold), or modify the object's geometry.** The creative freedom is restricted ONLY to the background and staging elements.
+    * **TEXT IN IMAGES:** Avoid large blocks of text in images. If text is needed, limit to 1-3 subtle words only (brand name or short tagline).
+    * **COMPOSITION:** Use professional composition suitable for social media - clean backgrounds, good lighting, visually appealing arrangement.
+    * References specific products or assets from the brand when relevant (PRODUCT NAME from catalog).
+    * **LOCATION PRESERVATION:** If location images are referenced, describe them as-is without modifications to the physical space.
+5. Posts should be varied: product showcases, tips, behind-the-scenes, user engagement, trending content
+6. Ensure posts follow the brand style: modern minimalist
+7. **CRÍTICO:** When creating the imagePrompt, you MUST reference the **specific names** of the top-selling products or relevant visual assets from the BRAND VISUAL ASSETS and TOP SELLING PRODUCTS lists (e.g., "The image must feature the 'Classic Chronos' watch in a leather band, matching the visual style of the reference images provided."). This ensures the final image features the brand's actual catalog.
+8. **LANGUAGE ENFORCEMENT (CRITICAL):**
+ - All textual content (titulo, content, hashtags) MUST be written in English (US).
+ - Emojis are allowed.
+ - No bilingual output.
+
+9. PLATFORM MAPPING: Use these exact platform values in the JSON:
+   - For Instagram posts: "instagram"
+   - For Instagram Stories: "instagram_story"
+   - For Instagram Reels: "instagram_reel"
+   - For Facebook: "facebook"
+
+IMPORTANT: Return ONLY valid JSON in this exact format:
+{
+  "posts": [
+    {
+      "platform": "instagram",
+      "titulo": "Eye-catching hook or title",
+      "content": "Full caption with emojis and call to action...",
+      "hashtags": "#brand #hashtag1 #hashtag2",
+      "dia": "2026-05-01",
+      "optimalTime": "6:00 PM",
+      "imagePrompt": "Detailed description for image generation: [describe scene with brand colors #0A0A23, #3B82F6, #F59E0B, modern minimalist style, referencing specific brand products/assets]..."
+    }
+  ]
+}
+
+════════════════════════════════════════════════════════════════════════
+DRY-TEST 3 — buildPostsSkeletonPrompt rendered output
+════════════════════════════════════════════════════════════════════════
+
+════════════════════════════════════════════════════════════════════════
+[PromptDebug:monthly.skeleton] brandId=e172cec4-bb92-4eb4-b203-7322d2387be1  at=2026-04-23T11:49:47.122Z
+────────────────────────────────────────────────────────────────────────
+[PromptDebug] Variable audit:
+  OK brandName                      [brands] len=14 :: LeadBoost Demo
+  OK brandDescription               [brands] len=129 :: An Instagram-first growth platform that helps service busine…
+  nt brandCategory                  [brands]
+  OK brandStyle                     [brand_designs] len=17 :: modern minimalist
+  OK colorPalette                   [derived] len=25 :: #0A0A23, #3B82F6, #F59E0B
+  OK fontPrimary                    [brand_designs] len=14 :: Open Sans Bold
+  OK fontSecondary                  [brand_designs] len=17 :: Open Sans Regular
+  OK tone                           [brand_essence] len=31 :: warm, confident, evidence-based
+  OK personality                    [brand_essence] len=38 :: knowledgeable guide who doesn't preach
+  OK emotion                        [brand_essence] len=36 :: calm reassurance + subtle excitement
+  OK visualKeywords                 [brand_essence] len=54 :: clean, editorial, off-white backgrounds, natural light
+  OK promise                        [brand_essence] len=54 :: Results you can feel within 14 days or your money back
+  OK productContext                 [derived] len=99 :: The brand has product images available. Focus on showcasing …
+  OK primaryGoal                    [brands] len=23 :: book more consultations
+  nt secondaryGoal                  [brands]
+  OK targetAgeRange                 [brands] len=5 :: 28-45
+  nt targetIncomeLevel              [brands]
+  OK targetAwarenessLevel           [brands] len=13 :: problem-aware
+  nt voiceFormal                    [brands]
+  nt voicePremium                   [brands]
+  nt voiceEmotional                 [brands]
+  nt voicePlayful                   [brands]
+  OK voiceDescription               [brands] len=32 :: expert friend, not a salesperson
+  OK contentFocus                   [brands] len=35 :: education > promotion (70/30 split)
+  OK sellingStyle                   [brands] len=24 :: soft pull, not hard push
+  OK allAssetDescriptions           [derived] len=247 :: - clinic-entrance (location): Bright modern clinic entrance …
+  OK productCatalog                 [derived] len=146 :: - PRODUCT: signature-serum. DETAILS: ### SECTION A:
+1. **Col…
+  OK locationCatalog                [derived] len=113 :: - LOCATION: clinic-entrance. Environment: Bright modern clin…
+  OK assetCategoriesSummary         [derived] len=61 :: - location: clinic-entrance
+- product_images: signature-seru…
+  OK visualContext                  [derived] len=133 :: The brand has real product images available. Feature them na…
+  OK productOrLocationGuidance      [derived] len=103 :: Focus visuals on product hero shots and contextual lifestyle…
+  OK batchInstruction               [derived] len=157 :: Produce 4 total posts across instagram, each distinct in ang…
+  OK postingScheduleInstructions    [derived] len=286 :: POSTING SCHEDULE (from brand settings - DO NOT deviate from …
+  OK dateRestriction                [derived] len=55 :: Generate posts for the entire month of May (days 1-31).
+  OK instagramCta                   [brands] len=26 :: Tap to book a free consult
+  OK languageLabel                  [derived] len=12 :: English (US)
+────────────────────────────────────────────────────────────────────────
+[PromptDebug] Rendered prompt:
+
+You are an expert social media planner.
+
+Your ONLY task is to generate a POSTS SKELETON for May 2026.
+
+LANGUAGE (ABSOLUTE):
+- ALL output MUST be in English (US).
+- Do NOT generate any copy text.
+- Do NOT include captions, titles, or hashtags.
+
+BRAND:
+- Name: LeadBoost Demo
+- Description: An Instagram-first growth platform that helps service businesses turn followers into booked clients through AI-generated content.
+- Style: modern minimalist
+- Color Palette: #0A0A23, #3B82F6, #F59E0B
+- Tone: warm, confident, evidence-based
+- Personality: knowledgeable guide who doesn't preach
+
+DATE RULES:
+Generate posts for the entire month of May.
+
+POSTING SCHEDULE:
+- instagram: 2026-05-04, 2026-05-06, 2026-05-08, 2026-05-11
+
+TOTAL POSTS: 4
+
+
+PERFORMANCE-INFORMED CONTENT STRATEGY:
+
+
+
+Generate content that maximizes engagement based on these real performance signals.
+
+
+FOR EACH POST:
+- platform (exact value)
+- dia (YYYY-MM-DD)
+- optimalTime (choose from: 9:00 AM, 12:00 PM, 6:00 PM)
+- "type": one of "image", "carousel", "story", "reel" - choose the best format for each post idea:
+  * "image" — single static post, best for announcements, quotes, product shots
+  * "carousel" — multi-slide educational or storytelling content (2-10 slides), best for tutorials, tips, before/after, product collections
+  * "story" — vertical ephemeral content, best for behind-the-scenes, polls, quick updates, daily engagement
+  * "reel" — short video concept with hook + script, best for trending topics, demonstrations, entertainment
+  Mix formats throughout the month for variety. Aim for roughly: 40% image, 25% carousel, 20% story, 15% reel.
+
+- For "carousel" type posts, include a "carouselSlides" field: an array of 3-8 objects, each with:
+  * "slideTitle": short title for the slide
+  * "slideContent": the text/message for that slide
+  * "slideImageDirection": brief image description for that slide
+- For "reel" type posts, include a "reelScript" field with:
+  * "hook": the first 3 seconds hook text
+  * "script": full script/narration
+  * "scenes": array of scene descriptions
+  * "duration": suggested duration in seconds (15, 30, 60, or 90)
+
+TEXT FIELDS MUST BE EMPTY STRINGS:
+- titulo: ""
+- content: ""
+- hashtags: ""
+
+IMPORTANT:
+- DO NOT generate imagePrompt
+- DO NOT generate any text content
+- DO NOT invent extra fields beyond the ones specified above
+
+Return ONLY valid JSON in this format:
+
+{
+  "posts": [
+    {
+      "platform": "instagram",
+      "titulo": "",
+      "content": "",
+      "hashtags": "",
+      "dia": "2026-05-01",
+      "optimalTime": "6:00 PM",
+      "type": "image"
+    },
+    {
+      "platform": "instagram",
+      "titulo": "",
+      "content": "",
+      "hashtags": "",
+      "dia": "2026-05-03",
+      "optimalTime": "9:00 AM",
+      "type": "carousel",
+      "carouselSlides": [
+        { "slideTitle": "", "slideContent": "", "slideImageDirection": "" }
+      ]
+    },
+    {
+      "platform": "instagram",
+      "titulo": "",
+      "content": "",
+      "hashtags": "",
+      "dia": "2026-05-05",
+      "optimalTime": "12:00 PM",
+      "type": "reel",
+      "reelScript": {
+        "hook": "",
+        "script": "",
+        "scenes": [],
+        "duration": 30
+      }
+    }
+  ]
+}
+
+════════════════════════════════════════════════════════════════════════
+
+
+You are an expert social media planner.
+
+Your ONLY task is to generate a POSTS SKELETON for May 2026.
+
+LANGUAGE (ABSOLUTE):
+- ALL output MUST be in English (US).
+- Do NOT generate any copy text.
+- Do NOT include captions, titles, or hashtags.
+
+BRAND:
+- Name: LeadBoost Demo
+- Description: An Instagram-first growth platform that helps service businesses turn followers into booked clients through AI-generated content.
+- Style: modern minimalist
+- Color Palette: #0A0A23, #3B82F6, #F59E0B
+- Tone: warm, confident, evidence-based
+- Personality: knowledgeable guide who doesn't preach
+
+DATE RULES:
+Generate posts for the entire month of May.
+
+POSTING SCHEDULE:
+- instagram: 2026-05-04, 2026-05-06, 2026-05-08, 2026-05-11
+
+TOTAL POSTS: 4
+
+
+PERFORMANCE-INFORMED CONTENT STRATEGY:
+
+
+
+Generate content that maximizes engagement based on these real performance signals.
+
+
+FOR EACH POST:
+- platform (exact value)
+- dia (YYYY-MM-DD)
+- optimalTime (choose from: 9:00 AM, 12:00 PM, 6:00 PM)
+- "type": one of "image", "carousel", "story", "reel" - choose the best format for each post idea:
+  * "image" — single static post, best for announcements, quotes, product shots
+  * "carousel" — multi-slide educational or storytelling content (2-10 slides), best for tutorials, tips, before/after, product collections
+  * "story" — vertical ephemeral content, best for behind-the-scenes, polls, quick updates, daily engagement
+  * "reel" — short video concept with hook + script, best for trending topics, demonstrations, entertainment
+  Mix formats throughout the month for variety. Aim for roughly: 40% image, 25% carousel, 20% story, 15% reel.
+
+- For "carousel" type posts, include a "carouselSlides" field: an array of 3-8 objects, each with:
+  * "slideTitle": short title for the slide
+  * "slideContent": the text/message for that slide
+  * "slideImageDirection": brief image description for that slide
+- For "reel" type posts, include a "reelScript" field with:
+  * "hook": the first 3 seconds hook text
+  * "script": full script/narration
+  * "scenes": array of scene descriptions
+  * "duration": suggested duration in seconds (15, 30, 60, or 90)
+
+TEXT FIELDS MUST BE EMPTY STRINGS:
+- titulo: ""
+- content: ""
+- hashtags: ""
+
+IMPORTANT:
+- DO NOT generate imagePrompt
+- DO NOT generate any text content
+- DO NOT invent extra fields beyond the ones specified above
+
+Return ONLY valid JSON in this format:
+
+{
+  "posts": [
+    {
+      "platform": "instagram",
+      "titulo": "",
+      "content": "",
+      "hashtags": "",
+      "dia": "2026-05-01",
+      "optimalTime": "6:00 PM",
+      "type": "image"
+    },
+    {
+      "platform": "instagram",
+      "titulo": "",
+      "content": "",
+      "hashtags": "",
+      "dia": "2026-05-03",
+      "optimalTime": "9:00 AM",
+      "type": "carousel",
+      "carouselSlides": [
+        { "slideTitle": "", "slideContent": "", "slideImageDirection": "" }
+      ]
+    },
+    {
+      "platform": "instagram",
+      "titulo": "",
+      "content": "",
+      "hashtags": "",
+      "dia": "2026-05-05",
+      "optimalTime": "12:00 PM",
+      "type": "reel",
+      "reelScript": {
+        "hook": "",
+        "script": "",
+        "scenes": [],
+        "duration": 30
+      }
+    }
+  ]
+}
+
+
+════════════════════════════════════════════════════════════════════════
+DRY-TEST 4 — buildTextFromImageVisionPrompt rendered output
+════════════════════════════════════════════════════════════════════════
+
+════════════════════════════════════════════════════════════════════════
+[PromptDebug:monthly.vision] brandId=e172cec4-bb92-4eb4-b203-7322d2387be1  at=2026-04-23T11:49:47.123Z
+────────────────────────────────────────────────────────────────────────
+[PromptDebug] Variable audit:
+  OK brandName                      [brands] len=14 :: LeadBoost Demo
+  OK brandDescription               [brands] len=129 :: An Instagram-first growth platform that helps service busine…
+  nt brandCategory                  [brands]
+  OK brandStyle                     [brand_designs] len=17 :: modern minimalist
+  OK colorPalette                   [derived] len=25 :: #0A0A23, #3B82F6, #F59E0B
+  OK fontPrimary                    [brand_designs] len=14 :: Open Sans Bold
+  OK fontSecondary                  [brand_designs] len=17 :: Open Sans Regular
+  OK tone                           [brand_essence] len=31 :: warm, confident, evidence-based
+  OK personality                    [brand_essence] len=38 :: knowledgeable guide who doesn't preach
+  OK emotion                        [brand_essence] len=36 :: calm reassurance + subtle excitement
+  OK visualKeywords                 [brand_essence] len=54 :: clean, editorial, off-white backgrounds, natural light
+  OK promise                        [brand_essence] len=54 :: Results you can feel within 14 days or your money back
+  OK productContext                 [derived] len=99 :: The brand has product images available. Focus on showcasing …
+  OK primaryGoal                    [brands] len=23 :: book more consultations
+  nt secondaryGoal                  [brands]
+  OK targetAgeRange                 [brands] len=5 :: 28-45
+  nt targetIncomeLevel              [brands]
+  OK targetAwarenessLevel           [brands] len=13 :: problem-aware
+  nt voiceFormal                    [brands]
+  nt voicePremium                   [brands]
+  nt voiceEmotional                 [brands]
+  nt voicePlayful                   [brands]
+  OK voiceDescription               [brands] len=32 :: expert friend, not a salesperson
+  OK contentFocus                   [brands] len=35 :: education > promotion (70/30 split)
+  OK sellingStyle                   [brands] len=24 :: soft pull, not hard push
+  OK allAssetDescriptions           [derived] len=247 :: - clinic-entrance (location): Bright modern clinic entrance …
+  OK productCatalog                 [derived] len=146 :: - PRODUCT: signature-serum. DETAILS: ### SECTION A:
+1. **Col…
+  OK locationCatalog                [derived] len=113 :: - LOCATION: clinic-entrance. Environment: Bright modern clin…
+  OK assetCategoriesSummary         [derived] len=61 :: - location: clinic-entrance
+- product_images: signature-seru…
+  OK visualContext                  [derived] len=133 :: The brand has real product images available. Feature them na…
+  OK productOrLocationGuidance      [derived] len=103 :: Focus visuals on product hero shots and contextual lifestyle…
+  OK batchInstruction               [derived] len=157 :: Produce 4 total posts across instagram, each distinct in ang…
+  OK postingScheduleInstructions    [derived] len=286 :: POSTING SCHEDULE (from brand settings - DO NOT deviate from …
+  OK dateRestriction                [derived] len=55 :: Generate posts for the entire month of May (days 1-31).
+  OK instagramCta                   [brands] len=26 :: Tap to book a free consult
+  OK languageLabel                  [derived] len=12 :: English (US)
+────────────────────────────────────────────────────────────────────────
+[PromptDebug] Rendered prompt:
+
+You are an expert social media copywriter writing the caption for a post image you can see.
+
+You are provided with an IMAGE.
+
+BRAND IDENTITY (MANDATORY — this is WHO is posting, every line of copy must sound like them):
+- Brand Name: LeadBoost Demo
+- Description: An Instagram-first growth platform that helps service businesses turn followers into booked clients through AI-generated content.
+- Category: Not tracked in brand profile yet
+- Brand Style: modern minimalist
+- Color Palette: #0A0A23, #3B82F6, #F59E0B
+
+BRAND ESSENCE (defines every word choice):
+- Tone of Voice: warm, confident, evidence-based
+- Personality: knowledgeable guide who doesn't preach
+- Emotional Feel: calm reassurance + subtle excitement
+- Visual Keywords: clean, editorial, off-white backgrounds, natural light
+- Brand Promise: Results you can feel within 14 days or your money back
+
+AUDIENCE & VOICE (apply when tracked; ignore lines that say "Not tracked"):
+- Primary Goal: book more consultations
+- Target Age Range: 28-45
+- Target Awareness Level: problem-aware
+- Voice Description: expert friend, not a salesperson
+- Content Focus: education > promotion (70/30 split)
+- Selling Style: soft pull, not hard push
+- Default CTA (use as inspiration, not verbatim): Tap to book a free consult
+
+LANGUAGE RULES (ABSOLUTE – NO EXCEPTIONS):
+- ALL generated text MUST be written exclusively in English (US)
+- This includes title, caption, hashtags
+- DO NOT mix languages
+- DO NOT use English words unless the language is English
+- Hashtags MUST be written in English (US)
+
+TASK:
+Using the visual content of the image AND the brand identity above:
+1. Generate a catchy title (titulo) — in the brand's exact tone, not a generic hook
+2. Generate a full caption with emojis (content) — reflects the personality, emotional feel, and content focus
+3. Generate 5–10 relevant hashtags (hashtags) — mix branded, niche, and broad
+
+IMPORTANT:
+- The copy MUST sound like this specific brand — not a generic marketing post
+- Do NOT describe the image explicitly (no "in this photo...")
+- Do NOT mention AI or image generation
+- Emojis are allowed
+- The text must feel native and natural in English (US)
+
+Return ONLY valid JSON:
+
+{
+  "titulo": "…",
+  "content": "…",
+  "hashtags": "#hashtag1 #hashtag2 #hashtag3"
+}
+
+════════════════════════════════════════════════════════════════════════
+
+
+You are an expert social media copywriter writing the caption for a post image you can see.
+
+You are provided with an IMAGE.
+
+BRAND IDENTITY (MANDATORY — this is WHO is posting, every line of copy must sound like them):
+- Brand Name: LeadBoost Demo
+- Description: An Instagram-first growth platform that helps service businesses turn followers into booked clients through AI-generated content.
+- Category: Not tracked in brand profile yet
+- Brand Style: modern minimalist
+- Color Palette: #0A0A23, #3B82F6, #F59E0B
+
+BRAND ESSENCE (defines every word choice):
+- Tone of Voice: warm, confident, evidence-based
+- Personality: knowledgeable guide who doesn't preach
+- Emotional Feel: calm reassurance + subtle excitement
+- Visual Keywords: clean, editorial, off-white backgrounds, natural light
+- Brand Promise: Results you can feel within 14 days or your money back
+
+AUDIENCE & VOICE (apply when tracked; ignore lines that say "Not tracked"):
+- Primary Goal: book more consultations
+- Target Age Range: 28-45
+- Target Awareness Level: problem-aware
+- Voice Description: expert friend, not a salesperson
+- Content Focus: education > promotion (70/30 split)
+- Selling Style: soft pull, not hard push
+- Default CTA (use as inspiration, not verbatim): Tap to book a free consult
+
+LANGUAGE RULES (ABSOLUTE – NO EXCEPTIONS):
+- ALL generated text MUST be written exclusively in English (US)
+- This includes title, caption, hashtags
+- DO NOT mix languages
+- DO NOT use English words unless the language is English
+- Hashtags MUST be written in English (US)
+
+TASK:
+Using the visual content of the image AND the brand identity above:
+1. Generate a catchy title (titulo) — in the brand's exact tone, not a generic hook
+2. Generate a full caption with emojis (content) — reflects the personality, emotional feel, and content focus
+3. Generate 5–10 relevant hashtags (hashtags) — mix branded, niche, and broad
+
+IMPORTANT:
+- The copy MUST sound like this specific brand — not a generic marketing post
+- Do NOT describe the image explicitly (no "in this photo...")
+- Do NOT mention AI or image generation
+- Emojis are allowed
+- The text must feel native and natural in English (US)
+
+Return ONLY valid JSON:
+
+{
+  "titulo": "…",
+  "content": "…",
+  "hashtags": "#hashtag1 #hashtag2 #hashtag3"
+}
+
+
+════════════════════════════════════════════════════════════════════════
+DRY-TEST 5 — summary
+════════════════════════════════════════════════════════════════════════
+Total prompt variables tracked: 29
+Missing/empty: 0
+Not tracked in schema: 7
+Preflight blocked: no
+Critical missing count: 0
+
+DONE.

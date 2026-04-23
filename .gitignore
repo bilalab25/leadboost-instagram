@@ -25,6 +25,9 @@ facebook_attach_*.json
 # Analysis/debug artifacts
 endpoint_analysis.txt
 
+# Local Boosty reel test outputs
+boosty-reel-*.mp4
+
 # IDE
 .vscode/
 .idea/
